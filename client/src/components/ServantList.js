@@ -5,7 +5,8 @@ import { addServant, removeServant } from '../features/servant/servantSlice.js';
 
 // import { Form, Dropdown, DropdownButton, Button } from 'react-bootstrap';
 
-import { FormControl, FormLabel, FormErrorMessage, FormHelperText, Input, Switch } from '@chakra-ui/react'
+import { Button, Menu, MenuButton, MenuList, MenuItem, MenuItemOption, MenuGroup, MenuOptionGroup, MenuDivider, FormControl, FormLabel, FormErrorMessage, FormHelperText, Input, Switch } from '@chakra-ui/react';
+import { ChevronDownIcon } from '@chakra-ui/icons';
 import Downshift from 'downshift';
 import './ServantList.css';
 
@@ -23,6 +24,7 @@ const ServantList = () => {
   const [region, setRegion] = useState('NA');
   const [servantData, setServantData] = useState(servantDataNA);
   const [filterState, setFilterState] = useState('');
+  const [classFilter, setClassFilter] = useState('');
 
   // Need something here that actually works to append class or some other identifier for duplicate names.
   const servantNamesNA = servantDataNA.map((servant) => {
@@ -92,7 +94,14 @@ const ServantList = () => {
       setRegion('NA');
       setServantData(servantDataNA)
     }
-  }
+  };
+
+  const handleClassChange = (event) => {
+    const selection = event.target;
+    setClassFilter(selection.name);
+    console.log(`Selected ${selection.name}`);
+    console.log(classFilter);
+  };
 
   const saveServantData = () => {
     localStorage.setItem('servant-data', JSON.stringify(servantData[0]));
@@ -114,7 +123,41 @@ const ServantList = () => {
 
   return (
     <>
-
+      <Menu>
+        <MenuButton
+          as={Button}
+          rightIcon={<ChevronDownIcon />}>
+          {classFilter === ''
+            ? 'Select Class'
+            : classFilter
+          }
+        </MenuButton>
+        <MenuList>
+          {classList.map((cls, pos) => (
+            cls !== 'Shielder'
+              ? <MenuItem
+                name={cls}
+                onClick={handleClassChange}>{cls}</MenuItem>
+              : null
+          ))}
+        </MenuList>
+      </Menu>
+      <Menu>
+        <MenuButton
+          as={Button}
+          rightIcon={<ChevronDownIcon />}>
+          Select Servant
+        </MenuButton>
+        <MenuList>
+          {servantList.map((servant, pos) => (
+            servant.className === classFilter.toLowerCase()
+              ? <MenuItem
+                name={servant.id}
+                onClick={handleClassChange}>{servant.name}</MenuItem>
+              : null
+          ))}
+        </MenuList>
+      </Menu>
       {/* <Form>
         <div className="mb-3">
           {classList.map((cls) => (
