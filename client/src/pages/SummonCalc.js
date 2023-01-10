@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 
-import './SummonCalc.css'
+import { Grid, GridItem } from '@chakra-ui/react'
+import { FormControl, FormLabel, Input, Button } from '@chakra-ui/react'
 
 const SummonCalc = () => {
 
@@ -50,7 +51,9 @@ const SummonCalc = () => {
     return 0;
   }
 
-  const calc = () => {
+  const calc = (purchases) => {
+    // Purchases should be sent as an object and destructured into number of purchases and number of SQ per. Everything else can probably come from state since the element sending the function call probably won't have direct access to that data.
+    
     const weeklies = calcWeeklies();
     const total = startingSQ + weeklies + calcEvents;
     return total;
@@ -66,8 +69,12 @@ const SummonCalc = () => {
     // Set these up to read the correct value and useState.
   };
 
+  const handleFormSubmit = () => {
+    console.log(`${startingSQ} SQ, ${startingTx} Tickets`)
+  }
+
   useEffect(() => {
-    console.log(startingSQ, startingTx)
+    // console.log(startingSQ, startingTx)
   }, [startingSQ, startingTx]);
 
   return (
@@ -75,10 +82,19 @@ const SummonCalc = () => {
       <h1>Calculate SQ</h1>
       <br />
       <br />
-      <form id="calc-form" onChange={handleFormUpdate}>
-        <div>Quartz: <input className="form-input" name="startingSQ" placeholder="0" /></div>
-        <div>Tickets: <input className="form-input" name="startingTx" placeholder="0" /></div>
-      </form>
+      <FormControl maxW="400px" marginLeft="auto" marginRight="auto" onChange={handleFormUpdate}>
+        <Grid h='' templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
+          <GridItem rowSpan={1} colSpan={1} >
+            <FormLabel>Quartz:</FormLabel>
+            <Input className="form-input" name="startingSQ" placeholder="0" onSubmit={handleFormSubmit} />
+          </GridItem>
+          <GridItem rowSpan={1} colSpan={1}>
+            <FormLabel>Tickets:</FormLabel>
+            <Input className="form-input" name="startingTx" placeholder="0" onSubmit={handleFormSubmit} />
+          </GridItem>
+        </Grid>
+        <Button marginTop={4} colorScheme="blue" onClick={handleFormSubmit} >Calculate</Button>
+      </FormControl>
     </>
   )
 };
