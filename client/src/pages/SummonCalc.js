@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 
+import './SummonCalc.css'
 
 const SummonCalc = () => {
 
-  const [startingSQ, setStartingSQ] = useState();
-  const [startingTx, setStartingTx] = useState();
+  const [startingSQ, setStartingSQ] = useState(0);
+  const [startingTx, setStartingTx] = useState(0);
+  const [nLogins, setNLogins] = useState(0);
+  const [consLogins, setConsLogins] = useState(0);
 
   const today = { y: dayjs().$y, m: dayjs().$M + 1, d: dayjs().$D };
-  console.log(today);
 
   const periodics = {
     weeklyLogin: [
@@ -54,15 +56,29 @@ const SummonCalc = () => {
     return total;
   };
 
-  const handleFormUpdate = () => {
+  const handleFormUpdate = (e) => {
+    if (e.target.name === 'startingSQ') {
+      setStartingSQ(e.target.value);
+    }
+    if (e.target.name === 'startingTx') {
+      setStartingTx(e.target.value);
+    }
     // Set these up to read the correct value and useState.
-    setStartingSQ();
-    setStartingTx();
   };
+
+  useEffect(() => {
+    console.log(startingSQ, startingTx)
+  }, [startingSQ, startingTx]);
 
   return (
     <>
       <h1>Calculate SQ</h1>
+      <br />
+      <br />
+      <form id="calc-form" onChange={handleFormUpdate}>
+        <div>Quartz: <input className="form-input" name="startingSQ" placeholder="0" /></div>
+        <div>Tickets: <input className="form-input" name="startingTx" placeholder="0" /></div>
+      </form>
     </>
   )
 };
