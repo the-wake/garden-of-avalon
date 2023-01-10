@@ -137,7 +137,10 @@ const ServantList = () => {
             cls !== 'Shielder'
               ? <MenuItem
                 name={cls}
-                onClick={handleClassChange}>{cls}</MenuItem>
+                onClick={handleClassChange}
+              >
+                {cls}
+              </MenuItem>
               : null
           ))}
         </MenuList>
@@ -153,7 +156,10 @@ const ServantList = () => {
             servant.className === classFilter.toLowerCase()
               ? <MenuItem
                 name={servant.id}
-                onClick={handleClassChange}>{servant.name}</MenuItem>
+                key={pos}
+              >
+                {servant.name}
+              </MenuItem>
               : null
           ))}
         </MenuList>
