@@ -5,7 +5,6 @@ import Servant from './components/Servant.js';
 import SummonCalc from './pages/SummonCalc.js';
 
 import './App.css';
-import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
   return (

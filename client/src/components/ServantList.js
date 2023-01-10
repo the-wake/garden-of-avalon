@@ -3,8 +3,6 @@ import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { addServant, removeServant } from '../features/servant/servantSlice.js';
 
-// import { Form, Dropdown, DropdownButton, Button } from 'react-bootstrap';
-
 import { Button, Menu, MenuButton, MenuList, MenuItem, MenuItemOption, MenuGroup, MenuOptionGroup, MenuDivider, FormControl, FormLabel, FormErrorMessage, FormHelperText, Input, Switch } from '@chakra-ui/react';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import Downshift from 'downshift';
