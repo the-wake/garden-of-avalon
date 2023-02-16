@@ -42,18 +42,33 @@ const SummonCalc = () => {
     },
   };
 
-  const today = { y: dayjs().$y, m: dayjs().$M + 1, d: dayjs().$D };
+  // const today = { y: dayjs().$y, m: dayjs().$M + 1, d: dayjs().$D };
 
   // origin = Starting data (sq, tickets, etc.). Start = date to calculate from. Target = end of calculations.
-  const calcWeeklies = (origin, start, target) => {
+
+  const calcWeeklies = (start, target, numDays) => {
     // Probably better to make an array with each reward, and have the function just move through each index of the array for N number of times.
 
-    // Have this get today's index of the weekly rotation.
-    const index = origin;
+    const today = dayjs();
+    console.log(today);
+
+    let distance = dayjs(start).diff(dayjs(today), 'days');
+
+    // It seems like the diff between day X and day X+1 comes out to 0, so this 
+    if (distance >= 1) {
+      distance++
+    } else if (distance === 0 && (start.$y > today.$y || start.$M > today.$M || start.$d > today.$d)) {
+      distance++
+    };
+    // console.log(today, start, distance);
+
+    // The weekly index of the start day.
+    const index = (loginData.consecutive + distance) % 7;
     // Have this get the remainder of the final week if n < 7.
-    const remainder = start % target;
+    const remainder = numDays % 7;
     // This gets the values of each full weeks' gains.
-    const weeks = start - target;
+    const weeks = (numDays - remainder) / 7;
+    console.log(`Starting index: ${index}. Full weeks: ${weeks}. Remainder days: ${remainder}`);
 
     const gains = index + remainder + weeks;
     return gains;
@@ -66,27 +81,29 @@ const SummonCalc = () => {
 
   const calc = (purchases) => {
     // Purchases should be sent as an object and destructured into number of purchases and number of SQ per. Everything else can probably come from state since the element sending the function call probably won't have direct access to that data.
-    
-    const weeklies = calcWeeklies();
+
+    const start = dayjs(dates.start);
+    const target = dayjs(dates.target);
+    const numDays = dayjs(target).diff(dayjs(start), 'day');
+    console.log(`${currency.sq} SQ, ${currency.tx} Tickets`);
+    console.log(`${numDays} days between dates.`)
+
+    const weeklies = calcWeeklies(start, target, numDays);
     const total = currency.sq + currency.tx * 3 + weeklies + calcEvents;
     return total;
   };
 
   const handleFormUpdate = (e) => {
-    setCurrency({...currency, [e.target.name]: e.target.value});
+    setCurrency({ ...currency, [e.target.name]: e.target.value });
   };
 
-  const handleFormSubmit = () => {
-    console.log(`${currency.sq} SQ, ${currency.tx} Tickets`)
-  };
+  // useEffect(() => {
+  //   console.log(currency);
+  // }, [currency]);
 
-  useEffect(() => {
-    console.log(currency);
-  }, [currency]);
-
-  useEffect(() => {
-    console.log(`Range: ${dayjs(dates.start)} through ${dayjs(dates.target)}`);
-  }, [dates]);
+  // useEffect(() => {
+  //   console.log(`Range: ${dayjs(dates.start)} through ${dayjs(dates.target)}`);
+  // }, [dates]);
 
   return (
     <>
@@ -97,16 +114,22 @@ const SummonCalc = () => {
         <Grid h='' templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
           <GridItem rowSpan={1} colSpan={1} >
             <FormLabel>Quartz:</FormLabel>
-            <Input className="form-input" name="sq" placeholder="0" onSubmit={handleFormSubmit} />
+            <Input className="form-input" name="sq" placeholder="0" onSubmit={calc} />
           </GridItem>
           <GridItem rowSpan={1} colSpan={1}>
             <FormLabel>Tickets:</FormLabel>
-            <Input className="form-input" name="tx" placeholder="0" onSubmit={handleFormSubmit} />
+            <Input className="form-input" name="tx" placeholder="0" onSubmit={calc} />
+          </GridItem>
+          <GridItem rowSpan={1} colSpan={1} >
+            From:
+            <DatePicker selected={dates.start} onChange={(date) => setDates({ ...dates, ["start"]: date })} />
+          </GridItem>
+          <GridItem rowSpan={1} colSpan={1} >
+            To:
+            <DatePicker selected={dates.target} onChange={(date) => setDates({ ...dates, ["target"]: date })} />
           </GridItem>
         </Grid>
-        <DatePicker selected={dates.start} onChange={(date) => setDates({...dates, ["start"]: date})} />
-        <DatePicker selected={dates.target} onChange={(date) => setDates({...dates, ["target"]: date})} />
-        <Button marginTop={4} colorScheme="blue" onClick={handleFormSubmit} >Calculate</Button>
+        <Button marginTop={4} colorScheme="blue" onClick={calc} >Calculate</Button>
       </FormControl>
     </>
   )
