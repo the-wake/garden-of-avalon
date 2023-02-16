@@ -3,15 +3,26 @@ import dayjs from 'dayjs';
 
 import { Grid, GridItem } from '@chakra-ui/react'
 import { FormControl, FormLabel, Input, Button } from '@chakra-ui/react'
+import DatePicker from "react-datepicker";
+
+import "react-datepicker/dist/react-datepicker.css";
 
 const SummonCalc = () => {
 
-  const [startingSQ, setStartingSQ] = useState(0);
-  const [startingTx, setStartingTx] = useState(0);
-  const [nLogins, setNLogins] = useState(0);
-  const [consLogins, setConsLogins] = useState(0);
+  const [currency, setCurrency] = useState({
+    sq: 0,
+    tx: 0
+  });
 
-  const today = { y: dayjs().$y, m: dayjs().$M + 1, d: dayjs().$D };
+  const [loginData, setLoginData] = useState({
+    logins: 0,
+    consecutive: 0,
+  });
+
+  const [dates, setDates] = useState({
+    start: new Date(),
+    target: new Date(),
+  })
 
   const periodics = {
     weeklyLogin: [
@@ -30,6 +41,8 @@ const SummonCalc = () => {
       tx: 5
     },
   };
+
+  const today = { y: dayjs().$y, m: dayjs().$M + 1, d: dayjs().$D };
 
   // origin = Starting data (sq, tickets, etc.). Start = date to calculate from. Target = end of calculations.
   const calcWeeklies = (origin, start, target) => {
@@ -55,27 +68,25 @@ const SummonCalc = () => {
     // Purchases should be sent as an object and destructured into number of purchases and number of SQ per. Everything else can probably come from state since the element sending the function call probably won't have direct access to that data.
     
     const weeklies = calcWeeklies();
-    const total = startingSQ + weeklies + calcEvents;
+    const total = currency.sq + currency.tx * 3 + weeklies + calcEvents;
     return total;
   };
 
   const handleFormUpdate = (e) => {
-    if (e.target.name === 'startingSQ') {
-      setStartingSQ(e.target.value);
-    }
-    if (e.target.name === 'startingTx') {
-      setStartingTx(e.target.value);
-    }
-    // Set these up to read the correct value and useState.
+    setCurrency({...currency, [e.target.name]: e.target.value});
   };
 
   const handleFormSubmit = () => {
-    console.log(`${startingSQ} SQ, ${startingTx} Tickets`)
-  }
+    console.log(`${currency.sq} SQ, ${currency.tx} Tickets`)
+  };
 
   useEffect(() => {
-    // console.log(startingSQ, startingTx)
-  }, [startingSQ, startingTx]);
+    console.log(currency);
+  }, [currency]);
+
+  useEffect(() => {
+    console.log(`Range: ${dayjs(dates.start)} through ${dayjs(dates.target)}`);
+  }, [dates]);
 
   return (
     <>
@@ -86,13 +97,15 @@ const SummonCalc = () => {
         <Grid h='' templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
           <GridItem rowSpan={1} colSpan={1} >
             <FormLabel>Quartz:</FormLabel>
-            <Input className="form-input" name="startingSQ" placeholder="0" onSubmit={handleFormSubmit} />
+            <Input className="form-input" name="sq" placeholder="0" onSubmit={handleFormSubmit} />
           </GridItem>
           <GridItem rowSpan={1} colSpan={1}>
             <FormLabel>Tickets:</FormLabel>
-            <Input className="form-input" name="startingTx" placeholder="0" onSubmit={handleFormSubmit} />
+            <Input className="form-input" name="tx" placeholder="0" onSubmit={handleFormSubmit} />
           </GridItem>
         </Grid>
+        <DatePicker selected={dates.start} onChange={(date) => setDates({...dates, ["start"]: date})} />
+        <DatePicker selected={dates.target} onChange={(date) => setDates({...dates, ["target"]: date})} />
         <Button marginTop={4} colorScheme="blue" onClick={handleFormSubmit} >Calculate</Button>
       </FormControl>
     </>
