@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 
 import { Grid, GridItem } from '@chakra-ui/react'
-import { FormControl, FormLabel, Input, Button } from '@chakra-ui/react'
+import { FormControl, FormLabel, Input, Button, Select } from '@chakra-ui/react'
 import DatePicker from "react-datepicker";
 
 import "react-datepicker/dist/react-datepicker.css";
@@ -17,6 +17,11 @@ const SummonCalc = () => {
   const [loginData, setLoginData] = useState({
     logins: 0,
     streak: 0,
+  });
+
+  const [purchaseData, setPurchaseData] = useState({
+    whale: 0,
+    period: 'once'
   });
 
   const [dates, setDates] = useState({
@@ -122,7 +127,7 @@ const SummonCalc = () => {
     // console.log(weeklyGains);
 
     console.log(weeklyGains);
-    
+
     return weeklyGains;
   };
 
@@ -149,20 +154,18 @@ const SummonCalc = () => {
   };
 
   // Calculates standard MP shop (not special MP shop items; those go in calcEvents).
-  const calcShop = (start, target) => {
-    let distance = (target.$y - start.$y) * 12 + (target.$M - start.$M);
-    console.log(distance);
+  const calcShop = (monthDistance) => {
 
-    const shopTx = distance * 5;  
+    const shopTx = monthDistance * 5;
 
-    console.log(`${distance} shop resets within target range, giving ${shopTx} Tickets.`);
+    console.log(`${monthDistance} shop resets within target range, giving ${shopTx} Tickets.`);
 
     return shopTx;
   };
 
   // Calculates events.
   const calcEvents = () => {
-    
+
     const totalEvents = {
       sq: 0,
       tx: 0
@@ -171,12 +174,23 @@ const SummonCalc = () => {
     return totalEvents;
   };
 
-  const calc = (purchases) => {
+  // Calculates purchases.
+  // TODO: Allow for repeating monthly purchases.
+  const calcPurchases = (numMonths) => {
+
+    const totalPurchases = parseInt(purchaseData.whale) + (parseInt(purchaseData.whale) * (numMonths - 1) * purchaseData.period);
+    return totalPurchases;
+  };
+
+  const calc = () => {
     // Purchases should be sent as an object and destructured into number of purchases and number of SQ per. Everything else can probably come from state since the element sending the function call probably won't have direct access to that data.
 
     const start = dayjs(dates.start);
     const target = dayjs(dates.target);
+    
     let numDays = dayjs(target).diff(dayjs(start), 'day');
+    const numMonths = (target.$y - start.$y) * 12 + (target.$M - start.$M);
+    console.log(numMonths);
 
     // It seems like we need to manually adjust differences since anything that should be 1 or higher is reduced by 1.
     if (numDays >= 1) {
@@ -185,14 +199,13 @@ const SummonCalc = () => {
       numDays++
     };
 
-    // console.log(`${currency.sq} SQ, ${currency.tx} Tickets`);
     // console.log(`${numDays} days between dates.`)
 
-    // TODO: This is where we'll want to do the full computation and render for the values.
-    const weeklies = calcWeeklies(start, numDays);
-    const logins = calcLogins(start, target);
-    const shop = calcShop(start, target);
-    const events = calcEvents(start, target);
+    const weeklies = calcWeeklies(start, numDays) || 0;
+    const logins = calcLogins(start, target) || 0;
+    const shop = calcShop(numMonths) || 0;
+    const events = calcEvents(start, target) || 0;
+    const purchases = calcPurchases(numMonths) || 0;
 
     const gains = {
       sq: weeklies.sq + logins + events.sq,
@@ -200,7 +213,7 @@ const SummonCalc = () => {
     };
 
     const total = {
-      sq: gains.sq + currency.sq,
+      sq: gains.sq + currency.sq + purchases,
       tx: gains.tx + currency.tx
     };
 
@@ -217,12 +230,15 @@ const SummonCalc = () => {
       setCurrency({ ...currency, [e.target.name]: parseInt(e.target.value) });
     } else if (e.target.name === 'logins' || e.target.name === 'streak') {
       setLoginData({ ...loginData, [e.target.name]: parseInt(e.target.value) });
-    };
+    } else if (e.target.name === 'whale' || e.target.name === 'period') {
+      console.log(e.target.value);
+      setPurchaseData({ ...purchaseData, [e.target.name]: e.target.value });
+    }
   };
 
   // useEffect(() => {
-  //   console.log(loginData);
-  // }, [loginData]);
+  //   console.log(purchaseData);
+  // }, [purchaseData]);
 
   return (
     <>
@@ -246,6 +262,17 @@ const SummonCalc = () => {
           <GridItem rowSpan={1} colSpan={1}>
             <FormLabel>Starting Tickets:</FormLabel>
             <Input className="form-input" name="tx" type="number" placeholder="0" onSubmit={calc} />
+          </GridItem>
+          <GridItem rowSpan={1} colSpan={1} >
+            <FormLabel>SQ Purchases:</FormLabel>
+            <Input className="form-input" name="whale" type="number" placeholder="0" onSubmit={calc} />
+          </GridItem>
+          <GridItem rowSpan={1} colSpan={1}>
+            <FormLabel>Frequency:</FormLabel>
+            <Select className="form-input" name="period" type="text">
+              <option value={0}>One-time</option>
+              <option value={1}>Monthly</option>
+            </Select>
           </GridItem>
           <GridItem rowSpan={1} colSpan={1} >
             <FormLabel>Start Date:</FormLabel>
