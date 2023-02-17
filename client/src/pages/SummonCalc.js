@@ -16,7 +16,7 @@ const SummonCalc = () => {
 
   const [loginData, setLoginData] = useState({
     logins: 0,
-    consecutive: 0,
+    streak: 0,
   });
 
   const [dates, setDates] = useState({
@@ -25,8 +25,8 @@ const SummonCalc = () => {
   });
 
   const [totals, setTotals] = useState({
-    sq: '',
-    tx: ''
+    sq: 0,
+    tx: 0
   });
 
   const periodic = {
@@ -72,9 +72,12 @@ const SummonCalc = () => {
     },
   };
 
-  const calcLogins = (start, numDays) => {
+  const today = dayjs();
 
-    const today = dayjs();
+  // TODO: We could make a treatment function that just loops through two arguments' year / month / day fields, but since different functions do different things with the data it may be too convoluted.
+
+  // Calculates master missions. Could rename to calcStreak instead to be clearer what data it cares about and produces.
+  const calcWeeklies = (start, numDays) => {
     // console.log(today);
 
     let distance = dayjs(start).diff(dayjs(today), 'days');
@@ -89,7 +92,7 @@ const SummonCalc = () => {
     console.log(`${distance} days from today to start date.`)
 
     // The weekly index of the start day.
-    const index = (loginData.consecutive + distance) % 7;
+    const index = (loginData.streak + distance) % 7;
 
     const remainder = numDays % 7;
 
@@ -97,52 +100,75 @@ const SummonCalc = () => {
     const weeks = (numDays - remainder) / 7;
     console.log(`Starting index: ${index}. Full weeks: ${weeks}. Remainder days: ${remainder}.`);
 
-    const calcWeeklies = () => {
-
-      let weeklyGains = {
-        sq: 0,
-        tx: 0
-      };
-
-      for (let i = 0; i < numDays; i++) {
-        let trueI = (i + index) % 7;
-
-        // console.log(trueI);
-
-        const thisLogin = periodic.weeklyLogin[trueI];
-        // console.log(`Today's login reward: ${JSON.stringify(thisLogin)}`);
-
-        if (thisLogin.type in weeklyGains) {
-          // console.log(`Corresponding value found: ${thisLogin.type}`);
-          weeklyGains[thisLogin.type] += thisLogin.val;
-        };
-      };
-      // console.log(`Added ${weeklyGains.sq} Saint Quartz and ${weeklyGains.tx} Summoning Tickets.`)
-      console.log(weeklyGains);
-
-      return weeklyGains;
-    };
-
-    const weeklyCurrency = calcWeeklies();
-    const eventCurrency = calcEvents();
-
-    console.log(weeklyCurrency);
-
-    // TODO: This useState update shouldn't happen here, but we'll put it here for now until the rest of the functionality is hooked up.
-    setTotals({
-      sq: weeklyCurrency.sq + weeklyCurrency.sq + currency.sq,
-      tx: weeklyCurrency.tx + eventCurrency.tx + currency.tx
-    });
-  };
-
-  const calcEvents = (origin, start, target) => {
-    // I have no idea. Atlas has an event API though.
-    let eventGains = {
+    let weeklyGains = {
       sq: 0,
       tx: 0
     };
 
-    return eventGains;
+    for (let i = 0; i < numDays; i++) {
+      let trueI = (i + index) % 7;
+
+      // console.log(trueI);
+
+      const thisLogin = periodic.weeklyLogin[trueI];
+      // console.log(`Today's login reward: ${JSON.stringify(thisLogin)}`);
+
+      if (thisLogin.type in weeklyGains) {
+        // console.log(`Corresponding value found: ${thisLogin.type}`);
+        weeklyGains[thisLogin.type] += thisLogin.val;
+      };
+    };
+    // console.log(`Added ${weeklyGains.sq} Saint Quartz and ${weeklyGains.tx} Summoning Tickets.`)
+    // console.log(weeklyGains);
+
+    console.log(weeklyGains);
+    
+    return weeklyGains;
+  };
+
+  // Calculates login streaks.
+  const calcLogins = (start, target) => {
+    const { logins } = loginData;
+    const startIndex = logins % 50;
+    // console.log(startIndex);
+
+    let distance = target.diff(start, 'days');
+
+    if (distance >= 1) {
+      distance++
+    } else if (distance === 0 && (target.$y > today.$y || target.$M > today.$M || target.$d > today.$d)) {
+      distance++
+    };
+
+    const endingLogins = startIndex + distance;
+    const loginSQ = Math.floor(endingLogins / 50) * 30;
+
+    console.log(`${distance} days until target date. Total logins gain will be ${loginSQ} Quartz.`);
+
+    return loginSQ;
+  };
+
+  // Calculates standard MP shop (not special MP shop items; those go in calcEvents).
+  const calcShop = (start, target) => {
+    let distance = (target.$y - start.$y) * 12 + (target.$M - start.$M);
+    console.log(distance);
+
+    const shopTx = distance * 5;  
+
+    console.log(`${distance} shop resets within target range, giving ${shopTx} Tickets.`);
+
+    return shopTx;
+  };
+
+  // Calculates events.
+  const calcEvents = () => {
+    
+    const totalEvents = {
+      sq: 0,
+      tx: 0
+    };
+
+    return totalEvents;
   };
 
   const calc = (purchases) => {
@@ -163,14 +189,40 @@ const SummonCalc = () => {
     // console.log(`${numDays} days between dates.`)
 
     // TODO: This is where we'll want to do the full computation and render for the values.
-    const weeklies = calcLogins(start, numDays);
-    const total = currency.sq + currency.tx * 3 + weeklies + calcEvents;
-    return total;
+    const weeklies = calcWeeklies(start, numDays);
+    const logins = calcLogins(start, target);
+    const shop = calcShop(start, target);
+    const events = calcEvents(start, target);
+
+    const gains = {
+      sq: weeklies.sq + logins + events.sq,
+      tx: weeklies.tx + shop + events.tx
+    };
+
+    const total = {
+      sq: gains.sq + currency.sq,
+      tx: gains.tx + currency.tx
+    };
+
+    setTotals(total);
+    return totals;
   };
 
+  useEffect(() => {
+    console.log(totals);
+  }, [totals]);
+
   const handleFormUpdate = (e) => {
-    setCurrency({ ...currency, [e.target.name]: parseInt(e.target.value) });
+    if (e.target.name === 'sq' || e.target.name === 'tx') {
+      setCurrency({ ...currency, [e.target.name]: parseInt(e.target.value) });
+    } else if (e.target.name === 'logins' || e.target.name === 'streak') {
+      setLoginData({ ...loginData, [e.target.name]: parseInt(e.target.value) });
+    };
   };
+
+  // useEffect(() => {
+  //   console.log(loginData);
+  // }, [loginData]);
 
   return (
     <>
@@ -179,6 +231,14 @@ const SummonCalc = () => {
       <br />
       <FormControl maxW="400px" marginLeft="auto" marginRight="auto" onChange={handleFormUpdate}>
         <Grid h='' templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
+          <GridItem rowSpan={1} colSpan={1} >
+            <FormLabel>Current Logins:</FormLabel>
+            <Input className="form-input" name="logins" type="number" placeholder="0" onSubmit={calc} />
+          </GridItem>
+          <GridItem rowSpan={1} colSpan={1}>
+            <FormLabel>Login Streak:</FormLabel>
+            <Input className="form-input" name="streak" type="number" placeholder="0" onSubmit={calc} />
+          </GridItem>
           <GridItem rowSpan={1} colSpan={1} >
             <FormLabel>Starting Quartz:</FormLabel>
             <Input className="form-input" name="sq" type="number" placeholder="0" onSubmit={calc} />
