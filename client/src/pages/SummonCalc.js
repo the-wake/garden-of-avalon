@@ -24,16 +24,41 @@ const SummonCalc = () => {
     target: new Date(),
   })
 
-  const periodics = {
+  const periodic = {
     weeklyLogin: [
-      { fp: 2000 },
-      { sq: 1 },
-      { xp: 1 },
-      { sq: 1 },
-      { xp: 2 },
-      { sq: 2 },
-      { tx: 1 },
+      {
+        type: 'fp',
+        val: 2000
+      },
+      {
+        type: 'sq',
+        val: 1
+      },
+      {
+        type: 'xp',
+        val: 1
+      },
+      {
+        type: 'sq',
+        val: 1
+      },
+      {
+        type: 'xp',
+        val: 2
+      },
+      {
+        type: 'sq',
+        val: 2
+      },
+      {
+        type: 'tx',
+        val: 1
+      },
     ],
+    fullWeek: {
+      sq: 4,
+      tx: 1
+    },
     totalLogin: {
       sq: 30
     },
@@ -46,11 +71,11 @@ const SummonCalc = () => {
 
   // origin = Starting data (sq, tickets, etc.). Start = date to calculate from. Target = end of calculations.
 
-  const calcWeeklies = (start, target, numDays) => {
+  const calcLogins = (start, numDays) => {
     // Probably better to make an array with each reward, and have the function just move through each index of the array for N number of times.
 
     const today = dayjs();
-    console.log(today);
+    // console.log(today);
 
     let distance = dayjs(start).diff(dayjs(today), 'days');
 
@@ -60,18 +85,62 @@ const SummonCalc = () => {
     } else if (distance === 0 && (start.$y > today.$y || start.$M > today.$M || start.$d > today.$d)) {
       distance++
     };
-    // console.log(today, start, distance);
+    
+    console.log(`${distance} days from today to start date.`)
 
     // The weekly index of the start day.
     const index = (loginData.consecutive + distance) % 7;
-    // Have this get the remainder of the final week if n < 7.
+
     const remainder = numDays % 7;
+
     // This gets the values of each full weeks' gains.
     const weeks = (numDays - remainder) / 7;
-    console.log(`Starting index: ${index}. Full weeks: ${weeks}. Remainder days: ${remainder}`);
+    console.log(`Starting index: ${index}. Full weeks: ${weeks}. Remainder days: ${remainder}.`);
 
-    const gains = index + remainder + weeks;
-    return gains;
+    const calcWeeklies = () => {
+
+      let weeklyGains = {
+        sq: 0,
+        tx: 0
+      };
+
+      for (let i = 0; i < numDays; i++) {
+        let trueI = (i + index) % 7;
+
+        // console.log(trueI);
+
+        const thisLogin = periodic.weeklyLogin[trueI];
+        // console.log(`Today's login reward: ${JSON.stringify(thisLogin)}`);
+
+        if (thisLogin.type in weeklyGains) {
+          // console.log(`Corresponding value found: ${thisLogin.type}`);
+          weeklyGains[thisLogin.type] += thisLogin.val;
+        };
+
+
+        // This embedded loop seems to cause React to freak out and infinitely run the loop.
+        // for (let ind = 0; ind < Object.keys(weeklyGains).length; ind++) {
+        //   const thisField = Object.keys(weeklyGains)[ind];
+
+        //   // console.log('Loop.');
+        //   console.log(`Login: ${JSON.stringify(thisLogin)} - Field: ${thisField}`);
+
+        //   // if (thisLogin.type == thisField) {
+        //   //   weeklyGains[ind] += thisLogin.val;
+        //   // };
+        // }
+
+      };
+      console.log(`Added ${weeklyGains.sq} Saint Quartz and ${weeklyGains.tx} Summoning Tickets.`)
+      console.log(weeklyGains);
+    };
+
+    calcWeeklies();
+
+    // const gains = {
+    //   sq: periodic.fullWeek.sq * weeks,
+    // };
+    // return gains;
   };
 
   const calcEvents = (origin, start, target) => {
@@ -84,11 +153,19 @@ const SummonCalc = () => {
 
     const start = dayjs(dates.start);
     const target = dayjs(dates.target);
-    const numDays = dayjs(target).diff(dayjs(start), 'day');
-    console.log(`${currency.sq} SQ, ${currency.tx} Tickets`);
-    console.log(`${numDays} days between dates.`)
+    let numDays = dayjs(target).diff(dayjs(start), 'day');
 
-    const weeklies = calcWeeklies(start, target, numDays);
+    // It seems like we need to manually adjust differences since anything that should be 1 or higher is reduced by 1.
+    if (numDays >= 1) {
+      numDays++
+    } else if (numDays === 0 && (target.$y > start.$y || target.$M > start.$M || target.$d > start.$d)) {
+      numDays++
+    };
+
+    console.log(`${currency.sq} SQ, ${currency.tx} Tickets`);
+    // console.log(`${numDays} days between dates.`)
+
+    const weeklies = calcLogins(start, numDays);
     const total = currency.sq + currency.tx * 3 + weeklies + calcEvents;
     return total;
   };
