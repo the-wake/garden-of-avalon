@@ -22,7 +22,12 @@ const SummonCalc = () => {
   const [dates, setDates] = useState({
     start: new Date(),
     target: new Date(),
-  })
+  });
+
+  const [totals, setTotals] = useState({
+    sq: '',
+    tx: ''
+  });
 
   const periodic = {
     weeklyLogin: [
@@ -67,12 +72,7 @@ const SummonCalc = () => {
     },
   };
 
-  // const today = { y: dayjs().$y, m: dayjs().$M + 1, d: dayjs().$D };
-
-  // origin = Starting data (sq, tickets, etc.). Start = date to calculate from. Target = end of calculations.
-
   const calcLogins = (start, numDays) => {
-    // Probably better to make an array with each reward, and have the function just move through each index of the array for N number of times.
 
     const today = dayjs();
     // console.log(today);
@@ -85,7 +85,7 @@ const SummonCalc = () => {
     } else if (distance === 0 && (start.$y > today.$y || start.$M > today.$M || start.$d > today.$d)) {
       distance++
     };
-    
+
     console.log(`${distance} days from today to start date.`)
 
     // The weekly index of the start day.
@@ -116,37 +116,34 @@ const SummonCalc = () => {
           // console.log(`Corresponding value found: ${thisLogin.type}`);
           weeklyGains[thisLogin.type] += thisLogin.val;
         };
-
-
-        // This embedded loop seems to cause React to freak out and infinitely run the loop.
-        // for (let ind = 0; ind < Object.keys(weeklyGains).length; ind++) {
-        //   const thisField = Object.keys(weeklyGains)[ind];
-
-        //   // console.log('Loop.');
-        //   console.log(`Login: ${JSON.stringify(thisLogin)} - Field: ${thisField}`);
-
-        //   // if (thisLogin.type == thisField) {
-        //   //   weeklyGains[ind] += thisLogin.val;
-        //   // };
-        // }
-
       };
-      console.log(`Added ${weeklyGains.sq} Saint Quartz and ${weeklyGains.tx} Summoning Tickets.`)
+      // console.log(`Added ${weeklyGains.sq} Saint Quartz and ${weeklyGains.tx} Summoning Tickets.`)
       console.log(weeklyGains);
+
+      return weeklyGains;
     };
 
-    calcWeeklies();
+    const weeklyCurrency = calcWeeklies();
+    const eventCurrency = calcEvents();
 
-    // const gains = {
-    //   sq: periodic.fullWeek.sq * weeks,
-    // };
-    // return gains;
+    console.log(weeklyCurrency);
+
+    // TODO: This useState update shouldn't happen here, but we'll put it here for now until the rest of the functionality is hooked up.
+    setTotals({
+      sq: weeklyCurrency.sq + weeklyCurrency.sq + currency.sq,
+      tx: weeklyCurrency.tx + eventCurrency.tx + currency.tx
+    });
   };
 
   const calcEvents = (origin, start, target) => {
     // I have no idea. Atlas has an event API though.
-    return 0;
-  }
+    let eventGains = {
+      sq: 0,
+      tx: 0
+    };
+
+    return eventGains;
+  };
 
   const calc = (purchases) => {
     // Purchases should be sent as an object and destructured into number of purchases and number of SQ per. Everything else can probably come from state since the element sending the function call probably won't have direct access to that data.
@@ -162,25 +159,18 @@ const SummonCalc = () => {
       numDays++
     };
 
-    console.log(`${currency.sq} SQ, ${currency.tx} Tickets`);
+    // console.log(`${currency.sq} SQ, ${currency.tx} Tickets`);
     // console.log(`${numDays} days between dates.`)
 
+    // TODO: This is where we'll want to do the full computation and render for the values.
     const weeklies = calcLogins(start, numDays);
     const total = currency.sq + currency.tx * 3 + weeklies + calcEvents;
     return total;
   };
 
   const handleFormUpdate = (e) => {
-    setCurrency({ ...currency, [e.target.name]: e.target.value });
+    setCurrency({ ...currency, [e.target.name]: parseInt(e.target.value) });
   };
-
-  // useEffect(() => {
-  //   console.log(currency);
-  // }, [currency]);
-
-  // useEffect(() => {
-  //   console.log(`Range: ${dayjs(dates.start)} through ${dayjs(dates.target)}`);
-  // }, [dates]);
 
   return (
     <>
@@ -190,23 +180,36 @@ const SummonCalc = () => {
       <FormControl maxW="400px" marginLeft="auto" marginRight="auto" onChange={handleFormUpdate}>
         <Grid h='' templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
           <GridItem rowSpan={1} colSpan={1} >
-            <FormLabel>Quartz:</FormLabel>
-            <Input className="form-input" name="sq" placeholder="0" onSubmit={calc} />
+            <FormLabel>Starting Quartz:</FormLabel>
+            <Input className="form-input" name="sq" type="number" placeholder="0" onSubmit={calc} />
           </GridItem>
           <GridItem rowSpan={1} colSpan={1}>
-            <FormLabel>Tickets:</FormLabel>
-            <Input className="form-input" name="tx" placeholder="0" onSubmit={calc} />
+            <FormLabel>Starting Tickets:</FormLabel>
+            <Input className="form-input" name="tx" type="number" placeholder="0" onSubmit={calc} />
           </GridItem>
           <GridItem rowSpan={1} colSpan={1} >
-            From:
-            <DatePicker selected={dates.start} onChange={(date) => setDates({ ...dates, ["start"]: date })} />
+            <FormLabel>Start Date:</FormLabel>
+            <DatePicker selected={dates.start} onChange={(date) => setDates({ ...dates, start: date })} />
           </GridItem>
           <GridItem rowSpan={1} colSpan={1} >
-            To:
-            <DatePicker selected={dates.target} onChange={(date) => setDates({ ...dates, ["target"]: date })} />
+            <FormLabel>End Date:</FormLabel>
+            <DatePicker selected={dates.target} onChange={(date) => setDates({ ...dates, target: date })} />
           </GridItem>
         </Grid>
+
         <Button marginTop={4} colorScheme="blue" onClick={calc} >Calculate</Button>
+        <br />
+        <br />
+        <Grid h='' templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
+          <GridItem rowSpan={1} colSpan={1} >
+            <FormLabel>Total Quartz</FormLabel>
+            <Input className="form-input" isReadOnly={true} name="total-sq" value={totals.sq} placeholder="0" />
+          </GridItem>
+          <GridItem rowSpan={1} colSpan={1} >
+            <FormLabel>Total Tickets</FormLabel>
+            <Input className="form-input" isReadOnly={true} name="total-sq" value={totals.tx} placeholder="0" />
+          </GridItem>
+        </Grid>
       </FormControl>
     </>
   )
