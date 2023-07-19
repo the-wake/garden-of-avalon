@@ -94,6 +94,30 @@ const SummonCalc = () => {
       console.log('today!')
     } else {
       const difference = dayjs().diff(date, 'days');
+
+      // If it's been at least a week since last login, loop through difference to look for Master Mission refreshes in the elapsed duration.
+      if (difference >= 7) {
+        const updateWeeklies = alert('It\'s been over a week since last login. Update with Master Missions and daily logins?')
+
+        if (updateWeeklies) {
+          let dayInc = 0;
+          for (let i = 0; i < difference; i++) {
+            dayInc++;
+            const masterMissionGains = calcMasterMissions(date, dayInc);
+          };
+          const startingSQ = reserves.sq;
+          setCurrency({ sq: startingSQ += masterMissionGains });
+          console.log(`Added ${masterMissionGains} SQ from Master Missions.`);
+          //   let dayInc = 0;
+          //   for (var i = 0; i < difference; i++) {
+          //     dayInc++;
+          //     let currentDay = date.add(dayInc, 'days').format('ddd');
+
+
+          //   };
+          // };
+        };
+      };
       // console.log(`Last check was ${difference} days ago!`);
 
       // Get index of week for the day of the last calculation.
@@ -136,6 +160,7 @@ const SummonCalc = () => {
   // Calculates master missions. Could rename to calcStreak instead to be clearer what data it cares about and produces.
   const calcWeeklies = (start, numDays, origin) => {
     let distance = dayjs(start).diff(dayjs(today), 'days');
+    console.log(start);
 
     // It seems like the diff between day X and day X+1 comes out to 0, so this 
     // if (distance >= 1) {
@@ -164,18 +189,33 @@ const SummonCalc = () => {
       tx: 0
     };
 
+    let dayInc = 0;
+
     for (let i = 0; i < numDays; i++) {
-      let trueI = (i + index) % 7;
+      const trueI = (i + index) % 7;
+      dayInc++;
+
+
 
       // console.log(trueI);
 
       const thisLogin = periodic.weeklyLogin[trueI];
       // console.log(`Today's login reward: ${JSON.stringify(thisLogin)}`);
 
+      // Course through weeklyGains to find matching rewards.
       if (thisLogin.type in weeklyGains) {
         // console.log(`Corresponding value found: ${thisLogin.type}`);
         weeklyGains[thisLogin.type] += thisLogin.val;
       };
+
+      // Master missions.
+      const masterMissionGains = calcMasterMissions(start, dayInc);
+      weeklyGains.sq += masterMissionGains;
+      console.log(`Added ${masterMissionGains} SQ from Master Missions.`);
+      // if (currentDay === "Sun") {
+      //   weeklyGains.sq += 3;
+      //   console.log(`Adding 3 SQ to total`)
+      // };
     };
     // console.log(`Added ${weeklyGains.sq} Saint Quartz and ${weeklyGains.tx} Summoning Tickets.`)
     // console.log(weeklyGains);
@@ -185,10 +225,21 @@ const SummonCalc = () => {
     return weeklyGains;
   };
 
+  const calcMasterMissions = (start, dayInc) => {
+    const currentDay = start.add(dayInc, 'day').format('ddd');
+    let sqGains = 0;
+    if (currentDay === "Sun") {
+      sqGains += 3;
+      console.log(`Adding 3 SQ to total`)
+    };
+    return sqGains;
+  };
+
   // Calculates login streaks.
   const calcLogins = (start, target) => {
-    const { logins } = loginData;
-    const startIndex = logins % 50;
+    const { total } = loginData;
+    console.log(loginData);
+    const startIndex = total % 50;
     // console.log(startIndex);
 
     let distance = target.diff(start, 'days');
@@ -300,7 +351,7 @@ const SummonCalc = () => {
   }, [loginData]);
 
   useEffect(() => {
-    if (reserves.sq || reserves.tx) {
+    if (reserves) {
       console.log('Storing', reserves);
       localStorage.setItem('reserves', JSON.stringify({ ...reserves }));
     };
@@ -364,11 +415,11 @@ const SummonCalc = () => {
           </GridItem>
           <GridItem rowSpan={1} colSpan={1} >
             <FormLabel>Starting Quartz:</FormLabel>
-            <Input className="form-input" name="sq" type="number" placeholder="0" defaultValue={reserves.sq} onSubmit={calc} />
+            <Input className="form-input" name="sq" type="number" placeholder="0" value={reserves.sq} onSubmit={calc} />
           </GridItem>
           <GridItem rowSpan={1} colSpan={1}>
             <FormLabel>Starting Tickets:</FormLabel>
-            <Input className="form-input" name="tx" type="number" placeholder="0" defaultValue={reserves.tx} onSubmit={calc} />
+            <Input className="form-input" name="tx" type="number" placeholder="0" value={reserves.tx} onSubmit={calc} />
           </GridItem>
           <GridItem rowSpan={1} colSpan={1} >
             <FormLabel>SQ Purchases:</FormLabel>
