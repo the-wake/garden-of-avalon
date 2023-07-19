@@ -289,10 +289,11 @@ const SummonCalc = () => {
   const calcPurchases = (numMonths) => {
     console.log(purchaseData);
 
-    const numPurchases = purchaseData.period === 0 ? 1 : numMonths + 1 - purchaseData.alreadyPurchased;
+    const numPurchases = parseInt(purchaseData.period) === 0 ? 1 : numMonths + 1 - purchaseData.alreadyPurchased;
     console.log(numPurchases);
 
-    const totalPurchases = parseInt(purchaseData.whale) * numPurchases;
+    const totalPurchases = parseInt(purchaseData.whale) * numPurchases || 0;
+    // console.log(totalPurchases);
     return totalPurchases;
   };
 
@@ -301,6 +302,11 @@ const SummonCalc = () => {
 
     const start = dayjs(dates.start);
     const target = dayjs(dates.target);
+
+    if (target.diff(start) < 0) {
+      window.alert('Target date can\'t be before current date');
+      return;
+    };
 
     let numDays = dayjs(target).diff(dayjs(start), 'day');
     const numMonths = (target.$y - start.$y) * 12 + (target.$M - start.$M);
@@ -321,6 +327,8 @@ const SummonCalc = () => {
     const shop = calcShop(numMonths) || 0;
     const events = calcEvents(start, target) || 0;
     const purchases = calcPurchases(numMonths) || 0;
+    const other = extras.sq || 0;
+    console.log(other);
 
     const gains = {
       sq: weeklies.sq + logins + events.sq,
@@ -328,7 +336,7 @@ const SummonCalc = () => {
     };
 
     const total = {
-      sq: gains.sq + reserves.sq + purchases,
+      sq: gains.sq + reserves.sq + purchases + other,
       tx: gains.tx + reserves.tx
     };
 
@@ -375,11 +383,6 @@ const SummonCalc = () => {
       tx: 0
     });
 
-    // setLoginData({
-    //   logins: 0,
-    //   streak: 0,
-    // });
-
     setPurchaseData({
       whale: 0,
       period: 0,
@@ -400,17 +403,21 @@ const SummonCalc = () => {
       sq: 0,
       tx: 0
     });
+
+    setExtras({
+      sq: 0,
+      tx: 0
+    });
   };
 
-  // useEffect(() => {
-  //   console.log(purchaseData);
-  // }, [purchaseData]);
+  // TODO: Clear button doesn't zero out purchases and other gains.
 
   return (
     <>
       <h1>Calculate SQ</h1>
       <br />
       <br />
+
       <FormControl maxW="400px" marginLeft="auto" marginRight="auto" onChange={handleFormUpdate}>
         <Grid h='' templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
           <GridItem rowSpan={1} colSpan={1} >
@@ -440,7 +447,7 @@ const SummonCalc = () => {
               <option value={1}>Monthly</option>
             </Select>
           </GridItem>
-          {purchaseData.period === 1 ?
+          {parseInt(purchaseData.period) === 1 ?
             <GridItem rowSpan={1} colSpan={2}>
               <Checkbox name="alreadyPurchased" defaultChecked={false}>Already purchased this month?</Checkbox>
             </GridItem>
