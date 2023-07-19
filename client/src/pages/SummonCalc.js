@@ -37,6 +37,12 @@ const SummonCalc = () => {
     tx: 0
   });
 
+  const [summonStats, setSummonStats] = useState({
+    rarity: 5,
+    numRateup: 1,
+    odds: 0.008
+  });
+
   const periodic = {
     weeklyLogin: [
       {
@@ -79,6 +85,12 @@ const SummonCalc = () => {
       tx: 5
     },
   };
+
+  // 
+  const odds = {
+    ssr: [0.008, 0.005],
+    sr: [0.02, 0.015, 0.012]
+  }
 
   const today = dayjs().format('YYYY-MM-DD');
 
@@ -358,6 +370,13 @@ const SummonCalc = () => {
     };
   };
 
+  const handleForm2Update = (e) => {
+    if(e.target.name === 'rarity' || e.target.name === 'numRateup') {
+      setSummonStats({ ...summonStats, [e.target.name]: parseInt(e.target.value)});
+    }
+  };
+
+
   // Set local storage when updating login streak or currency totals.
   useEffect(() => {
     if (loginData.total || loginData.streak || loginData.date) {
@@ -376,6 +395,10 @@ const SummonCalc = () => {
   useEffect(() => {
     console.log(purchaseData);
   }, [purchaseData]);
+
+  useEffect(() => {
+    console.log(summonStats);
+  }, [summonStats]);
 
   const clearForm = () => {
     setReserves({
@@ -482,6 +505,31 @@ const SummonCalc = () => {
           <GridItem rowSpan={1} colSpan={1} >
             <FormLabel>Total Tickets:</FormLabel>
             <Input className="form-input" isReadOnly={true} name="total-sq" value={currency.tx} placeholder="0" />
+          </GridItem>
+        </Grid>
+      </FormControl>
+      <FormControl mt={6} maxW="800px" marginLeft="auto" marginRight="auto" onChange={handleForm2Update}>
+        <h3>Roll Probabilities</h3>
+        <Grid p={6} h='' templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
+          <GridItem rowSpan={1} colSpan={1}>
+            <FormLabel>Desired Servant Rarity:</FormLabel>
+            <Select className="form-input" name="rarity" type="text">
+              <option value={5}>5* (SSR)</option>
+              <option value={4}>4* (SR)</option>
+              <option value={3}>3* (R)</option>
+            </Select>
+          </GridItem>
+          {/* TODO: Display this only if previous form input is 3* or 4*. */}
+          <GridItem rowSpan={1} colSpan={1}>
+          <FormLabel>Multiple Rateup</FormLabel>
+            <Select className="form-input" name="numRateup" type="text">
+              <option value={1}>Single Rateup</option>
+              <option value={2}>2 Rateups</option>
+              <option value={3}>3 Rateups</option>
+              <option value={4}>4 Rateups</option>
+              <option value={5}>5 Rateups</option>
+              <option value={0}>Other (please specify odds manually)</option>
+            </Select>
           </GridItem>
         </Grid>
       </FormControl>
