@@ -32,6 +32,11 @@ const SummonCalc = () => {
     tx: 0
   });
 
+  const [extras, setExtras] = useState({
+    sq: 0,
+    tx: 0
+  });
+
   const periodic = {
     weeklyLogin: [
       {
@@ -88,23 +93,22 @@ const SummonCalc = () => {
   // Treats and sets login data and currency.
   useEffect(() => {
     let { total, streak, date } = JSON.parse(localStorage.getItem('login-history'));
+    date = dayjs(date);
     console.log(total, streak, date);
 
-    if (date == today) {
+    // console.log(dayjs(date));
+
+    if (date === today) {
       console.log('today!')
     } else {
       const difference = dayjs().diff(date, 'days');
 
       // If it's been at least a week since last login, loop through difference to look for Master Mission refreshes in the elapsed duration.
       if (difference >= 7) {
-        const updateWeeklies = alert('It\'s been over a week since last login. Update with Master Missions and daily logins?')
+        const updateWeeklies = window.confirm('It\'s been over a week since last login. Update with Master Missions and daily logins?')
 
         if (updateWeeklies) {
-          let dayInc = 0;
-          for (let i = 0; i < difference; i++) {
-            dayInc++;
-            const masterMissionGains = calcMasterMissions(date, dayInc);
-          };
+          const masterMissionGains = calcMasterMissions(date, difference);
           const startingSQ = reserves.sq;
           setCurrency({ sq: startingSQ += masterMissionGains });
           console.log(`Added ${masterMissionGains} SQ from Master Missions.`);
@@ -159,22 +163,22 @@ const SummonCalc = () => {
 
   // Calculates master missions. Could rename to calcStreak instead to be clearer what data it cares about and produces.
   const calcWeeklies = (start, numDays, origin) => {
-    let distance = dayjs(start).diff(dayjs(today), 'days');
-    console.log(start);
+    // let distance = dayjs(start).diff(dayjs(today), 'days');
+    console.log(`Calculating weeklies. Start: ${start}; numDays: ${numDays}.`);
 
     // It seems like the diff between day X and day X+1 comes out to 0, so this 
-    // if (distance >= 1) {
-    //   distance++
-    // } else if (distance === 0 && (start.$y > today.$y || start.$M > today.$M || start.$d > today.$d)) {
-    //   distance++
-    // };
+    if (numDays >= 1) {
+      numDays++
+    } else if (numDays === 0 && (start.$y > today.$y || start.$M > today.$M || start.$d > today.$d)) {
+      numDays++
+    };
 
-    console.log(`${distance} days from today to start date.`)
+    console.log(`${numDays} days from today to start date.`)
 
     // The weekly index of the start day.
     let index;
-    console.log(origin || distance);
-    origin <= 6 ? index = origin : index = (loginData.streak + distance) % 7;
+    console.log(origin || numDays);
+    origin <= 6 ? index = origin : index = (loginData.streak + numDays) % 7;
     // const index = origin || (loginData.streak + distance) % 7;
     console.log(index);
 
@@ -189,15 +193,15 @@ const SummonCalc = () => {
       tx: 0
     };
 
-    let dayInc = 0;
+    const masterMissionGains = calcMasterMissions(start, numDays);
+    console.log(`Calculating Master Mission. Start: ${start}; Number of Days: ${numDays}.`);
+    weeklyGains.sq += masterMissionGains;
+    console.log(`Added ${masterMissionGains} SQ from Master Missions.`);
+    console.log(weeklyGains);
 
+    // Daily login bonus courser.
     for (let i = 0; i < numDays; i++) {
       const trueI = (i + index) % 7;
-      dayInc++;
-
-
-
-      // console.log(trueI);
 
       const thisLogin = periodic.weeklyLogin[trueI];
       // console.log(`Today's login reward: ${JSON.stringify(thisLogin)}`);
@@ -207,11 +211,6 @@ const SummonCalc = () => {
         // console.log(`Corresponding value found: ${thisLogin.type}`);
         weeklyGains[thisLogin.type] += thisLogin.val;
       };
-
-      // Master missions.
-      const masterMissionGains = calcMasterMissions(start, dayInc);
-      weeklyGains.sq += masterMissionGains;
-      console.log(`Added ${masterMissionGains} SQ from Master Missions.`);
       // if (currentDay === "Sun") {
       //   weeklyGains.sq += 3;
       //   console.log(`Adding 3 SQ to total`)
@@ -225,12 +224,18 @@ const SummonCalc = () => {
     return weeklyGains;
   };
 
-  const calcMasterMissions = (start, dayInc) => {
-    const currentDay = start.add(dayInc, 'day').format('ddd');
+  const calcMasterMissions = (start, difference) => {
+    console.log(`Calcing Master Missions starting at ${start}. Duration: ${difference}.`)
+    let dayInc = 0;
     let sqGains = 0;
-    if (currentDay === "Sun") {
-      sqGains += 3;
-      console.log(`Adding 3 SQ to total`)
+
+    for (var i = 0; i < difference; i++) {
+      dayInc++;
+      const currentDay = start.add(dayInc, 'day').format('ddd');
+      if (currentDay === "Sun") {
+        sqGains += 3;
+        console.log(`Adding 3 SQ to total`)
+      };
     };
     return sqGains;
   };
@@ -299,6 +304,7 @@ const SummonCalc = () => {
 
     let numDays = dayjs(target).diff(dayjs(start), 'day');
     const numMonths = (target.$y - start.$y) * 12 + (target.$M - start.$M);
+    console.log(numDays);
     console.log(numMonths);
 
     // It seems like we need to manually adjust differences since anything that should be 1 or higher is reduced by 1.
@@ -335,6 +341,8 @@ const SummonCalc = () => {
       setReserves({ ...reserves, [e.target.name]: parseInt(e.target.value) });
     } else if (e.target.name === 'total' || e.target.name === 'streak') {
       setLoginData({ ...loginData, [e.target.name]: parseInt(e.target.value), date: dayjs().format('YYYY-MM-DD') });
+    } else if (e.target.name === 'extraSq') {
+      setExtras({ ...extras, sq: parseInt(e.target.value) });
     } else if (e.target.name === 'whale' || e.target.name === 'period') {
       setPurchaseData({ ...purchaseData, [e.target.name]: e.target.value });
     } else if (e.target.name === 'alreadyPurchased') {
@@ -432,11 +440,15 @@ const SummonCalc = () => {
               <option value={1}>Monthly</option>
             </Select>
           </GridItem>
-          {purchaseData.period == 1 ?
+          {purchaseData.period === 1 ?
             <GridItem rowSpan={1} colSpan={2}>
               <Checkbox name="alreadyPurchased" defaultChecked={false}>Already purchased this month?</Checkbox>
             </GridItem>
             : null}
+          <GridItem rowSpan={1} colSpan={2} >
+            <FormLabel>Additional SQ (Maintenance, Interludes, Quests, etc.):</FormLabel>
+            <Input className="form-input" name="extraSq" type="number" placeholder="0" onSubmit={calc} />
+          </GridItem>
           <GridItem rowSpan={1} colSpan={1} >
             <FormLabel>Start Date:</FormLabel>
             <DatePicker selected={dates.start} onChange={(date) => setDates({ ...dates, start: date })} />
