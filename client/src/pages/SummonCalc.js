@@ -38,9 +38,9 @@ const SummonCalc = () => {
   });
 
   const [summonStats, setSummonStats] = useState({
-    rarity: 5,
+    rarity: 'ssr',
     numRateup: 1,
-    odds: 0.008
+    prob: 0.008
   });
 
   const periodic = {
@@ -89,8 +89,9 @@ const SummonCalc = () => {
   // 
   const odds = {
     ssr: [0.008, 0.005],
-    sr: [0.02, 0.015, 0.012]
-  }
+    sr: [0.02, 0.015, 0.012],
+    r: [0.2],
+  };
 
   const today = dayjs().format('YYYY-MM-DD');
 
@@ -121,8 +122,8 @@ const SummonCalc = () => {
 
         if (updateWeeklies) {
           const masterMissionGains = calcMasterMissions(date, difference);
-          const startingSQ = reserves.sq;
-          setCurrency({ sq: startingSQ += masterMissionGains });
+          let startingSQ = reserves.sq;
+          setCurrency({ sq: parseInt(startingSQ += masterMissionGains) || 0 });
           console.log(`Added ${masterMissionGains} SQ from Master Missions.`);
           //   let dayInc = 0;
           //   for (var i = 0; i < difference; i++) {
@@ -348,8 +349,8 @@ const SummonCalc = () => {
     };
 
     const total = {
-      sq: gains.sq + reserves.sq + purchases + other,
-      tx: gains.tx + reserves.tx
+      sq: parseInt(gains.sq + reserves.sq + purchases + other) || 0,
+      tx: parseInt(gains.tx + reserves.tx) || 0
     };
 
     setCurrency(total);
@@ -364,18 +365,11 @@ const SummonCalc = () => {
     } else if (e.target.name === 'extraSq') {
       setExtras({ ...extras, sq: parseInt(e.target.value) });
     } else if (e.target.name === 'whale' || e.target.name === 'period') {
-      setPurchaseData({ ...purchaseData, [e.target.name]: e.target.value });
+      setPurchaseData({ ...purchaseData, [e.target.name]: parseInt(e.target.value) });
     } else if (e.target.name === 'alreadyPurchased') {
       setPurchaseData({ ...purchaseData, alreadyPurchased: e.target.checked });
     };
   };
-
-  const handleForm2Update = (e) => {
-    if(e.target.name === 'rarity' || e.target.name === 'numRateup') {
-      setSummonStats({ ...summonStats, [e.target.name]: parseInt(e.target.value)});
-    }
-  };
-
 
   // Set local storage when updating login streak or currency totals.
   useEffect(() => {
@@ -396,9 +390,9 @@ const SummonCalc = () => {
     console.log(purchaseData);
   }, [purchaseData]);
 
-  useEffect(() => {
-    console.log(summonStats);
-  }, [summonStats]);
+  // useEffect(() => {
+  //   console.log(summonStats);
+  // }, [summonStats]);
 
   const clearForm = () => {
     setReserves({
@@ -431,6 +425,24 @@ const SummonCalc = () => {
       sq: 0,
       tx: 0
     });
+  };
+
+  let totalSummons = Math.floor((currency.sq / 3 + currency.tx) + Math.floor((currency.sq / 3 + currency.tx) / 10));
+
+  useEffect(() => {
+    totalSummons = Math.floor((currency.sq / 3 + currency.tx) + Math.floor((currency.sq / 3 + currency.tx) / 10));
+    console.log(totalSummons);
+  }, [currency]);
+
+  // TODO: Move set prob from useEffect to this handler.
+  const probHandler = (e) => {
+    if (e.target.name === 'rarity') {
+      const newProb = odds[e.target.value][summonStats.numRateup-1];
+      setSummonStats({ ...summonStats, [e.target.name]: e.target.value, prob: newProb });
+    } else {
+      const newProb = odds[summonStats.rarity][e.target.value-1];
+      setSummonStats({ ...summonStats, [e.target.name]: parseInt(e.target.value), prob: newProb });
+    };
   };
 
   // TODO: Clear button doesn't zero out purchases and other gains.
@@ -506,23 +518,29 @@ const SummonCalc = () => {
             <FormLabel>Total Tickets:</FormLabel>
             <Input className="form-input" isReadOnly={true} name="total-sq" value={currency.tx} placeholder="0" />
           </GridItem>
+          <GridItem rowSpan={1} colSpan={1} >
+            <FormLabel>Total Summons:</FormLabel>
+          </GridItem>
+          <GridItem rowSpan={1} colSpan={1} >
+            <Input className="form-input" isReadOnly={true} name="total-summons" value={totalSummons} />
+          </GridItem>
         </Grid>
       </FormControl>
-      <FormControl mt={6} maxW="800px" marginLeft="auto" marginRight="auto" onChange={handleForm2Update}>
+      <FormControl mt={6} maxW="800px" marginLeft="auto" marginRight="auto">
         <h3>Roll Probabilities</h3>
         <Grid p={6} h='' templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
           <GridItem rowSpan={1} colSpan={1}>
             <FormLabel>Desired Servant Rarity:</FormLabel>
-            <Select className="form-input" name="rarity" type="text">
-              <option value={5}>5* (SSR)</option>
-              <option value={4}>4* (SR)</option>
-              <option value={3}>3* (R)</option>
+            <Select className="form-input" name="rarity" type="text" onChange={probHandler}>
+              <option value={'ssr'}>5* (SSR)</option>
+              <option value={'sr'}>4* (SR)</option>
+              <option value={'r'}>3* (R)</option>
             </Select>
           </GridItem>
           {/* TODO: Display this only if previous form input is 3* or 4*. */}
           <GridItem rowSpan={1} colSpan={1}>
-          <FormLabel>Multiple Rateup</FormLabel>
-            <Select className="form-input" name="numRateup" type="text">
+            <FormLabel>Total Servants on Rateup:</FormLabel>
+            <Select className="form-input" name="numRateup" type="text" onChange={probHandler} defaultValue={1}>
               <option value={1}>Single Rateup</option>
               <option value={2}>2 Rateups</option>
               <option value={3}>3 Rateups</option>
@@ -530,6 +548,16 @@ const SummonCalc = () => {
               <option value={5}>5 Rateups</option>
               <option value={0}>Other (please specify odds manually)</option>
             </Select>
+          </GridItem>
+          <GridItem rowSpan={1} colSpan={1}>
+            <FormLabel>Probability of success per roll:</FormLabel>
+          </GridItem>
+          <GridItem rowSpan={1} colSpan={1}>
+            {
+              summonStats.numRateup !== 0
+                ? <Input className="form-input" isReadOnly={true} name="total-summons" value={summonStats.prob} />
+                : <Input className="form-input" isReadOnly={false} name="total-summons" placeholder={0.008} />
+            }
           </GridItem>
         </Grid>
       </FormControl>
