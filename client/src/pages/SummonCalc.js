@@ -8,6 +8,8 @@ import Statistics from "statistics.js";
 
 import "react-datepicker/dist/react-datepicker.css";
 
+import RollSnapshot from "../components/RollSnapshot";
+
 // TODO: Once we have MVP, refactor with reducers and better state handling.
 const SummonCalc = () => {
 
@@ -513,6 +515,10 @@ const SummonCalc = () => {
     setSummonOdds(oddsRender);
   };
 
+  const saveSnapshot = () => {
+    console.log('');
+  };
+
   // TODO: Clear button doesn't zero out purchases and other gains.
 
   return (
@@ -521,9 +527,9 @@ const SummonCalc = () => {
       <br />
       <br />
 
-{/* Dynamically render the parent grid component only if there are saved rolls. */}
+      {/* Dynamically render the parent grid component only if there are saved rolls. */}
       <Grid h='' templateRows="repeat(1, fr)" templateColumns="repeat(2, 1fr)">
-        <GridItem rowSpan={1} columnSpan={2}>
+        <GridItem rowSpan={1} columnSpan={1}>
           <FormControl maxW="400px" marginLeft="auto" marginRight="auto" onChange={handleFormUpdate}>
             <Grid h='' templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
               <GridItem rowSpan={1} colSpan={1} >
@@ -623,11 +629,7 @@ const SummonCalc = () => {
                 <FormLabel>Probability of success per roll:</FormLabel>
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
-                {
-                  summonStats.numRateup !== 0
-                    ? <Input className="form-input" isReadOnly={true} name="total-summons" value={summonStats.prob} />
-                    : <Input className="form-input" isReadOnly={false} name="total-summons" placeholder={0.008} />
-                }
+                <Input className="form-input" isReadOnly={summonStats.numRateup !== 0 ? true : false} name="total-summons" value={summonStats.prob} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Number of Copies Desired:</FormLabel>
@@ -641,14 +643,15 @@ const SummonCalc = () => {
               {summonOdds !== 0
                 ? <GridItem rowSpan={1} colSpan={2}>
                   <Input className="form-input" maxW='400px' isReadOnly={true} name="total-summons" value={summonOdds} />
+                  <Button marginTop={4} colorScheme="blue" onClick={saveSnapshot}>Save Snapshot</Button>
                 </GridItem>
                 : null
               }
             </Grid>
           </FormControl>
         </GridItem>
-        <GridItem rowSpan={1} columnSpan={2}>
-          <h3>Saved Rolls Go Here</h3>
+        <GridItem rowSpan={1} columnSpan={1}>
+          <RollSnapshot />
         </GridItem>
       </Grid>
     </>
