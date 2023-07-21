@@ -8,6 +8,7 @@ import Statistics from "statistics.js";
 
 import "react-datepicker/dist/react-datepicker.css";
 
+// TODO: Once we have MVP, refactor with reducers and better state handling.
 const SummonCalc = () => {
 
   const [loginData, setLoginData] = useState({});
@@ -396,7 +397,7 @@ const SummonCalc = () => {
 
   useEffect(() => {
     console.log('Storing', purchaseData);
-    localStorage.setItem('purchase-data', JSON.stringify( {...purchaseData} ));
+    localStorage.setItem('purchase-data', JSON.stringify({ ...purchaseData }));
   }, [purchaseData]);
 
   const clearForm = () => {
@@ -470,46 +471,46 @@ const SummonCalc = () => {
 
 
   const calcOdds = () => {
-      // TODO: Refactor into factory function.
-      const n = totalSummons;
-      const p = summonStats.prob;
-      const q = (1 - summonStats.prob);
-      const k = summonStats.desired;
+    // TODO: Refactor into factory function.
+    const n = totalSummons;
+    const p = summonStats.prob;
+    const q = (1 - summonStats.prob);
+    const k = summonStats.desired;
 
-      var stats = new Statistics({
-        n: totalSummons,
-        p: summonStats.prob,
-        q: (1 - summonStats.prob),
-        k: summonStats.desired
-      });
-      console.log(n, p, q, k);
+    var stats = new Statistics({
+      n: totalSummons,
+      p: summonStats.prob,
+      q: (1 - summonStats.prob),
+      k: summonStats.desired
+    });
+    console.log(n, p, q, k);
 
-      const binomial = stats.binomialDistribution(n, p);
+    const binomial = stats.binomialDistribution(n, p);
 
-      console.log(binomial);
+    console.log(binomial);
 
-      let totalProb = 0;
+    let totalProb = 0;
 
-      for (let i = k; i < binomial.length; i++) {
-        if (isNaN(binomial[i])) {
-          console.log(totalProb);
-          return
-        } else {
-          totalProb += binomial[i];
-          console.log(totalProb);
-        }
-      };
+    for (let i = k; i < binomial.length; i++) {
+      if (isNaN(binomial[i])) {
+        console.log(totalProb);
+        return
+      } else {
+        totalProb += binomial[i];
+        console.log(totalProb);
+      }
+    };
 
-      // console.log(totalProb);
-      const percentage = parseFloat(totalProb * 100).toFixed(2);
+    // console.log(totalProb);
+    const percentage = parseFloat(totalProb * 100).toFixed(2);
 
-      let oddsRender = `${percentage}%`;
+    let oddsRender = `${percentage}%`;
 
-      if (k === 1 && n >= 330) {
-        oddsRender = `Guaranteed pity (330 summons)`
-      };
+    if (k === 1 && n >= 330) {
+      oddsRender = `Guaranteed pity (330 summons)`
+    };
 
-      setSummonOdds(oddsRender);
+    setSummonOdds(oddsRender);
   };
 
   // TODO: Clear button doesn't zero out purchases and other gains.
@@ -520,129 +521,136 @@ const SummonCalc = () => {
       <br />
       <br />
 
-      <FormControl maxW="400px" marginLeft="auto" marginRight="auto" onChange={handleFormUpdate}>
-        <Grid h='' templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
-          <GridItem rowSpan={1} colSpan={1} >
-            <FormLabel>Total Logins:</FormLabel>
-            <Input className="form-input" name="total" type="number" placeholder="0" defaultValue={loginData.total} onSubmit={calc} />
-          </GridItem>
-          <GridItem rowSpan={1} colSpan={1}>
-            <FormLabel>Login Streak:</FormLabel>
-            <Input className="form-input" name="streak" type="number" placeholder="0" defaultValue={loginData.streak} onSubmit={calc} />
-          </GridItem>
-          <GridItem rowSpan={1} colSpan={1} >
-            <FormLabel>Starting Quartz:</FormLabel>
-            <Input className="form-input" name="sq" type="number" placeholder="0" value={reserves.sq} onSubmit={calc} />
-          </GridItem>
-          <GridItem rowSpan={1} colSpan={1}>
-            <FormLabel>Starting Tickets:</FormLabel>
-            <Input className="form-input" name="tx" type="number" placeholder="0" value={reserves.tx} onSubmit={calc} />
-          </GridItem>
-          <GridItem rowSpan={1} colSpan={1} >
-            <FormLabel>SQ Purchases:</FormLabel>
-            <Input className="form-input" name="whale" type="number" placeholder="0" value={purchaseData.whale} onSubmit={calc} />
-          </GridItem>
-          <GridItem rowSpan={1} colSpan={1}>
-            <FormLabel>Frequency:</FormLabel>
-            <Select className="form-input" name="period" type="text">
-              <option value={0}>One-time</option>
-              <option value={1}>Monthly</option>
-            </Select>
-          </GridItem>
-          {parseInt(purchaseData.period) === 1 ?
-            <GridItem rowSpan={1} colSpan={2}>
-              <Checkbox name="alreadyPurchased" defaultChecked={false}>Already purchased this month?</Checkbox>
-            </GridItem>
-            : null}
-          <GridItem rowSpan={1} colSpan={2} >
-            <FormLabel>Additional SQ (Maintenance, Interludes, Quests, etc.):</FormLabel>
-            <Input className="form-input" name="extraSq" type="number" placeholder="0" onSubmit={calc} />
-          </GridItem>
-          <GridItem rowSpan={1} colSpan={1} >
-            <FormLabel>Start Date:</FormLabel>
-            <DatePicker selected={dates.start} onChange={(date) => setDates({ ...dates, start: date })} />
-          </GridItem>
-          <GridItem rowSpan={1} colSpan={1} >
-            <FormLabel>End Date:</FormLabel>
-            <DatePicker selected={dates.target} onChange={(date) => setDates({ ...dates, target: date })} />
-          </GridItem>
-          {/* <GridItem rowSpan={1} colSpan={1} >
+{/* Dynamically render the parent grid component only if there are saved rolls. */}
+      <Grid h='' templateRows="repeat(1, fr)" templateColumns="repeat(2, 1fr)">
+        <GridItem rowSpan={1} columnSpan={2}>
+          <FormControl maxW="400px" marginLeft="auto" marginRight="auto" onChange={handleFormUpdate}>
+            <Grid h='' templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
+              <GridItem rowSpan={1} colSpan={1} >
+                <FormLabel>Total Logins:</FormLabel>
+                <Input className="form-input" name="total" type="number" placeholder="0" defaultValue={loginData.total} onSubmit={calc} />
+              </GridItem>
+              <GridItem rowSpan={1} colSpan={1}>
+                <FormLabel>Login Streak:</FormLabel>
+                <Input className="form-input" name="streak" type="number" placeholder="0" defaultValue={loginData.streak} onSubmit={calc} />
+              </GridItem>
+              <GridItem rowSpan={1} colSpan={1} >
+                <FormLabel>Starting Quartz:</FormLabel>
+                <Input className="form-input" name="sq" type="number" placeholder="0" value={reserves.sq} onSubmit={calc} />
+              </GridItem>
+              <GridItem rowSpan={1} colSpan={1}>
+                <FormLabel>Starting Tickets:</FormLabel>
+                <Input className="form-input" name="tx" type="number" placeholder="0" value={reserves.tx} onSubmit={calc} />
+              </GridItem>
+              <GridItem rowSpan={1} colSpan={1} >
+                <FormLabel>SQ Purchases:</FormLabel>
+                <Input className="form-input" name="whale" type="number" placeholder="0" value={purchaseData.whale} onSubmit={calc} />
+              </GridItem>
+              <GridItem rowSpan={1} colSpan={1}>
+                <FormLabel>Frequency:</FormLabel>
+                <Select className="form-input" name="period" type="text">
+                  <option value={0}>One-time</option>
+                  <option value={1}>Monthly</option>
+                </Select>
+              </GridItem>
+              {parseInt(purchaseData.period) === 1 ?
+                <GridItem rowSpan={1} colSpan={2}>
+                  <Checkbox name="alreadyPurchased" defaultChecked={false}>Already purchased this month?</Checkbox>
+                </GridItem>
+                : null}
+              <GridItem rowSpan={1} colSpan={2} >
+                <FormLabel>Additional SQ (Maintenance, Interludes, Quests, etc.):</FormLabel>
+                <Input className="form-input" name="extraSq" type="number" placeholder="0" onSubmit={calc} />
+              </GridItem>
+              <GridItem rowSpan={1} colSpan={1} >
+                <FormLabel>Start Date:</FormLabel>
+                <DatePicker selected={dates.start} onChange={(date) => setDates({ ...dates, start: date })} />
+              </GridItem>
+              <GridItem rowSpan={1} colSpan={1} >
+                <FormLabel>End Date:</FormLabel>
+                <DatePicker selected={dates.target} onChange={(date) => setDates({ ...dates, target: date })} />
+              </GridItem>
+              {/* <GridItem rowSpan={1} colSpan={1} >
             <Button marginTop={4} colorScheme="blue" onClick={calc} >Calculate</Button>
           </GridItem> */}
-          <GridItem rowSpan={1} colSpan={2} >
-            <Button marginTop={4} colorScheme="blue" onClick={clearForm} >Clear</Button>
-          </GridItem>
-        </Grid>
+              <GridItem rowSpan={1} colSpan={2} >
+                <Button marginTop={4} colorScheme="blue" onClick={clearForm} >Clear</Button>
+              </GridItem>
+            </Grid>
 
-        <br />
-        <br />
-        <Grid h='' templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
-          <GridItem rowSpan={1} colSpan={1} >
-            <FormLabel>Total Quartz:</FormLabel>
-            <Input className="form-input" isReadOnly={true} name="total-sq" value={currency.sq} placeholder="0" />
-          </GridItem>
-          <GridItem rowSpan={1} colSpan={1} >
-            <FormLabel>Total Tickets:</FormLabel>
-            <Input className="form-input" isReadOnly={true} name="total-sq" value={currency.tx} placeholder="0" />
-          </GridItem>
-          <GridItem rowSpan={1} colSpan={2} >
-            <FormLabel>Total Summons:</FormLabel>
-          </GridItem>
-          <GridItem rowSpan={1} colSpan={2} >
-            <Input className="form-input" isReadOnly={true} name="total-summons" value={totalSummons} />
-          </GridItem>
-        </Grid>
-      </FormControl>
-      <FormControl mt={6} maxW="800px" marginLeft="auto" marginRight="auto">
-        <h3>Roll Probabilities</h3>
-        <Grid p={6} h='' templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
-          <GridItem rowSpan={1} colSpan={1}>
-            <FormLabel>Desired Servant Rarity:</FormLabel>
-            <Select className="form-input" name="rarity" type="text" onChange={probHandler}>
-              <option value={'ssr'}>5* (SSR)</option>
-              <option value={'sr'}>4* (SR)</option>
-              <option value={'r'}>3* (R)</option>
-            </Select>
-          </GridItem>
-          {/* TODO: Display this only if previous form input is 3* or 4*. */}
-          <GridItem rowSpan={1} colSpan={1}>
-            <FormLabel>Total Servants on Rateup:</FormLabel>
-            <Select className="form-input" name="numRateup" type="text" onChange={probHandler} defaultValue={1}>
-              <option value={1}>Single Rateup</option>
-              <option value={2}>2 Rateups</option>
-              <option value={3}>3 Rateups</option>
-              <option value={4}>4 Rateups</option>
-              <option value={5}>5 Rateups</option>
-              <option value={0}>Other (please specify odds manually)</option>
-            </Select>
-          </GridItem>
-          <GridItem rowSpan={1} colSpan={1}>
-            <FormLabel>Probability of success per roll:</FormLabel>
-          </GridItem>
-          <GridItem rowSpan={1} colSpan={1}>
-            {
-              summonStats.numRateup !== 0
-                ? <Input className="form-input" isReadOnly={true} name="total-summons" value={summonStats.prob} />
-                : <Input className="form-input" isReadOnly={false} name="total-summons" placeholder={0.008} />
-            }
-          </GridItem>
-          <GridItem rowSpan={1} colSpan={1}>
-            <FormLabel>Number of Copies Desired:</FormLabel>
-          </GridItem>
-          <GridItem rowSpan={1} colSpan={1}>
-            <Input className="form-input" name="desired" defaultValue={1} onChange={probHandler} />
-          </GridItem>
-          <GridItem rowSpan={1} colSpan={2} >
-            <Button marginTop={4} colorScheme="blue" onClick={calcOdds} width={'400px'} >Calculate!</Button>
-          </GridItem>
-          {summonOdds !== 0
-            ? <GridItem rowSpan={1} colSpan={2}>
-              <Input className="form-input" maxW={'400px'} isReadOnly={true} name="total-summons" value={summonOdds} />
-            </GridItem>
-            : null
-          }
-        </Grid>
-      </FormControl>
+            <br />
+            <br />
+            <Grid h='' templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
+              <GridItem rowSpan={1} colSpan={1} >
+                <FormLabel>Total Quartz:</FormLabel>
+                <Input className="form-input" isReadOnly={true} name="total-sq" value={currency.sq} placeholder="0" />
+              </GridItem>
+              <GridItem rowSpan={1} colSpan={1} >
+                <FormLabel>Total Tickets:</FormLabel>
+                <Input className="form-input" isReadOnly={true} name="total-sq" value={currency.tx} placeholder="0" />
+              </GridItem>
+              <GridItem rowSpan={1} colSpan={2} >
+                <FormLabel>Total Summons:</FormLabel>
+              </GridItem>
+              <GridItem rowSpan={1} colSpan={2} >
+                <Input className="form-input" isReadOnly={true} name="total-summons" value={totalSummons} />
+              </GridItem>
+            </Grid>
+          </FormControl>
+          <FormControl mt={6} maxW="400px" marginLeft="auto" marginRight="auto">
+            <Grid h='' templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
+              <GridItem rowSpan={1} colSpan={1}>
+                <FormLabel>Desired Servant Rarity:</FormLabel>
+                <Select className="form-input" name="rarity" type="text" onChange={probHandler}>
+                  <option value={'ssr'}>5* (SSR)</option>
+                  <option value={'sr'}>4* (SR)</option>
+                  <option value={'r'}>3* (R)</option>
+                </Select>
+              </GridItem>
+              {/* TODO: Display this only if previous form input is 3* or 4*. */}
+              <GridItem rowSpan={1} colSpan={1}>
+                <FormLabel>Total Servants on Rateup:</FormLabel>
+                <Select className="form-input" name="numRateup" type="text" onChange={probHandler} defaultValue={1}>
+                  <option value={1}>Single Rateup</option>
+                  <option value={2}>2 Rateups</option>
+                  <option value={3}>3 Rateups</option>
+                  <option value={4}>4 Rateups</option>
+                  <option value={5}>5 Rateups</option>
+                  <option value={0}>Other (please specify odds manually)</option>
+                </Select>
+              </GridItem>
+              <GridItem rowSpan={1} colSpan={1}>
+                <FormLabel>Probability of success per roll:</FormLabel>
+              </GridItem>
+              <GridItem rowSpan={1} colSpan={1}>
+                {
+                  summonStats.numRateup !== 0
+                    ? <Input className="form-input" isReadOnly={true} name="total-summons" value={summonStats.prob} />
+                    : <Input className="form-input" isReadOnly={false} name="total-summons" placeholder={0.008} />
+                }
+              </GridItem>
+              <GridItem rowSpan={1} colSpan={1}>
+                <FormLabel>Number of Copies Desired:</FormLabel>
+              </GridItem>
+              <GridItem rowSpan={1} colSpan={1}>
+                <Input className="form-input" name="desired" defaultValue={1} onChange={probHandler} />
+              </GridItem>
+              <GridItem rowSpan={1} colSpan={2} >
+                <Button marginTop={4} colorScheme="blue" onClick={calcOdds} width={'400px'} >Calculate!</Button>
+              </GridItem>
+              {summonOdds !== 0
+                ? <GridItem rowSpan={1} colSpan={2}>
+                  <Input className="form-input" maxW='400px' isReadOnly={true} name="total-summons" value={summonOdds} />
+                </GridItem>
+                : null
+              }
+            </Grid>
+          </FormControl>
+        </GridItem>
+        <GridItem rowSpan={1} columnSpan={2}>
+          <h3>Saved Rolls Go Here</h3>
+        </GridItem>
+      </Grid>
     </>
   )
 };
