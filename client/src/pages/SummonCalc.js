@@ -4,6 +4,7 @@ import dayjs from 'dayjs';
 import { Grid, GridItem } from '@chakra-ui/react'
 import { FormControl, FormLabel, Input, Button, Select, Checkbox } from '@chakra-ui/react'
 import DatePicker from "react-datepicker";
+import Statistics from "statistics.js";
 
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -36,6 +37,15 @@ const SummonCalc = () => {
     sq: 0,
     tx: 0
   });
+
+  const [summonStats, setSummonStats] = useState({
+    rarity: 'ssr',
+    numRateup: 1,
+    prob: 0.008,
+    desired: 1,
+  });
+
+  const [summonOdds, setSummonOdds] = useState(0);
 
   const periodic = {
     weeklyLogin: [
@@ -80,6 +90,13 @@ const SummonCalc = () => {
     },
   };
 
+  // 
+  const odds = {
+    ssr: [0.008, 0.005],
+    sr: [0.02, 0.015, 0.012],
+    r: [0.2],
+  };
+
   const today = dayjs().format('YYYY-MM-DD');
 
   // Treats and sets current SQ to reflect new login streak.
@@ -92,7 +109,7 @@ const SummonCalc = () => {
 
   // Treats and sets login data and currency.
   useEffect(() => {
-    let { total, streak, date } = JSON.parse(localStorage.getItem('login-history'));
+    let { total, streak, date } = JSON.parse(localStorage.getItem('login-history')) || 0;
     date = dayjs(date);
     console.log(total, streak, date);
 
@@ -109,8 +126,8 @@ const SummonCalc = () => {
 
         if (updateWeeklies) {
           const masterMissionGains = calcMasterMissions(date, difference);
-          const startingSQ = reserves.sq;
-          setCurrency({ sq: startingSQ += masterMissionGains });
+          let startingSQ = reserves.sq;
+          setCurrency({ sq: parseInt(startingSQ += masterMissionGains) || 0 });
           console.log(`Added ${masterMissionGains} SQ from Master Missions.`);
           //   let dayInc = 0;
           //   for (var i = 0; i < difference; i++) {
@@ -336,8 +353,8 @@ const SummonCalc = () => {
     };
 
     const total = {
-      sq: gains.sq + reserves.sq + purchases + other,
-      tx: gains.tx + reserves.tx
+      sq: parseInt(gains.sq + reserves.sq + purchases + other) || 0,
+      tx: parseInt(gains.tx + reserves.tx) || 0
     };
 
     setCurrency(total);
@@ -352,11 +369,15 @@ const SummonCalc = () => {
     } else if (e.target.name === 'extraSq') {
       setExtras({ ...extras, sq: parseInt(e.target.value) });
     } else if (e.target.name === 'whale' || e.target.name === 'period') {
-      setPurchaseData({ ...purchaseData, [e.target.name]: e.target.value });
+      setPurchaseData({ ...purchaseData, [e.target.name]: parseInt(e.target.value) });
     } else if (e.target.name === 'alreadyPurchased') {
       setPurchaseData({ ...purchaseData, alreadyPurchased: e.target.checked });
     };
   };
+
+  useEffect(() => {
+    calc();
+  }, [purchaseData, dates, reserves, extras]);
 
   // Set local storage when updating login streak or currency totals.
   useEffect(() => {
@@ -374,10 +395,17 @@ const SummonCalc = () => {
   }, [reserves]);
 
   useEffect(() => {
-    console.log(purchaseData);
+    console.log('Storing', purchaseData);
+    localStorage.setItem('purchase-data', JSON.stringify( {...purchaseData} ));
   }, [purchaseData]);
 
   const clearForm = () => {
+    setPurchaseData({
+      whale: 0,
+      period: 0,
+      alreadyPurchased: false
+    });
+
     setReserves({
       sq: 0,
       tx: 0
@@ -410,6 +438,80 @@ const SummonCalc = () => {
     });
   };
 
+  let totalSummons = Math.floor((currency.sq / 3 + currency.tx) + Math.floor((currency.sq / 3 + currency.tx) / 10));
+
+  useEffect(() => {
+    totalSummons = Math.floor((currency.sq / 3 + currency.tx) + Math.floor((currency.sq / 3 + currency.tx) / 10));
+    console.log(totalSummons);
+  }, [currency]);
+
+  // TODO: Move set prob from useEffect to this handler.
+  const probHandler = (e) => {
+    if (e.target.name === 'rarity') {
+      const newProb = odds[e.target.value][summonStats.numRateup - 1];
+      setSummonStats({ ...summonStats, [e.target.name]: e.target.value, prob: newProb });
+    } else if (e.target.name === 'numRateup') {
+      const newProb = odds[summonStats.rarity][e.target.value - 1];
+      setSummonStats({ ...summonStats, [e.target.name]: parseInt(e.target.value), prob: newProb });
+    } else if (e.target.name === 'desired') {
+      setSummonStats({ ...summonStats, desired: parseInt(e.target.value) });
+    };
+  };
+
+  // const factorialize = (num) => {
+  //   if (num < 0) {
+  //     return -1
+  //   } else if (num === 0) {
+  //     return 1
+  //   } else {
+  //     return (num * factorialize(num - 1));
+  //   };
+  // };
+
+
+  const calcOdds = () => {
+      // TODO: Refactor into factory function.
+      const n = totalSummons;
+      const p = summonStats.prob;
+      const q = (1 - summonStats.prob);
+      const k = summonStats.desired;
+
+      var stats = new Statistics({
+        n: totalSummons,
+        p: summonStats.prob,
+        q: (1 - summonStats.prob),
+        k: summonStats.desired
+      });
+      console.log(n, p, q, k);
+
+      const binomial = stats.binomialDistribution(n, p);
+
+      console.log(binomial);
+
+      let totalProb = 0;
+
+      for (let i = k; i < binomial.length; i++) {
+        if (isNaN(binomial[i])) {
+          console.log(totalProb);
+          return
+        } else {
+          totalProb += binomial[i];
+          console.log(totalProb);
+        }
+      };
+
+      // console.log(totalProb);
+      const percentage = parseFloat(totalProb * 100).toFixed(2);
+
+      let oddsRender = `${percentage}%`;
+
+      if (k === 1 && n >= 330) {
+        oddsRender = `Guaranteed pity (330 summons)`
+      };
+
+      setSummonOdds(oddsRender);
+  };
+
   // TODO: Clear button doesn't zero out purchases and other gains.
 
   return (
@@ -438,7 +540,7 @@ const SummonCalc = () => {
           </GridItem>
           <GridItem rowSpan={1} colSpan={1} >
             <FormLabel>SQ Purchases:</FormLabel>
-            <Input className="form-input" name="whale" type="number" placeholder="0" onSubmit={calc} />
+            <Input className="form-input" name="whale" type="number" placeholder="0" value={purchaseData.whale} onSubmit={calc} />
           </GridItem>
           <GridItem rowSpan={1} colSpan={1}>
             <FormLabel>Frequency:</FormLabel>
@@ -464,10 +566,10 @@ const SummonCalc = () => {
             <FormLabel>End Date:</FormLabel>
             <DatePicker selected={dates.target} onChange={(date) => setDates({ ...dates, target: date })} />
           </GridItem>
-          <GridItem rowSpan={1} colSpan={1} >
+          {/* <GridItem rowSpan={1} colSpan={1} >
             <Button marginTop={4} colorScheme="blue" onClick={calc} >Calculate</Button>
-          </GridItem>
-          <GridItem rowSpan={1} colSpan={1} >
+          </GridItem> */}
+          <GridItem rowSpan={1} colSpan={2} >
             <Button marginTop={4} colorScheme="blue" onClick={clearForm} >Clear</Button>
           </GridItem>
         </Grid>
@@ -483,6 +585,62 @@ const SummonCalc = () => {
             <FormLabel>Total Tickets:</FormLabel>
             <Input className="form-input" isReadOnly={true} name="total-sq" value={currency.tx} placeholder="0" />
           </GridItem>
+          <GridItem rowSpan={1} colSpan={2} >
+            <FormLabel>Total Summons:</FormLabel>
+          </GridItem>
+          <GridItem rowSpan={1} colSpan={2} >
+            <Input className="form-input" isReadOnly={true} name="total-summons" value={totalSummons} />
+          </GridItem>
+        </Grid>
+      </FormControl>
+      <FormControl mt={6} maxW="800px" marginLeft="auto" marginRight="auto">
+        <h3>Roll Probabilities</h3>
+        <Grid p={6} h='' templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
+          <GridItem rowSpan={1} colSpan={1}>
+            <FormLabel>Desired Servant Rarity:</FormLabel>
+            <Select className="form-input" name="rarity" type="text" onChange={probHandler}>
+              <option value={'ssr'}>5* (SSR)</option>
+              <option value={'sr'}>4* (SR)</option>
+              <option value={'r'}>3* (R)</option>
+            </Select>
+          </GridItem>
+          {/* TODO: Display this only if previous form input is 3* or 4*. */}
+          <GridItem rowSpan={1} colSpan={1}>
+            <FormLabel>Total Servants on Rateup:</FormLabel>
+            <Select className="form-input" name="numRateup" type="text" onChange={probHandler} defaultValue={1}>
+              <option value={1}>Single Rateup</option>
+              <option value={2}>2 Rateups</option>
+              <option value={3}>3 Rateups</option>
+              <option value={4}>4 Rateups</option>
+              <option value={5}>5 Rateups</option>
+              <option value={0}>Other (please specify odds manually)</option>
+            </Select>
+          </GridItem>
+          <GridItem rowSpan={1} colSpan={1}>
+            <FormLabel>Probability of success per roll:</FormLabel>
+          </GridItem>
+          <GridItem rowSpan={1} colSpan={1}>
+            {
+              summonStats.numRateup !== 0
+                ? <Input className="form-input" isReadOnly={true} name="total-summons" value={summonStats.prob} />
+                : <Input className="form-input" isReadOnly={false} name="total-summons" placeholder={0.008} />
+            }
+          </GridItem>
+          <GridItem rowSpan={1} colSpan={1}>
+            <FormLabel>Number of Copies Desired:</FormLabel>
+          </GridItem>
+          <GridItem rowSpan={1} colSpan={1}>
+            <Input className="form-input" name="desired" defaultValue={1} onChange={probHandler} />
+          </GridItem>
+          <GridItem rowSpan={1} colSpan={2} >
+            <Button marginTop={4} colorScheme="blue" onClick={calcOdds} width={'400px'} >Calculate!</Button>
+          </GridItem>
+          {summonOdds !== 0
+            ? <GridItem rowSpan={1} colSpan={2}>
+              <Input className="form-input" maxW={'400px'} isReadOnly={true} name="total-summons" value={summonOdds} />
+            </GridItem>
+            : null
+          }
         </Grid>
       </FormControl>
     </>
