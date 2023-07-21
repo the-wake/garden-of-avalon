@@ -4,6 +4,7 @@ import dayjs from 'dayjs';
 import { Grid, GridItem } from '@chakra-ui/react'
 import { FormControl, FormLabel, Input, Button, Select, Checkbox } from '@chakra-ui/react'
 import DatePicker from "react-datepicker";
+import Statistics from "statistics.js";
 
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -40,8 +41,11 @@ const SummonCalc = () => {
   const [summonStats, setSummonStats] = useState({
     rarity: 'ssr',
     numRateup: 1,
-    prob: 0.008
+    prob: 0.008,
+    desired: 1,
   });
+
+  const [summonOdds, setSummonOdds] = useState(0);
 
   const periodic = {
     weeklyLogin: [
@@ -105,7 +109,7 @@ const SummonCalc = () => {
 
   // Treats and sets login data and currency.
   useEffect(() => {
-    let { total, streak, date } = JSON.parse(localStorage.getItem('login-history'));
+    let { total, streak, date } = JSON.parse(localStorage.getItem('login-history')) || 0;
     date = dayjs(date);
     console.log(total, streak, date);
 
@@ -371,6 +375,10 @@ const SummonCalc = () => {
     };
   };
 
+  useEffect(() => {
+    calc();
+  }, [purchaseData, dates, reserves, extras]);
+
   // Set local storage when updating login streak or currency totals.
   useEffect(() => {
     if (loginData.total || loginData.streak || loginData.date) {
@@ -387,14 +395,17 @@ const SummonCalc = () => {
   }, [reserves]);
 
   useEffect(() => {
-    console.log(purchaseData);
+    console.log('Storing', purchaseData);
+    localStorage.setItem('purchase-data', JSON.stringify( {...purchaseData} ));
   }, [purchaseData]);
 
-  // useEffect(() => {
-  //   console.log(summonStats);
-  // }, [summonStats]);
-
   const clearForm = () => {
+    setPurchaseData({
+      whale: 0,
+      period: 0,
+      alreadyPurchased: false
+    });
+
     setReserves({
       sq: 0,
       tx: 0
@@ -437,12 +448,68 @@ const SummonCalc = () => {
   // TODO: Move set prob from useEffect to this handler.
   const probHandler = (e) => {
     if (e.target.name === 'rarity') {
-      const newProb = odds[e.target.value][summonStats.numRateup-1];
+      const newProb = odds[e.target.value][summonStats.numRateup - 1];
       setSummonStats({ ...summonStats, [e.target.name]: e.target.value, prob: newProb });
-    } else {
-      const newProb = odds[summonStats.rarity][e.target.value-1];
+    } else if (e.target.name === 'numRateup') {
+      const newProb = odds[summonStats.rarity][e.target.value - 1];
       setSummonStats({ ...summonStats, [e.target.name]: parseInt(e.target.value), prob: newProb });
+    } else if (e.target.name === 'desired') {
+      setSummonStats({ ...summonStats, desired: parseInt(e.target.value) });
     };
+  };
+
+  // const factorialize = (num) => {
+  //   if (num < 0) {
+  //     return -1
+  //   } else if (num === 0) {
+  //     return 1
+  //   } else {
+  //     return (num * factorialize(num - 1));
+  //   };
+  // };
+
+
+  const calcOdds = () => {
+      // TODO: Refactor into factory function.
+      const n = totalSummons;
+      const p = summonStats.prob;
+      const q = (1 - summonStats.prob);
+      const k = summonStats.desired;
+
+      var stats = new Statistics({
+        n: totalSummons,
+        p: summonStats.prob,
+        q: (1 - summonStats.prob),
+        k: summonStats.desired
+      });
+      console.log(n, p, q, k);
+
+      const binomial = stats.binomialDistribution(n, p);
+
+      console.log(binomial);
+
+      let totalProb = 0;
+
+      for (let i = k; i < binomial.length; i++) {
+        if (isNaN(binomial[i])) {
+          console.log(totalProb);
+          return
+        } else {
+          totalProb += binomial[i];
+          console.log(totalProb);
+        }
+      };
+
+      // console.log(totalProb);
+      const percentage = parseFloat(totalProb * 100).toFixed(2);
+
+      let oddsRender = `${percentage}%`;
+
+      if (k === 1 && n >= 330) {
+        oddsRender = `Guaranteed pity (330 summons)`
+      };
+
+      setSummonOdds(oddsRender);
   };
 
   // TODO: Clear button doesn't zero out purchases and other gains.
@@ -473,7 +540,7 @@ const SummonCalc = () => {
           </GridItem>
           <GridItem rowSpan={1} colSpan={1} >
             <FormLabel>SQ Purchases:</FormLabel>
-            <Input className="form-input" name="whale" type="number" placeholder="0" onSubmit={calc} />
+            <Input className="form-input" name="whale" type="number" placeholder="0" value={purchaseData.whale} onSubmit={calc} />
           </GridItem>
           <GridItem rowSpan={1} colSpan={1}>
             <FormLabel>Frequency:</FormLabel>
@@ -499,10 +566,10 @@ const SummonCalc = () => {
             <FormLabel>End Date:</FormLabel>
             <DatePicker selected={dates.target} onChange={(date) => setDates({ ...dates, target: date })} />
           </GridItem>
-          <GridItem rowSpan={1} colSpan={1} >
+          {/* <GridItem rowSpan={1} colSpan={1} >
             <Button marginTop={4} colorScheme="blue" onClick={calc} >Calculate</Button>
-          </GridItem>
-          <GridItem rowSpan={1} colSpan={1} >
+          </GridItem> */}
+          <GridItem rowSpan={1} colSpan={2} >
             <Button marginTop={4} colorScheme="blue" onClick={clearForm} >Clear</Button>
           </GridItem>
         </Grid>
@@ -518,10 +585,10 @@ const SummonCalc = () => {
             <FormLabel>Total Tickets:</FormLabel>
             <Input className="form-input" isReadOnly={true} name="total-sq" value={currency.tx} placeholder="0" />
           </GridItem>
-          <GridItem rowSpan={1} colSpan={1} >
+          <GridItem rowSpan={1} colSpan={2} >
             <FormLabel>Total Summons:</FormLabel>
           </GridItem>
-          <GridItem rowSpan={1} colSpan={1} >
+          <GridItem rowSpan={1} colSpan={2} >
             <Input className="form-input" isReadOnly={true} name="total-summons" value={totalSummons} />
           </GridItem>
         </Grid>
@@ -559,6 +626,21 @@ const SummonCalc = () => {
                 : <Input className="form-input" isReadOnly={false} name="total-summons" placeholder={0.008} />
             }
           </GridItem>
+          <GridItem rowSpan={1} colSpan={1}>
+            <FormLabel>Number of Copies Desired:</FormLabel>
+          </GridItem>
+          <GridItem rowSpan={1} colSpan={1}>
+            <Input className="form-input" name="desired" defaultValue={1} onChange={probHandler} />
+          </GridItem>
+          <GridItem rowSpan={1} colSpan={2} >
+            <Button marginTop={4} colorScheme="blue" onClick={calcOdds} width={'400px'} >Calculate!</Button>
+          </GridItem>
+          {summonOdds !== 0
+            ? <GridItem rowSpan={1} colSpan={2}>
+              <Input className="form-input" maxW={'400px'} isReadOnly={true} name="total-summons" value={summonOdds} />
+            </GridItem>
+            : null
+          }
         </Grid>
       </FormControl>
     </>
