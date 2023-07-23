@@ -48,6 +48,7 @@ const SummonCalc = () => {
     numRateup: 1,
     prob: 0.008,
     desired: 1,
+    slot: 0
   });
 
   const [summonOdds, setSummonOdds] = useState(0);
@@ -55,6 +56,8 @@ const SummonCalc = () => {
   const [elementState, setElementState] = useState({
     odds: false
   });
+
+  const [editState, setEditState] = useState(0);
 
   let dummyRolls = [
     {
@@ -189,8 +192,8 @@ const SummonCalc = () => {
 
         if (updateWeeklies) {
           const masterMissionGains = calcMasterMissions(date, difference);
-          let startingSQ = reserves.sq;
-          setCurrency({ sq: parseInt(startingSQ += masterMissionGains) || 0 });
+          let startingSQ = parseInt(reserves.sq);
+          setCurrency({ sq: startingSQ += parseInt(masterMissionGains) || 0 });
           console.log(`Added ${masterMissionGains} SQ from Master Missions to ${startingSQ} starting SQ.`);
           //   let dayInc = 0;
           //   for (var i = 0; i < difference; i++) {
@@ -409,16 +412,16 @@ const SummonCalc = () => {
     const otherSq = parseInt(extras.sq) || 0;
     const otherTx = parseInt(extras.tx) || 0;
 
-    console.log(weeklies, logins, shop, events, purchases, otherSq, otherTx);
+    // console.log(weeklies, logins, shop, events, purchases, otherSq, otherTx);
 
     const gains = {
       sq: parseInt(weeklies.sq + logins + events.sq),
       tx: parseInt(weeklies.tx + shop + events.tx)
     };
 
-    console.log(gains, weeklies)
+    // console.log(gains, weeklies)
 
-    console.log(gains.sq, reserves.sq, purchases, otherSq)
+    // console.log(gains.sq, reserves.sq, purchases, otherSq)
 
     const total = {
       sq: parseInt(gains.sq + reserves.sq + purchases + otherSq) || 0,
@@ -591,7 +594,7 @@ const SummonCalc = () => {
 
   const saveSnapshot = () => {
     const savedRoll = {
-      targetName: '',
+      targetName: summonStats.targetName || '',
       savingDate: dayjs(dates.start).format('YYYY/MM/DD'),
       bannerDate: dayjs(dates.target).format('YYYY/MM/DD'),
       rate: summonStats.prob,
@@ -602,7 +605,27 @@ const SummonCalc = () => {
       slot: JSON.parse(localStorage.getItem('saved-rolls')).length
     };
     console.log(`Saving`, savedRoll);
-    setSavedRolls([ ...savedRolls, savedRoll]);
+
+    if (editState === 0) {
+
+      setSavedRolls([...savedRolls, savedRoll]);
+
+    } else if (editState === 1) {
+      const rollIndex = savedRoll.slot;
+      const updatedRolls = savedRolls.map((roll, i) => {
+        if (roll.slot === rollIndex) {
+          // console.log(`Matched roll index ${rollIndex}.`)
+          // console.log(rollData);
+          return savedRoll;
+        } else {
+          return roll;
+        };
+      });
+      // console.log(updatedRolls);
+      setSavedRolls(updatedRolls);
+    };
+
+    setEditState(0);
   };
 
   return (
@@ -733,7 +756,13 @@ const SummonCalc = () => {
               {elementState.odds === true
                 ? <GridItem rowSpan={1} colSpan={2}>
                   <Input className="form-input" maxW='400px' isReadOnly={true} name="total-summons" value={summonOdds} />
-                  <Button marginTop={4} colorScheme="blue" onClick={saveSnapshot}>Save Snapshot</Button>
+                  <Button marginTop={4} colorScheme="blue" onClick={saveSnapshot}>{editState === 0 ? 'Save Snapshot' : 'Update Snapshot'}</Button>
+                </GridItem>
+                : null
+              }
+              {editState === 1
+                ? <GridItem rowSpan={1} colSpan={2}>
+                  <Button marginTop={4} colorScheme="red" onClick={() => setEditState(0)} width={'400px'} >Cancel Edit</Button>
                 </GridItem>
                 : null
               }
@@ -743,7 +772,7 @@ const SummonCalc = () => {
         <GridItem rowSpan={1} columnSpan={1}>
           {savedRolls.map((roll, pos) => (
             <GridItem key={roll.slot}>
-              <RollSnapshot savedRolls={savedRolls} setSavedRolls={setSavedRolls} purchaseData={purchaseData} setPurchaseData={setPurchaseData} dates={dates} setDates={setDates} reserves={reserves} setReserves={setReserves} currency={currency} setCurrency={setCurrency} extras={extras} setExtras={setExtras} summonStats={summonStats} setSummonStats={setSummonStats} summonOdds={summonOdds} setSummonOdds={setSummonOdds} thisRoll={roll} />
+              <RollSnapshot savedRolls={savedRolls} setSavedRolls={setSavedRolls} purchaseData={purchaseData} setPurchaseData={setPurchaseData} dates={dates} setDates={setDates} reserves={reserves} setReserves={setReserves} currency={currency} setCurrency={setCurrency} extras={extras} setExtras={setExtras} summonStats={summonStats} setSummonStats={setSummonStats} summonOdds={summonOdds} setSummonOdds={setSummonOdds} editState={editState} setEditState={setEditState} thisRoll={roll} />
             </GridItem>
           ))}
         </GridItem>
