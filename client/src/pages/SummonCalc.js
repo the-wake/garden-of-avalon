@@ -16,30 +16,28 @@ const SummonCalc = () => {
   // TODO: May want to go over the data on load to sanitize any 0s to blank strings.
   const [loginData, setLoginData] = useState({});
 
-  const [purchaseData, setPurchaseData] = useState({
-    whale: '',
-    period: 0,
+  const [currency, setCurrency] = useState({
+    sqPurchase: '',
+    purchasePeriod: 0,
     alreadyPurchased: false,
+    sqStarting: '',
+    txStarting: '',
+    sqIncome: '',
+    txIncome: '',
+    sqExtra: '',
+    txExtra: '',
   });
+  // console.log(currency);
 
   const [dates, setDates] = useState({
     start: new Date(),
     target: new Date(),
   });
 
-  const [reserves, setReserves] = useState({
-    sq: '',
-    tx: ''
-  });
-
-  const [currency, setCurrency] = useState({
-    sq: '',
-    tx: ''
-  });
-
-  const [extras, setExtras] = useState({
-    sq: '',
-    tx: ''
+  const [sums, setSums] = useState({
+    sqSum: '',
+    txSum: '',
+    totalSummons: '',
   });
 
   const [summonStats, setSummonStats] = useState({
@@ -48,10 +46,9 @@ const SummonCalc = () => {
     numRateup: 1,
     prob: 0.008,
     desired: 1,
+    summonOdds: 0,
     slot: 0
   });
-
-  const [summonOdds, setSummonOdds] = useState(0);
 
   const [elementState, setElementState] = useState({
     odds: false
@@ -95,9 +92,9 @@ const SummonCalc = () => {
     }
   ];
 
-  let initialRolls = JSON.parse(localStorage.getItem('saved-rolls')) || dummyRolls || {};
+  // let initialRolls = ;
 
-  const [savedRolls, setSavedRolls] = useState(initialRolls);
+  const [savedRolls, setSavedRolls] = useState(JSON.parse(localStorage.getItem('saved-rolls')) || []);
   // console.log(savedRolls);
 
   const servantData = {};
@@ -157,25 +154,16 @@ const SummonCalc = () => {
   // TODO: This should probably use a context provider.
   let rollsArr = [];
 
-  // These could definitely use full objects instead of destructures, but this helps if we want to manipulate or sanitize the values at all.
   useEffect(() => {
-    if (localStorage.getItem('reserves')) {
-      let { sq, tx } = JSON.parse(localStorage.getItem('reserves'));
-      setReserves({ sq: sq || 0, tx: tx || 0 });
-    };
-    if (localStorage.getItem('purchase-data')) {
-      let { whale, period, alreadyPurchased } = JSON.parse(localStorage.getItem('purchase-data'));
-      setPurchaseData({ whale, period, alreadyPurchased });
-    };
-    if (localStorage.getItem('extras')) {
-      let { sq, tx } = JSON.parse(localStorage.getItem('extras'));
-      setExtras({ sq, tx });
+    if (localStorage.getItem('currency')) {
+      let localCurrency = JSON.parse(localStorage.getItem('currency'));
+      setCurrency(localCurrency);
     };
   }, []);
 
   // Treats and sets login data and currency.
   useEffect(() => {
-    let { total, streak, date } = JSON.parse(localStorage.getItem('login-history')) || 0;
+    let { total, streak, date } = JSON.parse(localStorage.getItem('login-data')) || 0;
     date = dayjs(date);
     console.log(total, streak, date);
 
@@ -192,9 +180,9 @@ const SummonCalc = () => {
 
         if (updateWeeklies) {
           const masterMissionGains = calcMasterMissions(date, difference);
-          let startingSQ = parseInt(reserves.sq);
-          setCurrency({ sq: startingSQ += parseInt(masterMissionGains) || 0 });
-          console.log(`Added ${masterMissionGains} SQ from Master Missions to ${startingSQ} starting SQ.`);
+          let sqNum = parseInt(currency.sqStarting);
+          setCurrency({ sqStarting: sqNum += parseInt(masterMissionGains) || 0 });
+          console.log(`Added ${masterMissionGains} SQ from Master Missions to ${sqNum} starting SQ.`);
           //   let dayInc = 0;
           //   for (var i = 0; i < difference; i++) {
           //     dayInc++;
@@ -218,10 +206,10 @@ const SummonCalc = () => {
       if (monthsDiff !== 0) {
         const shopUpdate = window.confirm(`${monthsDiff} months have elapsed since last update. Should we add monthly shop tickets to your reserves?`);
         if (shopUpdate) {
-          let { sq, tx } = JSON.parse(localStorage.getItem('reserves'));
-          tx += monthsDiff * 5;
-          setReserves({ sq: sq || 0, tx: tx || 0 });
-          console.log(`Updated reserves with ${monthsDiff * 5} summoning tickets. Now have ${reserves.tx} summoning tickets`);
+          let { sqStarting, txStarting } = JSON.parse(localStorage.getItem('currency').reserves);
+          txStarting += monthsDiff * 5;
+          setCurrency({ sqStarting, txStarting });
+          console.log(`Updated reserves with ${monthsDiff * 5} summoning tickets. Now have ${currency.txStarting} summoning tickets`);
         };
       };
 
@@ -260,16 +248,16 @@ const SummonCalc = () => {
 
     // The weekly index of the start day.
     let index;
-    console.log(origin || numDays);
+    // console.log(origin || numDays);
     origin <= 6 ? index = origin : index = (loginData.streak + numDays) % 7;
     // const index = origin || (loginData.streak + distance) % 7;
-    console.log(index);
+    // console.log(index);
 
-    const remainder = numDays % 7;
+    // const remainder = numDays % 7;
 
     // This gets the values of each full weeks' gains.
-    const weeks = (numDays - remainder) / 7;
-    console.log(`Starting index: ${index}. Full weeks: ${weeks}. Remainder days: ${remainder}.`);
+    // const weeks = (numDays - remainder) / 7;
+    // console.log(`Starting index: ${index}. Full weeks: ${weeks}. Remainder days: ${remainder}.`);
 
     let weeklyGains = {
       sq: 0,
@@ -277,10 +265,10 @@ const SummonCalc = () => {
     };
 
     const masterMissionGains = calcMasterMissions(start, numDays);
-    console.log(`Calculating Master Mission. Start: ${start}; Number of Days: ${numDays}.`);
+    // console.log(`Calculating Master Mission. Start: ${start}; Number of Days: ${numDays}.`);
     weeklyGains.sq += masterMissionGains;
     console.log(`Added ${masterMissionGains} SQ from Master Missions.`);
-    console.log(weeklyGains);
+    // console.log(weeklyGains);
 
     // Daily login bonus courser.
     for (let i = 0; i < numDays; i++) {
@@ -294,21 +282,16 @@ const SummonCalc = () => {
         // console.log(`Corresponding value found: ${thisLogin.type}`);
         weeklyGains[thisLogin.type] += thisLogin.val;
       };
-      // if (currentDay === "Sun") {
-      //   weeklyGains.sq += 3;
-      //   console.log(`Adding 3 SQ to total`)
-      // };
     };
     // console.log(`Added ${weeklyGains.sq} Saint Quartz and ${weeklyGains.tx} Summoning Tickets.`)
     // console.log(weeklyGains);
 
-    console.log(weeklyGains);
+    // console.log(weeklyGains);
 
     return weeklyGains;
   };
 
   const calcMasterMissions = (start, difference) => {
-    console.log(`Calcing Master Missions starting at ${start}. Duration: ${difference}.`)
     let dayInc = 0;
     let sqGains = 0;
 
@@ -326,7 +309,7 @@ const SummonCalc = () => {
   // Calculates login streaks.
   const calcLogins = (start, target) => {
     const { total } = loginData;
-    console.log(loginData);
+    // console.log(loginData);
     const startIndex = total % 50;
     // console.log(startIndex);
 
@@ -370,12 +353,13 @@ const SummonCalc = () => {
   // Calculates purchases.
   // TODO: Allow for repeating monthly purchases.
   const calcPurchases = (numMonths) => {
-    console.log(purchaseData);
+    const { sqPurchase, purchasePeriod, alreadyPurchased } = currency;
+    // console.log(sqPurchase, purchasePeriod, alreadyPurchased);
 
-    const numPurchases = parseInt(purchaseData.period) === 0 ? 1 : numMonths + 1 - purchaseData.alreadyPurchased;
-    console.log(numPurchases);
+    const numPurchases = parseInt(purchasePeriod) === 0 ? 1 : numMonths + 1 - alreadyPurchased;
+    // console.log(sqPurchase, numPurchases);
 
-    const totalPurchases = parseInt(purchaseData.whale) * numPurchases || 0;
+    const totalPurchases = parseInt(sqPurchase) * numPurchases || 0;
     // console.log(totalPurchases);
     return totalPurchases;
   };
@@ -392,8 +376,8 @@ const SummonCalc = () => {
 
     let numDays = dayjs(target).diff(dayjs(start), 'day');
     const numMonths = (target.$y - start.$y) * 12 + (target.$M - start.$M);
-    console.log(numDays);
-    console.log(numMonths);
+    // console.log(numDays);
+    // console.log(numMonths);
 
     // It seems like we need to manually adjust differences since anything that should be 1 or higher is reduced by 1.
     if (numDays >= 1) {
@@ -409,8 +393,8 @@ const SummonCalc = () => {
     const shop = calcShop(numMonths);
     const events = calcEvents(start, target);
     const purchases = calcPurchases(numMonths) || 0;
-    const otherSq = parseInt(extras.sq) || 0;
-    const otherTx = parseInt(extras.tx) || 0;
+    const otherSq = parseInt(currency.sqExtra) || 0;
+    const otherTx = parseInt(currency.txExtra) || 0;
 
     // console.log(weeklies, logins, shop, events, purchases, otherSq, otherTx);
 
@@ -423,76 +407,99 @@ const SummonCalc = () => {
 
     // console.log(gains.sq, reserves.sq, purchases, otherSq)
 
-    const total = {
-      sq: parseInt(gains.sq + reserves.sq + purchases + otherSq) || 0,
-      tx: parseInt(gains.tx + reserves.tx + otherTx) || 0
+    const newSq = parseInt(gains.sq + currency.sqStarting + purchases + otherSq) || 0;
+    const newTx = parseInt(gains.tx + currency.txStarting + otherTx) || 0;
+
+    let total = Math.floor((newSq / 3 + newTx) + Math.floor((newSq / 3 + newTx) / 10));
+
+    if (total < 0) {
+      total = 0;
     };
 
-    setCurrency(total);
-    console.log('Setting', total);
-    return currency;
+    // console.log(total);
+    setSums({ sqSum: newSq, txSum: newTx, totalSummons: total });
+    // return currency;
   };
 
   const handleFormUpdate = (e) => {
-    if (e.target.name === 'sq' || e.target.name === 'tx') {
-      setReserves({ ...reserves, [e.target.name]: parseInt(e.target.value) || 0 });
-    } else if (e.target.name === 'total' || e.target.name === 'streak') {
-      setLoginData({ ...loginData, [e.target.name]: parseInt(e.target.value), date: dayjs().format('YYYY-MM-DD') });
-    } else if (e.target.name === 'extraSq') {
-      setExtras({ ...extras, sq: parseInt(e.target.value) });
-    } else if (e.target.name === 'extraTx') {
-      setExtras({ ...extras, tx: parseInt(e.target.value) });
-    } else if (e.target.name === 'whale' || e.target.name === 'period') {
-      setPurchaseData({ ...purchaseData, [e.target.name]: parseInt(e.target.value) });
-    } else if (e.target.name === 'alreadyPurchased') {
-      setPurchaseData({ ...purchaseData, alreadyPurchased: e.target.checked });
+    const currencyVals = ['sqPurchase', 'purchasePeriod', 'alreadyPurchased', 'sqStarting', 'txStarting', 'sqIncome', 'txIncome', 'sqExtra', 'txExtra'];
+
+    // Sanitize any ints passed as strings.
+    let targetVal = e.target.value;
+
+    if (!isNaN(parseInt(targetVal))) {
+      targetVal = parseInt(targetVal);
     };
+    console.log(targetVal);
+
+    // Handle login updates. (Dates are handled separately.)
+    // TODO: Should dates actually be handled separately or not?
+    if (e.target.name === 'total' || e.target.name === 'streak') {
+      setLoginData({ ...loginData, [e.target.name]: parseInt(e.target.value), date: dayjs().format('YYYY-MM-DD') });
+    }
+
+    else if (e.target.name === 'alreadyPurchased') {
+      setCurrency({ ...currency, alreadyPurchased: e.target.checked })
+    }
+
+    // Handle all other updates with proper integer or string.
+    else if (currencyVals.includes(e.target.name)) {
+      setCurrency({ ...currency, [e.target.name]: targetVal });
+    };
+
+    // Old handlers.
+    // else if (e.target.name === 'extraSq') {
+    //   setExtras({ ...extras, sq: parseInt(e.target.value) });
+    // } else if (e.target.name === 'extraTx') {
+    //   setExtras({ ...extras, tx: parseInt(e.target.value) });
+    // } else if (e.target.name === 'whale' || e.target.name === 'period') {
+    //   setPurchaseData({ ...purchaseData, [e.target.name]: parseInt(e.target.value) });
+    // } else if (e.target.name === 'alreadyPurchased') {
+    //   setPurchaseData({ ...purchaseData, alreadyPurchased: e.target.checked });
+    // };
   };
 
   useEffect(() => {
     setElementState({ ...elementState, odds: false });
+    console.log(currency);
     calc();
-  }, [purchaseData, dates, reserves, extras]);
+    localStorage.setItem('currency', JSON.stringify(currency));
+  }, [currency, dates]);
 
   // Set local storage when updating login streak or currency totals.
   useEffect(() => {
     if (loginData.total || loginData.streak || loginData.date) {
-      console.log('Storing', loginData);
-      localStorage.setItem('login-history', JSON.stringify({ ...loginData }));
+      // console.log('Storing', loginData);
+      localStorage.setItem('login-data', JSON.stringify({ ...loginData }));
     };
   }, [loginData]);
 
-  useEffect(() => {
-    if (reserves) {
-      console.log('Storing', reserves);
-      localStorage.setItem('reserves', JSON.stringify({ ...reserves }));
-    };
-  }, [reserves]);
+  // Old handlers.
+  // useEffect(() => {
+  //   console.log('Storing', purchaseData);
+  //   localStorage.setItem('purchase-data', JSON.stringify({ ...purchaseData }));
+  // }, [purchaseData]);
+
+  // useEffect(() => {
+  //   console.log('Storing', extras);
+  //   localStorage.setItem('extras', JSON.stringify({ ...extras }));
+  // }, [extras]);
 
   useEffect(() => {
-    console.log('Storing', purchaseData);
-    localStorage.setItem('purchase-data', JSON.stringify({ ...purchaseData }));
-  }, [purchaseData]);
-
-  useEffect(() => {
-    console.log('Storing', extras);
-    localStorage.setItem('extras', JSON.stringify({ ...extras }));
-  }, [extras]);
-
-  useEffect(() => {
-    localStorage.setItem('saved-items', JSON.stringify(savedRolls));
+    localStorage.setItem('saved-rolls', JSON.stringify(savedRolls));
   }, [savedRolls]);
 
   const clearForm = () => {
-    setPurchaseData({
+    setCurrency({
       whale: '',
       period: '',
-      alreadyPurchased: false
-    });
-
-    setReserves({
-      sq: '',
-      tx: ''
+      alreadyPurchased: false,
+      sqStarting: '',
+      txStarting: '',
+      sqIncome: '',
+      txIncome: '',
+      sqExtras: '',
+      txExtras: ''
     });
 
     // TODO: Refactor as dayjs?
@@ -500,32 +507,25 @@ const SummonCalc = () => {
       start: new Date(),
       target: new Date(),
     });
-
-    setCurrency({
-      sq: '',
-      tx: ''
-    });
-
-    setExtras({
-      sq: '',
-      tx: ''
-    });
   };
 
-  let totalSummons = Math.floor((currency.sq / 3 + currency.tx) + Math.floor((currency.sq / 3 + currency.tx) / 10));
+  // Handler pre-state
+  // let totalSummons = Math.floor((sums.sqSum / 3 + sums.txSum) + Math.floor((sums.sqSum / 3 + sums.txSum) / 10));
 
-  if (totalSummons < 0) {
-    totalSummons = 0;
-  };
+  // if (totalSummons < 0) {
+  //   totalSummons = 0;
+  // };
 
-  useEffect(() => {
-    totalSummons = Math.floor((currency.sq / 3 + currency.tx) + Math.floor((currency.sq / 3 + currency.tx) / 10));
+  // useEffect(() => {
+  //   // console.log(sums)
+  //   let total = Math.floor((sums.sqSum / 3 + sums.txSum) + Math.floor((sums.sqSum / 3 + sums.txSum) / 10));
 
-    if (totalSummons < 0) {
-      totalSummons = 0;
-    };
-    // console.log(totalSummons);
-  }, [currency]);
+  //   if (total < 0) {
+  //     total = 0;
+  //   };
+  //   console.log(total);
+  //   setSums({ ...sums, totalSummons: total })
+  // }, [currency]);
 
   const probHandler = (e) => {
     if (e.target.name === 'rarity') {
@@ -548,15 +548,15 @@ const SummonCalc = () => {
     };
 
     // TODO: Refactor into factory function.
-    const n = totalSummons;
+    const n = sums.totalSummons;
     const p = summonStats.prob;
-    const q = (1 - summonStats.prob);
+    // const q = (1 - summonStats.prob);
     const k = summonStats.desired;
 
     var stats = new Statistics({
-      n: totalSummons,
+      n: sums.totalSummons,
       p: summonStats.prob,
-      q: (1 - summonStats.prob),
+      // q: (1 - summonStats.prob),
       k: summonStats.desired
     });
     // console.log(n, p, q, k);
@@ -589,20 +589,23 @@ const SummonCalc = () => {
       oddsRender = `Guaranteed pity (330 summons)`
     };
 
-    setSummonOdds(oddsRender);
+    setSummonStats({ ...summonStats, summonOdds: oddsRender });
   };
 
   const saveSnapshot = () => {
     const savedRoll = {
-      targetName: summonStats.targetName || '',
-      savingDate: dayjs(dates.start).format('YYYY/MM/DD'),
-      bannerDate: dayjs(dates.target).format('YYYY/MM/DD'),
-      rate: summonStats.prob,
-      numDesired: summonStats.desired,
-      budget: { sq: currency.sq, tx: currency.tx },
-      numRolls: totalSummons,
-      probability: summonOdds,
-      slot: JSON.parse(localStorage.getItem('saved-rolls')).length
+      ...dates,
+      ...currency,
+      ...summonStats
+      // targetName: summonStats.targetName || '',
+      // savingDate: dayjs(dates.start).format('YYYY/MM/DD'),
+      // bannerDate: dayjs(dates.target).format('YYYY/MM/DD'),
+      // rate: summonStats.prob,
+      // numDesired: summonStats.desired,
+      // budget: { sq: currency.sq, tx: currency.tx },
+      // numRolls: totalSummons,
+      // probability: summonStats.summonOdds,
+      // slot: JSON.parse(localStorage.getItem('saved-rolls')).length
     };
     console.log(`Saving`, savedRoll);
 
@@ -636,49 +639,48 @@ const SummonCalc = () => {
 
       {/* Dynamically render the parent grid component only if there are saved rolls. */}
       <Grid h='' templateRows="repeat(1, fr)" templateColumns="repeat(2, 1fr)">
-        <GridItem rowSpan={1} columnSpan={1}>
+        <GridItem rowSpan={1} colSpan={1}>
           <FormControl maxW="600px" marginLeft="auto" marginRight="auto" onChange={handleFormUpdate}>
             <Grid h='' templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Login Streak:</FormLabel>
-                {/* TODO: Refactor away from defaultValue. */}
-                <Input className="form-input" name="streak" type="number" placeholder="0" defaultValue={loginData.streak} onSubmit={calc} />
+                <Input className="form-input" name="streak" type="number" placeholder="0" value={loginData.streak} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
                 <FormLabel>Total Logins:</FormLabel>
-                <Input className="form-input" name="total" type="number" placeholder="0" defaultValue={loginData.total} onSubmit={calc} />
+                <Input className="form-input" name="total" type="number" placeholder="0" value={loginData.total} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
                 <FormLabel>Starting Quartz:</FormLabel>
-                <Input className="form-input" name="sq" type="number" placeholder="0" value={reserves.sq} onSubmit={calc} />
+                <Input className="form-input" name="sqStarting" type="number" placeholder="0" value={currency.sqStarting} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Starting Tickets:</FormLabel>
-                <Input className="form-input" name="tx" type="number" placeholder="0" value={reserves.tx} onSubmit={calc} />
+                <Input className="form-input" name="txStarting" type="number" placeholder="0" value={currency.txStarting} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
                 <FormLabel>SQ Purchases:</FormLabel>
-                <Input className="form-input" name="whale" type="number" placeholder="0" value={purchaseData.whale} onSubmit={calc} />
+                <Input className="form-input" name="sqPurchase" type="number" placeholder="0" value={currency.sqPurchase} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Frequency:</FormLabel>
-                <Select className="form-input" name="period" type="text">
+                <Select className="form-input" name="purchasePeriod" type="text">
                   <option value={0}>One-time</option>
                   <option value={1}>Monthly</option>
                 </Select>
               </GridItem>
-              {parseInt(purchaseData.period) === 1 ?
+              {parseInt(currency.purchasePeriod) === 1 ?
                 <GridItem rowSpan={1} colSpan={2}>
-                  <Checkbox name="alreadyPurchased" defaultChecked={false}>Already purchased this month?</Checkbox>
+                  <Checkbox name="alreadyPurchased" defaultChecked={false} >Already purchased this month?</Checkbox>
                 </GridItem>
                 : null}
               <GridItem rowSpan={1} colSpan={1} >
                 <FormLabel>Extra SQ (can be negative):</FormLabel>
-                <Input className="form-input" name="extraSq" type="number" placeholder="0" value={extras.sq} onSubmit={calc} />
+                <Input className="form-input" name="sqExtra" type="number" placeholder="0" value={currency.sqExtra} onSubmit={calc} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
                 <FormLabel>Extra Tickets (can be negative):</FormLabel>
-                <Input className="form-input" name="extraTx" type="number" placeholder="0" value={extras.tx} onSubmit={calc} />
+                <Input className="form-input" name="txExtra" type="number" placeholder="0" value={currency.txExtra} onSubmit={calc} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
                 <FormLabel>Start Date:</FormLabel>
@@ -696,23 +698,22 @@ const SummonCalc = () => {
                 <Button marginTop={4} colorScheme="blue" onClick={clearForm} >Clear</Button>
               </GridItem>
             </Grid>
-
             <br />
             <br />
             <Grid h='' templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
               <GridItem rowSpan={1} colSpan={1} >
                 <FormLabel>Total Quartz:</FormLabel>
-                <Input className="form-input" isReadOnly={true} name="total-sq" value={currency.sq} placeholder="0" />
+                <Input className="form-input" isReadOnly={true} name="sqSum" value={sums.sqSum} placeholder="0" />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
                 <FormLabel>Total Tickets:</FormLabel>
-                <Input className="form-input" isReadOnly={true} name="total-sq" value={currency.tx} placeholder="0" />
+                <Input className="form-input" isReadOnly={true} name="txSum" value={sums.txSum} placeholder="0" />
               </GridItem>
               <GridItem rowSpan={1} colSpan={2} >
                 <FormLabel>Total Summons:</FormLabel>
               </GridItem>
               <GridItem rowSpan={1} colSpan={2} >
-                <Input className="form-input" isReadOnly={true} name="total-summons" value={totalSummons} />
+                <Input className="form-input" isReadOnly={true} name="totalSummons" value={sums.totalSummons} />
               </GridItem>
             </Grid>
           </FormControl>
@@ -742,7 +743,7 @@ const SummonCalc = () => {
                 <FormLabel>Probability of success per roll:</FormLabel>
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
-                <Input className="form-input" isReadOnly={summonStats.numRateup !== 0 ? true : false} name="total-summons" value={summonStats.prob} />
+                <Input className="form-input" isReadOnly={summonStats.numRateup !== 0 ? true : false} name="prob" value={summonStats.prob} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Number of Copies Desired:</FormLabel>
@@ -755,7 +756,7 @@ const SummonCalc = () => {
               </GridItem>
               {elementState.odds === true
                 ? <GridItem rowSpan={1} colSpan={2}>
-                  <Input className="form-input" maxW='400px' isReadOnly={true} name="total-summons" value={summonOdds} />
+                  <Input className="form-input" maxW='400px' isReadOnly={true} name="summonOdds" value={summonStats.summonOdds} />
                   <Button marginTop={4} colorScheme="blue" onClick={saveSnapshot}>{editState === 0 ? 'Save Snapshot' : 'Update Snapshot'}</Button>
                 </GridItem>
                 : null
@@ -769,12 +770,14 @@ const SummonCalc = () => {
             </Grid>
           </FormControl>
         </GridItem>
-        <GridItem rowSpan={1} columnSpan={1}>
-          {savedRolls.map((roll, pos) => (
+        <GridItem rowSpan={1} colSpan={1}>
+          {/* {savedRolls.map((roll, pos) => (
             <GridItem key={roll.slot}>
-              <RollSnapshot savedRolls={savedRolls} setSavedRolls={setSavedRolls} purchaseData={purchaseData} setPurchaseData={setPurchaseData} dates={dates} setDates={setDates} reserves={reserves} setReserves={setReserves} currency={currency} setCurrency={setCurrency} extras={extras} setExtras={setExtras} summonStats={summonStats} setSummonStats={setSummonStats} summonOdds={summonOdds} setSummonOdds={setSummonOdds} editState={editState} setEditState={setEditState} thisRoll={roll} />
+              <RollSnapshot savedRolls={savedRolls} setSavedRolls={setSavedRolls} dates={dates} setDates={setDates} currency={currency} setCurrency={setCurrency} summonStats={summonStats} setSummonStats={setSummonStats} editState={editState} setEditState={setEditState}
+              // thisRoll={roll}
+              />
             </GridItem>
-          ))}
+          ))} */}
         </GridItem>
       </Grid>
     </>

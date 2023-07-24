@@ -9,10 +9,12 @@ import DatePicker from "react-datepicker";
 
 import "react-datepicker/dist/react-datepicker.css";
 
-const RollSnapshot = ({ savedRolls, setSavedRolls, purchaseData, setPurchaseData, dates, setDates, reserves, setReserves, currency, setCurrency, extras, setExtras, summonStats, setSummonStats, summonOdds, setSummonOdds, editState, setEditState, thisRoll }) => {
+const RollSnapshot = ({ savedRolls, setSavedRolls, purchaseData, setPurchaseData, dates, setDates, reserves, setReserves, currency, setCurrency, extras, setExtras, summonStats, setSummonStats, summonOdds, setSummonOdds, editState, setEditState }) => {
+
+  const thisRoll = { purchaseData, dates, reserves, currency, extras, summonStats, summonOdds };
 
   const [rollData, setRollData] = useState(thisRoll);
-  // console.log(rollData);
+  console.log(rollData);
 
   const [editingDates, setEditingDates] = useState(false);
 
