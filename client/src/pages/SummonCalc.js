@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
+import getSlot from '../utils/getSlot.js'
 
 import { Grid, GridItem } from '@chakra-ui/react'
 import { FormControl, FormLabel, Input, Button, Select, Checkbox } from '@chakra-ui/react'
@@ -47,7 +48,7 @@ const SummonCalc = () => {
     prob: 0.008,
     desired: 1,
     summonOdds: 0,
-    slot: 0
+    slot: '',
   });
 
   const [elementState, setElementState] = useState({
@@ -55,44 +56,6 @@ const SummonCalc = () => {
   });
 
   const [editState, setEditState] = useState(0);
-
-  let dummyRolls = [
-    {
-      targetName: 'Merlin',
-      savingDate: dayjs().format('YYYY/MM/DD'),
-      bannerDate: dayjs().format('YYYY/MM/DD'),
-      rate: 0.008,
-      numDesired: 1,
-      budget: { sq: 1200, tx: 100 },
-      numRolls: 500,
-      probability: '95%',
-      slot: 0
-    },
-    {
-      targetName: 'Oberon',
-      savingDate: dayjs().format('YYYY/MM/DD'),
-      bannerDate: dayjs().format('YYYY/MM/DD'),
-      rate: 0.008,
-      numDesired: 1,
-      budget: { sq: 1200, tx: 100 },
-      numRolls: 500,
-      probability: '95%',
-      slot: 1
-    },
-    {
-      targetName: 'Archetype: Earth',
-      savingDate: dayjs().format('YYYY/MM/DD'),
-      bannerDate: dayjs('7/3/2024').format('YYYY/MM/DD'),
-      rate: 0.008,
-      numDesired: 1,
-      budget: { sq: 10, tx: 0 },
-      numRolls: 11,
-      probability: '1%',
-      slot: 2
-    }
-  ];
-
-  // let initialRolls = ;
 
   const [savedRolls, setSavedRolls] = useState(JSON.parse(localStorage.getItem('saved-rolls')) || []);
   // console.log(savedRolls);
@@ -172,7 +135,7 @@ const SummonCalc = () => {
     if (date === today) {
       console.log('today!')
     } else {
-      const difference = dayjs().diff(date, 'days');
+      const difference = Math.ceil(dayjs().diff(date, 'days', true));
 
       // If it's been at least a week since last login, loop through difference to look for Master Mission refreshes in the elapsed duration.
       if (difference >= 7) {
@@ -234,15 +197,15 @@ const SummonCalc = () => {
 
   // Calculates master missions. Could rename to calcStreak instead to be clearer what data it cares about and produces.
   const calcWeeklies = (start, numDays, origin) => {
-    // let distance = dayjs(start).diff(dayjs(today), 'days');
+    // let distance = Math.ceil(dayjs(start).diff(dayjs(today), 'days', true));
     console.log(`Calculating weeklies. Start: ${start}; numDays: ${numDays}.`);
 
     // It seems like the diff between day X and day X+1 comes out to 0, so this 
-    if (numDays >= 1) {
-      numDays++
-    } else if (numDays === 0 && (start.$y > today.$y || start.$M > today.$M || start.$d > today.$d)) {
-      numDays++
-    };
+    // if (numDays >= 1) {
+    //   numDays++
+    // } else if (numDays === 0 && (start.$y > today.$y || start.$M > today.$M || start.$d > today.$d)) {
+    //   numDays++
+    // };
 
     console.log(`${numDays} days from today to start date.`)
 
@@ -313,13 +276,13 @@ const SummonCalc = () => {
     const startIndex = total % 50;
     // console.log(startIndex);
 
-    let distance = target.diff(start, 'days');
+    let distance = Math.ceil(target.diff(start, 'days', true));
 
-    if (distance >= 1) {
-      distance++
-    } else if (distance === 0 && (target.$y > today.$y || target.$M > today.$M || target.$d > today.$d)) {
-      distance++
-    };
+      // if (distance >= 1) {
+      //   distance++
+      // } else if (distance === 0 && (target.$y > today.$y || target.$M > today.$M || target.$d > today.$d)) {
+      //   distance++
+      // };
 
     const endingLogins = startIndex + distance;
     const loginSQ = Math.floor(endingLogins / 50) * 30;
@@ -360,7 +323,7 @@ const SummonCalc = () => {
     // console.log(sqPurchase, numPurchases);
 
     const totalPurchases = parseInt(sqPurchase) * numPurchases || 0;
-    // console.log(totalPurchases);
+    console.log(totalPurchases);
     return totalPurchases;
   };
 
@@ -374,20 +337,25 @@ const SummonCalc = () => {
       return;
     };
 
-    let numDays = dayjs(target).diff(dayjs(start), 'day');
+    let numDays = Math.ceil(dayjs(target).diff(dayjs(start), 'day', true));
+    console.log(numDays);
     const numMonths = (target.$y - start.$y) * 12 + (target.$M - start.$M);
     // console.log(numDays);
     // console.log(numMonths);
 
     // It seems like we need to manually adjust differences since anything that should be 1 or higher is reduced by 1.
-    if (numDays >= 1) {
-      numDays++
-    } else if (numDays === 0 && (target.$y > start.$y || target.$M > start.$M || target.$d > start.$d)) {
-      numDays++
-    };
+    // if (numDays >= 1) {
+    //   numDays++
+    // } else if (numDays === 0 && (target.$y > start.$y || target.$M > start.$M || target.$d > start.$d)) {
+    //   numDays++
+    // };
 
     // console.log(`${numDays} days between dates.`)
 
+    // console.log(start);
+
+    const startingSq = currency.sqStarting || 0
+    const startingTx = currency.txStarting || 0;
     const weeklies = calcWeeklies(start, numDays);
     const logins = calcLogins(start, target);
     const shop = calcShop(numMonths);
@@ -398,25 +366,27 @@ const SummonCalc = () => {
 
     // console.log(weeklies, logins, shop, events, purchases, otherSq, otherTx);
 
-    const gains = {
-      sq: parseInt(weeklies.sq + logins + events.sq),
-      tx: parseInt(weeklies.tx + shop + events.tx)
-    };
+    const gainedSq = parseInt(weeklies.sq + logins + events.sq);
+    const gainedTx = parseInt(weeklies.tx + shop + events.tx);
+
+    // console.log(weeklies.tx, shop, events.tx);
 
     // console.log(gains, weeklies)
 
-    // console.log(gains.sq, reserves.sq, purchases, otherSq)
+    const newSq = gainedSq + startingSq + purchases + otherSq || 0;
+    const newTx = gainedTx + startingTx + otherTx || 0;
 
-    const newSq = parseInt(gains.sq + currency.sqStarting + purchases + otherSq) || 0;
-    const newTx = parseInt(gains.tx + currency.txStarting + otherTx) || 0;
+    // console.log(gainedTx, startingTx, otherTx);
+
+    console.log(gainedSq, startingSq, startingTx, purchases, otherSq);
 
     let total = Math.floor((newSq / 3 + newTx) + Math.floor((newSq / 3 + newTx) / 10));
 
-    if (total < 0) {
+    if (isNaN(total) || total < 0) {
       total = 0;
     };
 
-    // console.log(total);
+    console.log(total);
     setSums({ sqSum: newSq, txSum: newTx, totalSummons: total });
     // return currency;
   };
@@ -486,6 +456,7 @@ const SummonCalc = () => {
   // }, [extras]);
 
   useEffect(() => {
+    console.log(savedRolls);
     localStorage.setItem('saved-rolls', JSON.stringify(savedRolls));
   }, [savedRolls]);
 
@@ -574,7 +545,6 @@ const SummonCalc = () => {
           totalProb += binomial[i];
         };
       };
-      setElementState({ ...elementState, odds: true });
       return totalProb;
     };
 
@@ -589,6 +559,7 @@ const SummonCalc = () => {
       oddsRender = `Guaranteed pity (330 summons)`
     };
 
+    setElementState({ ...elementState, odds: true });
     setSummonStats({ ...summonStats, summonOdds: oddsRender });
   };
 
@@ -596,7 +567,9 @@ const SummonCalc = () => {
     const savedRoll = {
       ...dates,
       ...currency,
-      ...summonStats
+      ...sums,
+      ...summonStats,
+      slot: getSlot()
       // targetName: summonStats.targetName || '',
       // savingDate: dayjs(dates.start).format('YYYY/MM/DD'),
       // bannerDate: dayjs(dates.target).format('YYYY/MM/DD'),
@@ -627,7 +600,6 @@ const SummonCalc = () => {
       // console.log(updatedRolls);
       setSavedRolls(updatedRolls);
     };
-
     setEditState(0);
   };
 
@@ -669,11 +641,9 @@ const SummonCalc = () => {
                   <option value={1}>Monthly</option>
                 </Select>
               </GridItem>
-              {parseInt(currency.purchasePeriod) === 1 ?
-                <GridItem rowSpan={1} colSpan={2}>
-                  <Checkbox name="alreadyPurchased" defaultChecked={false} >Already purchased this month?</Checkbox>
-                </GridItem>
-                : null}
+              <GridItem rowSpan={1} colSpan={2} hidden={currency.purchasePeriod === 0}>
+                <Checkbox name="alreadyPurchased" defaultChecked={false} >Already purchased this month?</Checkbox>
+              </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
                 <FormLabel>Extra SQ (can be negative):</FormLabel>
                 <Input className="form-input" name="sqExtra" type="number" placeholder="0" value={currency.sqExtra} onSubmit={calc} />
@@ -771,13 +741,14 @@ const SummonCalc = () => {
           </FormControl>
         </GridItem>
         <GridItem rowSpan={1} colSpan={1}>
-          {/* {savedRolls.map((roll, pos) => (
+          {savedRolls.map((roll, pos) => (
             <GridItem key={roll.slot}>
-              <RollSnapshot savedRolls={savedRolls} setSavedRolls={setSavedRolls} dates={dates} setDates={setDates} currency={currency} setCurrency={setCurrency} summonStats={summonStats} setSummonStats={setSummonStats} editState={editState} setEditState={setEditState}
+              <RollSnapshot savedRolls={savedRolls} setSavedRolls={setSavedRolls} setDates={setDates} setCurrency={setCurrency} setSums={setSums} setSummonStats={setSummonStats} editState={editState} setEditState={setEditState} rollIndex={roll.slot}
+              // dates={dates} currency={currency} summonStats={summonStats} sums={sums} 
               // thisRoll={roll}
               />
             </GridItem>
-          ))} */}
+          ))}
         </GridItem>
       </Grid>
     </>

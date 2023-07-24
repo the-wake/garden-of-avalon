@@ -9,16 +9,14 @@ import DatePicker from "react-datepicker";
 
 import "react-datepicker/dist/react-datepicker.css";
 
-const RollSnapshot = ({ savedRolls, setSavedRolls, purchaseData, setPurchaseData, dates, setDates, reserves, setReserves, currency, setCurrency, extras, setExtras, summonStats, setSummonStats, summonOdds, setSummonOdds, editState, setEditState }) => {
+const RollSnapshot = ({ savedRolls, setSavedRolls, setDates, setCurrency, setSummonStats, setSums, editState, setEditState, rollIndex }) => {
 
-  const thisRoll = { purchaseData, dates, reserves, currency, extras, summonStats, summonOdds };
+  // Roll data is now initialized from local storage rather than the parent component to ensure data sync.
+  let initRoll = JSON.parse(localStorage.getItem('saved-rolls'))[0];
 
-  const [rollData, setRollData] = useState(thisRoll);
-  console.log(rollData);
+  const [rollData, setRollData] = useState(initRoll);
 
   const [editingDates, setEditingDates] = useState(false);
-
-  const [snapshotData, setSnapshotData] = useState({ savedRolls, purchaseData, dates, reserves, currency, extras, summonStats, summonOdds });
 
   const style = {
     class: {
@@ -97,55 +95,57 @@ const RollSnapshot = ({ savedRolls, setSavedRolls, purchaseData, setPurchaseData
     localStorage.setItem('saved-rolls', JSON.stringify(savedRolls));
   }, [savedRolls]);
 
-  useEffect(() => {
-    // If the probability is still p, treat it and convert it into a percent; otherwise just copy it from probability.
-    if (typeof rollData.percentage === 'number') {
-      const percentage = parseFloat(rollData.probability * 100).toFixed(2);
-      setRollData({ ...rollData, percentage: `${percentage}%` });
-    } else {
-      setRollData({ ...rollData, percentage: rollData.probability })
-    };
-  }, [rollData.probability]);
+  // TODO: Refactor(?) and enable.
+  // useEffect(() => {
+  //   // If the probability is still p, treat it and convert it into a percent; otherwise just copy it from probability.
+  //   if (typeof rollData.percentage === 'number') {
+  //     const percentage = parseFloat(rollData.prob * 100).toFixed(2);
+  //     setRollData({ ...rollData, percentage: `${percentage}%` });
+  //   } else {
+  //     setRollData({ ...rollData, percentage: rollData.probability })
+  //   };
+  // }, [rollData.prob]);
 
+  // TODO: This should pull the data from local storage to make sure it's consistent across reloads.
   const confirmEdit = () => {
-    console.log(snapshotData);
-    if (window.confirm('Load selected roll into the editing form?')) {
-      console.log('Editing roll:', snapshotData.purchaseData, new Date(rollData.bannerDate), snapshotData.reserves, snapshotData.extras, rollData.targetName, snapshotData.summonOdds);
-      setPurchaseData(snapshotData.purchaseData);
-      setDates({ ...dates, start: new Date(rollData.savingDate), target: new Date(rollData.bannerDate) });
-      setReserves({ sq: snapshotData.reserves.sq || 0, tx: snapshotData.reserves.tx || 0 });
-      // setCurrency(snapshotData.currency);
-      setExtras(snapshotData.extras);
-      // TODO: Don't have way of adjusting num desired yet.
-      setSummonStats({ ...summonStats, targetName: rollData.targetName, slot: rollData.slot });
-      setSummonOdds(snapshotData.summonOdds);
-      setEditState(1);
-    };
+    console.log(initRoll);
+    // if (window.confirm('Load selected roll into the editing form?')) {
+    //   console.log('Editing roll:', initRoll);
+    //   setCurrency(initRoll);
+    //   setDates({ ...dates, start: new Date(rollData.savingDate), target: new Date(rollData.bannerDate) });
+    //   setReserves({ sq: snapshotData.reserves.sq || 0, tx: snapshotData.reserves.tx || 0 });
+    //   // setCurrency(snapshotData.currency);
+    //   setExtras(snapshotData.extras);
+    //   // TODO: Don't have way of adjusting num desired yet.
+    //   setSummonStats({ ...summonStats, targetName: rollData.targetName, slot: rollData.slot });
+    //   setSummonOdds(snapshotData.summonOdds);
+    //   setEditState(1);
+    // };
   };
 
   const confirmDelete = () => {
     if (window.confirm('Delete selected roll?')) {
       console.log('Deleting roll.')
 
-      let foundTarget = false;
+      // let foundTarget = false;
 
-      const rollIndex = rollData.slot;
-      const updatedRolls = savedRolls.filter((roll, i) => {
-        if (roll.slot === rollIndex) {
-          console.log(`Matched roll index ${rollIndex}.`)
-          console.log(rollData);
-          foundTarget = true;
-          return;
-        } else {
-          if (foundTarget) {
-            roll.slot--
-          };
-          return roll;
-        };
-      });
-      console.log(updatedRolls);
-      setSavedRolls(updatedRolls);
-      setEditingDates(false);
+      // const rollIndex = rollData.slot;
+      // const updatedRolls = savedRolls.filter((roll, i) => {
+      //   if (roll.slot === rollIndex) {
+      //     console.log(`Matched roll index ${rollIndex}.`)
+      //     console.log(rollData);
+      //     foundTarget = true;
+      //     return;
+      //   } else {
+      //     if (foundTarget) {
+      //       roll.slot--
+      //     };
+      //     return roll;
+      //   };
+      // });
+      // console.log(updatedRolls);
+      // setSavedRolls(updatedRolls);
+      // setEditingDates(false);
     };
   };
 
@@ -178,8 +178,8 @@ const RollSnapshot = ({ savedRolls, setSavedRolls, purchaseData, setPurchaseData
             {/* I don't think it makes sense to have date range editing here. Probably just have a button to send the data back to the calculator if you want to re-calculate ranges. */}
             {
               editingDates === false
-                ? <Input className="form-input" name="bannerDate" type="text" readOnly={true} onClick={dateRangeUpdate} onChange={() => 1 === 1} value={rollData.bannerDate} />
-                : <DatePicker format={'yyyy/MM/dd'} selected={new Date(rollData.bannerDate)} autoFocus onBlur={() => setEditingDates(false)} onChange={(date) => setRollData({ ...rollData, bannerDate: dayjs(date).format('YYYY/MM/DD') })} />
+                ? <Input className="form-input" name="bannerDate" type="text" readOnly={true} onClick={dateRangeUpdate} onChange={() => 1 === 1} value={rollData.target} />
+                : <DatePicker format={'yyyy/MM/dd'} selected={new Date(rollData.target)} autoFocus onBlur={() => setEditingDates(false)} onChange={(date) => setRollData({ ...rollData, bannerDate: dayjs(date).format('YYYY/MM/DD') })} />
             }
             {/* <DatePicker format={'yyyy/MM/dd'} selected={new Date(rollData.bannerDate)} onBlur={() => setEditingDates(false)} onChange={(date) => setRollData({ ...rollData, bannerDate: dayjs(date).format('YYYY/MM/DD') })} /> */}
           </GridItem>
@@ -189,13 +189,13 @@ const RollSnapshot = ({ savedRolls, setSavedRolls, purchaseData, setPurchaseData
                 <FormLabel>SQ:</FormLabel>
               </GridItem>
               <GridItem colSpan={7}>
-                <Input className="form-input" name="sq" type="number" onChange={() => 1 === 1} value={rollData.budget.sq} />
+                <Input className="form-input" name="sq" type="number" onChange={() => 1 === 1} value={rollData.sqSum} />
               </GridItem>
               <GridItem colSpan={1}>
                 <FormLabel>Tickets:</FormLabel>
               </GridItem>
               <GridItem colSpan={7}>
-                <Input className="form-input" name="tx" type="number" onChange={() => 1 === 1} value={rollData.budget.tx} />
+                <Input className="form-input" name="tx" type="number" onChange={() => 1 === 1} value={rollData.txSum} />
               </GridItem>
             </Grid>
           </GridItem>
@@ -205,26 +205,26 @@ const RollSnapshot = ({ savedRolls, setSavedRolls, purchaseData, setPurchaseData
                 <FormLabel>Rolls:</FormLabel>
               </GridItem>
               <GridItem colSpan={3}>
-                <Input className="form-input" name="numRolls" type="number" readOnly={true} value={rollData.numRolls} />
+                <Input className="form-input" name="numRolls" type="number" readOnly={true} value={rollData.totalSummons} />
               </GridItem>
               <GridItem colSpan={1}>
                 <FormLabel>Rate:</FormLabel>
               </GridItem>
               <GridItem colSpan={3}>
-                <Input className="form-input" name="numRolls" type="number" readOnly={true} value={rollData.rate} />
+                <Input className="form-input" name="numRolls" type="number" readOnly={true} value={rollData.prob} />
               </GridItem>
               <GridItem colSpan={1}>
                 <FormLabel>Desired:</FormLabel>
               </GridItem>
               {/* TODO: Run calc when updating relevant values? Or just make them send it back to the editor? */}
               <GridItem colSpan={3}>
-                <Input className="form-input" name="numDesired" type="number" readOnly={true} value={rollData.numDesired} />
+                <Input className="form-input" name="numDesired" type="number" readOnly={true} value={rollData.desired} />
               </GridItem>
               <GridItem colSpan={1}>
                 <FormLabel>Odds:</FormLabel>
               </GridItem>
               <GridItem colSpan={3}>
-                <Input className="form-input" name="numRolls" type="text" readOnly={true} value={rollData.percentage} />
+                <Input className="form-input" name="numRolls" type="text" readOnly={true} value={rollData.summonOdds} />
               </GridItem>
             </Grid>
           </GridItem>
