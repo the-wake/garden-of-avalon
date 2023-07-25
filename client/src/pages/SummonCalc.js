@@ -28,6 +28,8 @@ const SummonCalc = () => {
     txIncome: '',
     sqExtra: '',
     txExtra: '',
+    sqMinus: '',
+    txMinus: '',
   });
   // console.log(currency);
 
@@ -43,7 +45,9 @@ const SummonCalc = () => {
   });
 
   const [summonStats, setSummonStats] = useState({
+    targetNo: '',
     targetName: '',
+    targetImage: 'https://static.atlasacademy.io/JP/Faces/f_8001000.png',
     rarity: 'ssr',
     numRateup: 1,
     prob: 0.008,
@@ -56,7 +60,7 @@ const SummonCalc = () => {
     odds: false
   });
 
-  const [editState, setEditState] = useState(0);
+  const [editState, setEditState] = useState(false);
 
   const [savedRolls, setSavedRolls] = useState(JSON.parse(localStorage.getItem('saved-rolls')) || []);
 
@@ -179,8 +183,6 @@ const SummonCalc = () => {
     };
 
     // Update currency with new login rewards.
-
-
     setLoginData({
       total: total || 0,
       streak: streak || 0,
@@ -195,27 +197,12 @@ const SummonCalc = () => {
     // let distance = Math.ceil(dayjs(start).diff(dayjs(today), 'days', true));
     console.log(`Calculating weeklies. Start: ${start}; numDays: ${numDays}.`);
 
-    // It seems like the diff between day X and day X+1 comes out to 0, so this 
-    // if (numDays >= 1) {
-    //   numDays++
-    // } else if (numDays === 0 && (start.$y > today.$y || start.$M > today.$M || start.$d > today.$d)) {
-    //   numDays++
-    // };
-
     console.log(`${numDays} days from today to start date.`)
 
     // The weekly index of the start day.
     let index;
     // console.log(origin || numDays);
     origin <= 6 ? index = origin : index = (loginData.streak + numDays) % 7;
-    // const index = origin || (loginData.streak + distance) % 7;
-    // console.log(index);
-
-    // const remainder = numDays % 7;
-
-    // This gets the values of each full weeks' gains.
-    // const weeks = (numDays - remainder) / 7;
-    // console.log(`Starting index: ${index}. Full weeks: ${weeks}. Remainder days: ${remainder}.`);
 
     let weeklyGains = {
       sq: 0,
@@ -360,6 +347,8 @@ const SummonCalc = () => {
     const purchases = calcPurchases(numMonths) || 0;
     const otherSq = parseInt(currency.sqExtra) || 0;
     const otherTx = parseInt(currency.txExtra) || 0;
+    const spentSq = parseInt(currency.sqMinus) || 0;
+    const spentTx = parseInt(currency.txMinus) || 0;
 
     // console.log(weeklies, logins, shop, events, purchases, otherSq, otherTx);
 
@@ -370,8 +359,10 @@ const SummonCalc = () => {
 
     // console.log(gains, weeklies)
 
-    const newSq = gainedSq + startingSq + purchases + otherSq || 0;
-    const newTx = gainedTx + startingTx + otherTx || 0;
+    const newSq = gainedSq + startingSq + purchases + otherSq - spentSq || 0;
+    const newTx = gainedTx + startingTx + otherTx - spentTx || 0;
+
+    console.log(spentSq, spentTx);
 
     // console.log(gainedTx, startingTx, otherTx);
 
@@ -410,7 +401,7 @@ const SummonCalc = () => {
     }
 
     // Handle all other updates with proper integer or string.
-    else if (currencyVals.includes(e.target.name)) {
+    else {
       setCurrency({ ...currency, [e.target.name]: targetVal });
     };
   };
@@ -462,15 +453,15 @@ const SummonCalc = () => {
 
   const clearForm = () => {
     setCurrency({
-      sqPurchase: '',
-      purchasePeriod: 0,
-      alreadyPurchased: false,
+      ...currency,
       sqStarting: '',
       txStarting: '',
       sqIncome: '',
       txIncome: '',
       sqExtra: '',
-      txExtra: ''
+      txExtra: '',
+      sqMinus: '',
+      txMinus: ''
     });
 
     setDates({
@@ -482,24 +473,6 @@ const SummonCalc = () => {
   useEffect(() => {
     console.log(dates);
   }, [dates])
-
-  // Handler pre-state
-  // let totalSummons = Math.floor((sums.sqSum / 3 + sums.txSum) + Math.floor((sums.sqSum / 3 + sums.txSum) / 10));
-
-  // if (totalSummons < 0) {
-  //   totalSummons = 0;
-  // };
-
-  // useEffect(() => {
-  //   // console.log(sums)
-  //   let total = Math.floor((sums.sqSum / 3 + sums.txSum) + Math.floor((sums.sqSum / 3 + sums.txSum) / 10));
-
-  //   if (total < 0) {
-  //     total = 0;
-  //   };
-  //   console.log(total);
-  //   setSums({ ...sums, totalSummons: total })
-  // }, [currency]);
 
   const probHandler = (e) => {
     if (e.target.name === 'rarity') {
@@ -533,7 +506,6 @@ const SummonCalc = () => {
       // q: (1 - summonStats.prob),
       k: summonStats.desired
     });
-    // console.log(n, p, q, k);
 
     const binomial = stats.binomialDistribution(n, p);
 
@@ -552,7 +524,6 @@ const SummonCalc = () => {
     };
 
     const totalProb = binomCalc();
-    // console.log(totalProb);
 
     const percentage = parseFloat(totalProb * 100).toFixed(2);
 
@@ -576,13 +547,13 @@ const SummonCalc = () => {
     };
 
     // If making a new entry, generate a slot and save it.
-    if (editState === 0) {
+    if (editState === false) {
       savedRoll.slot = getSlot();
       console.log(`Saving`, savedRoll);
       setSavedRolls([...savedRolls, savedRoll]);
     }
     // If editing a roll, find its index and update it.
-    else if (editState === 1) {
+    else if (editState >= 0) {
       let rollsClone = [...savedRolls];
       console.log(rollsClone);
       const rollIndex = savedRoll.slot;
@@ -597,10 +568,16 @@ const SummonCalc = () => {
       });
       console.log(updatedRolls);
       setSavedRolls(updatedRolls);
+      clearForm();
     };
 
-    setSummonStats({ ...summonStats, targetName: '' });
-    setEditState(0);
+    setSummonStats({ ...summonStats, targetNo: '', targetName: '', targetImage: 'https://static.atlasacademy.io/JP/Faces/f_8001000.png' });
+    setEditState(false);
+  };
+
+  const handleEditCancel = () => {
+    setEditState(false)
+    setSummonStats({ ...summonStats, targetNo: '', targetName: '', targetImage: 'https://static.atlasacademy.io/JP/Faces/f_8001000.png' });
   };
 
   // let localRolls = [...savedRolls];
@@ -665,12 +642,20 @@ const SummonCalc = () => {
                 <Checkbox name="alreadyPurchased" defaultChecked={false} >Already purchased this month?</Checkbox>
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
-                <FormLabel>Extra SQ (can be negative):</FormLabel>
+                <FormLabel>Extra SQ:</FormLabel>
                 <Input className="form-input" name="sqExtra" type="number" placeholder="0" value={currency.sqExtra} onSubmit={calc} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
-                <FormLabel>Extra Tickets (can be negative):</FormLabel>
+                <FormLabel>Extra Tickets:</FormLabel>
                 <Input className="form-input" name="txExtra" type="number" placeholder="0" value={currency.txExtra} onSubmit={calc} />
+              </GridItem>
+              <GridItem rowSpan={1} colSpan={1} >
+                <FormLabel>Expected SQ Spending:</FormLabel>
+                <Input className="form-input" name="sqMinus" type="number" placeholder="0" value={currency.sqMinus} onSubmit={calc} />
+              </GridItem>
+              <GridItem rowSpan={1} colSpan={1} >
+                <FormLabel>Expected Ticket Spending:</FormLabel>
+                <Input className="form-input" name="txMinus" type="number" placeholder="0" value={currency.txMinus} onSubmit={calc} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
                 <FormLabel>Start Date:</FormLabel>
@@ -691,6 +676,7 @@ const SummonCalc = () => {
             <br />
             <Grid h='' templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
               <GridItem rowSpan={1} colSpan={1} >
+                {/* TODO: These forms can probably just set their values by calling other values directly, rather than going calculator functions. */}
                 <FormLabel>Total Quartz:</FormLabel>
                 <Input className="form-input" isReadOnly={true} name="sqSum" value={sums.sqSum} placeholder="0" />
               </GridItem>
@@ -738,17 +724,17 @@ const SummonCalc = () => {
                 <FormLabel>Number of Copies Desired:</FormLabel>
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
-                <Input className="form-input" name="desired" defaultValue={1} onChange={probHandler} />
+                <Input className="form-input" name="desired" value={summonStats.desired} onChange={probHandler} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={2} >
                 <Button marginTop={4} colorScheme="blue" onClick={calcOdds} width={'400px'} >Calculate!</Button>
               </GridItem>
               <GridItem rowSpan={1} colSpan={2} hidden={!elementState.odds}>
                 <Input className="form-input" maxW='400px' isReadOnly={true} name="summonOdds" value={summonStats.summonOdds} />
-                <Button marginTop={4} colorScheme="blue" onClick={saveSnapshot}>{editState === 0 ? 'Save Snapshot' : 'Update Snapshot'}</Button>
+                <Button marginTop={4} colorScheme="blue" onClick={saveSnapshot}>{editState === false ? 'Save Snapshot' : 'Update Snapshot'}</Button>
               </GridItem>
-              <GridItem rowSpan={1} colSpan={2} hidden={!editState}>
-                <Button marginTop={4} colorScheme="red" onClick={() => setEditState(0)} width={'400px'} >Cancel Edit</Button>
+              <GridItem rowSpan={1} colSpan={2} hidden={editState === false}>
+                <Button marginTop={4} colorScheme="red" onClick={handleEditCancel} width={'400px'}>Cancel Edit</Button>
               </GridItem>
             </Grid>
           </FormControl>

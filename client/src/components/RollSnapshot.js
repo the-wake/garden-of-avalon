@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import sanitizeEmpty from '../utils/sanitizeEmpty.js'
 
+import { useSelector, useDispatch } from 'react-redux'
+// import { getAllServants, addServant, removeServant } from './features/servant/servantSlice.js';
+
 import { Grid, GridItem } from '@chakra-ui/react'
 import { FormControl, FormLabel, Input, Button, Select, Checkbox, IconButton } from '@chakra-ui/react'
 import { EditIcon, DeleteIcon } from '@chakra-ui/icons'
@@ -12,12 +15,17 @@ import "react-datepicker/dist/react-datepicker.css";
 
 const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDates, setCurrency, setSummonStats, setSums, editState, setEditState, rollIndex }) => {
 
+  const servantData = useSelector((state) => state.servants.roster);
+  // const loading = useSelector((state) => state.servants.loading);
+
   let initRoll = rollObj;
   console.log(`Rendering component:`, initRoll);
 
   const [rollData, setRollData] = useState(initRoll);
 
   const [editingDates, setEditingDates] = useState(false);
+
+  const [editStyle, setEditStyle] = useState(false);
 
   const style = {
     class: {
@@ -63,8 +71,44 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDates, setCurrenc
     }
   };
 
+  const cardStyles = {
+    normal: {
+      backgroundColor: '#8888BB',
+      borderRadius: '6px',
+      minHeight: '80px',
+      textAlign: 'left',
+      display: 'flex',
+      margin: '12px'
+    },
+    editing: {
+      backgroundColor: '#BB8888',
+      borderRadius: '6px',
+      minHeight: '80px',
+      textAlign: 'left',
+      display: 'flex',
+      margin: '12px'
+    }
+  };
+
+  // Have to reformat to make value Servant ID, then have useEffect set their name.
   const handleFormUpdate = (e) => {
-    setRollData({ ...rollData, [e.target.name]: e.target.value });
+    if (e.target.name === 'targetNo') {
+      const collectionNo = e.target.value;
+      console.log(`Finding Servant ID ${collectionNo}`);
+      const targetIndex = servantData.findIndex(servant => servant.collectionNo == collectionNo);
+      const targetServant = servantData[targetIndex];
+      console.log(targetServant.name, targetServant.face);
+      const targetName = servantData[targetIndex].name;
+      const targetImage = servantData[targetIndex].face;
+      setRollData({
+        ...rollData,
+        targetNo: collectionNo,
+        targetName,
+        targetImage,
+      });
+    } else {
+      setRollData({ ...rollData, [e.target.name]: e.target.value });
+    };
   };
 
   const dateRangeUpdate = () => {
@@ -114,8 +158,8 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDates, setCurrenc
       console.log('Editing roll:', rollData);
       let newRoll = {};
 
-      const { sqPurchase, purchasePeriod, alreadyPurchased, sqStarting, txStarting, sqIncome, txIncome, sqExtra, txExtra } = rollData;
-      newRoll.currency = { sqPurchase, purchasePeriod, alreadyPurchased, sqStarting, txStarting, sqIncome, txIncome, sqExtra, txExtra };
+      const { sqPurchase, purchasePeriod, alreadyPurchased, sqStarting, txStarting, sqIncome, txIncome, sqExtra, txExtra, sqMinus, txMinus } = rollData;
+      newRoll.currency = { sqPurchase, purchasePeriod, alreadyPurchased, sqStarting, txStarting, sqIncome, txIncome, sqExtra, txExtra, sqMinus, txMinus };
 
       const { start, target } = rollData;
       newRoll.dates = { start, target };
@@ -123,8 +167,8 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDates, setCurrenc
       const { sqSum, txSum, totalSummons } = rollData;
       newRoll.sums = { sqSum, txSum, totalSummons };
 
-      const { targetName, rarity, numRateup, prob, desired, summonOdds, slot } = rollData;
-      newRoll.summonStats = { targetName, rarity, numRateup, prob, desired, summonOdds, slot };
+      const { targetNo, targetName, targetImage, rarity, numRateup, prob, desired, summonOdds, slot } = rollData;
+      newRoll.summonStats = { targetNo, targetName, targetImage, rarity, numRateup, prob, desired, summonOdds, slot };
 
       sanitizeEmpty(newRoll.currency);
       console.log(newRoll);
@@ -133,9 +177,14 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDates, setCurrenc
       setDates(newRoll.dates);
       setSummonStats(newRoll.summonStats);
 
-      setEditState(1);
+      setEditState(newRoll.summonStats.slot);
+      setEditStyle(true);
     };
   };
+
+  // useEffect(() => {
+  //   console.log(editState);
+  // }, [editState])
 
   const confirmDelete = () => {
     if (window.confirm('Delete selected roll?')) {
@@ -160,19 +209,59 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDates, setCurrenc
       console.log(updatedRolls);
       setSavedRolls(updatedRolls);
       setEditingDates(false);
+      setEditState(false);
     };
   };
 
+  let servantImage = 'https://static.atlasacademy.io/JP/Faces/f_8001000.png';
+
+  useEffect(() => {
+    // console.log(rollData.targetName);
+    servantImage = '';
+  }, [rollData.targetNo]);
+
+  // Used by following map to give individual names to each Servant where there are duplicates.
+  let servantsSoFar = [];
+
+  const servantsMap = servantData.map((servant) => {
+    // console.log(servant.name);
+    // console.log(servantsSoFar)
+
+    if (servant.rarity < 3 || servant.type === 'heroine' || servant.type === 'enemyCollectionDetail') {
+      return
+    };
+
+    let useName = servant.name;
+
+    if (servantsSoFar.includes(servant.name)) {
+      const appendClass = `${servant.className.charAt(0).toUpperCase()}${servant.className.slice(1)}`;
+      const appendedName = `${servant.name} (${appendClass})`;
+      // console.log(`Servant name ${servant.name} already in array. Appending name to ${appendedName}`);
+      servantsSoFar.push(appendedName);
+      useName = appendedName;
+    } else {
+      // console.log(`Pushing ${servant.name} to array so far.`);
+      servantsSoFar.push(servant.name);
+    };
+
+    return (
+      <>
+        <option value={servant.collectionNo}>{useName}</option>
+      </>
+    )
+
+  });
+
   // useEffect(() => {
-  //   // console.log(JSON.parse(localStorage.getItem('saved-rolls')));
-  // }, [savedRolls]);
+  //   console.log(servantData);
+  // }, [servantData]);
 
   return (
-    <div style={style.card}>
+    <div style={editState === rollData.slot ? cardStyles.editing : cardStyles.normal}>
       {/* TODO: Refactor this into one big grid when the elements and styles are set. */}
       <Grid w='80px' h='80px' templateRows='repeat(4, 1fr)' templateColumns='repeat(2, 1fr)' gap={0.5}>
         <GridItem rowSpan={1} colSpan={2}>
-          <img src='https://grandorder.wiki/images/d/d5/Icon_Servant_150.png' style={style.image} />
+          <img src={rollData.targetImage} style={style.image} />
         </GridItem>
         <GridItem rowSpan={3} colSpan={1}>
           <IconButton ml='4px' size='sm' aria-label='Edit item' icon={<EditIcon />} onClick={confirmEdit} />
@@ -184,18 +273,13 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDates, setCurrenc
       <FormControl marginLeft="auto" marginRight="auto" onChange={handleFormUpdate}>
         <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(10, 1fr)' p="6px" gap={5}>
           <GridItem rowSpan={1} colSpan={3}>
-            <Select className="form-input" name="targetName" value={rollData.targetName} placeholder={'Target Servant'} onChange={() => 1 === 1} mb="8px" >
-              <option value="Merlin">Merlin</option>
-              <option value="Oberon">Oberon</option>
-              <option value="Archetype: Earth">Archetype: Earth</option>
+            <Select className="form-input" name="targetNo" value={rollData.targetNo} placeholder={'Target Servant'} onChange={() => 1 === 1} mb="8px" >
+              {servantsMap}
             </Select>
-            {/* I don't think it makes sense to have date range editing here. Probably just have a button to send the data back to the calculator if you want to re-calculate ranges. */}
-            {
-              editingDates === false
-                ? <Input className="form-input" name="bannerDate" type="text" readOnly={true} onClick={dateRangeUpdate} onChange={() => 1 === 1} value={dayjs(rollData.target).format('YYYY/MM/DD')} />
-                : <DatePicker format={'yyyy/MM/dd'} selected={new Date(rollData.target)} autoFocus onBlur={() => setEditingDates(false)} onChange={(date) => setRollData({ ...rollData, bannerDate: dayjs(date).format('YYYY/MM/DD') })} />
-            }
-            {/* <DatePicker format={'yyyy/MM/dd'} selected={new Date(rollData.bannerDate)} onBlur={() => setEditingDates(false)} onChange={(date) => setRollData({ ...rollData, bannerDate: dayjs(date).format('YYYY/MM/DD') })} /> */}
+            <Input className="form-input" name="bannerDate" type="text" hidden={editingDates === true} readOnly={true} onClick={dateRangeUpdate} onChange={() => 1 === 1} value={dayjs(rollData.target).format('YYYY/MM/DD')} />
+            <GridItem hidden={editingDates === false}>
+              <DatePicker format={'yyyy/MM/dd'} selected={new Date(rollData.target)} autoFocus onBlur={() => setEditingDates(false)} onChange={(date) => setRollData({ ...rollData, bannerDate: dayjs(date).format('YYYY/MM/DD') })} />
+            </GridItem>
           </GridItem>
           <GridItem rowSpan={2} colSpan={3}>
             <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(8, 1fr)' gap={2} >
