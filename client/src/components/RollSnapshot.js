@@ -92,21 +92,23 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDates, setCurrenc
 
   // Have to reformat to make value Servant ID, then have useEffect set their name.
   const handleFormUpdate = (e) => {
-  //   if (e.target.name === 'targetName') {
-  //     console.log(e.target);
-  //     let targetNo = e.target.key
-  //     let targetIndex = servantData.findIndex(servant => servant.collectionNo === targetNo);
-  //     console.log(targetNo, targetIndex);
-  //     let targetImage = servantData[targetIndex].face;
-  //     setRollData({
-  //       ...rollData,
-  //       targetName: e.target.value,
-  //       targetImage,
-  //       targetNo
-  //     });
-  //   } else {
+    if (e.target.name === 'targetNo') {
+      const collectionNo = e.target.value;
+      console.log(`Finding Servant ID ${collectionNo}`);
+      const targetIndex = servantData.findIndex(servant => servant.collectionNo == collectionNo);
+      const targetServant = servantData[targetIndex];
+      console.log(targetServant.name, targetServant.face);
+      const targetName = servantData[targetIndex].name;
+      const targetImage = servantData[targetIndex].face;
+      setRollData({
+        ...rollData,
+        targetNo: collectionNo,
+        targetName,
+        targetImage,
+      });
+    } else {
       setRollData({ ...rollData, [e.target.name]: e.target.value });
-  //   };
+    };
   };
 
   const dateRangeUpdate = () => {
@@ -165,8 +167,8 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDates, setCurrenc
       const { sqSum, txSum, totalSummons } = rollData;
       newRoll.sums = { sqSum, txSum, totalSummons };
 
-      const { targetName, rarity, numRateup, prob, desired, summonOdds, slot } = rollData;
-      newRoll.summonStats = { targetName, rarity, numRateup, prob, desired, summonOdds, slot };
+      const { targetNo, targetName, targetImage, rarity, numRateup, prob, desired, summonOdds, slot } = rollData;
+      newRoll.summonStats = { targetNo, targetName, targetImage, rarity, numRateup, prob, desired, summonOdds, slot };
 
       sanitizeEmpty(newRoll.currency);
       console.log(newRoll);
@@ -216,7 +218,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDates, setCurrenc
   useEffect(() => {
     // console.log(rollData.targetName);
     servantImage = '';
-  }, [rollData.targetName]);
+  }, [rollData.targetNo]);
 
   // Used by following map to give individual names to each Servant where there are duplicates.
   let servantsSoFar = [];
@@ -240,7 +242,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDates, setCurrenc
 
     return (
       <>
-        <option value={useName} key={servant.collectionNo} >{useName}</option>
+        <option value={servant.collectionNo}>{useName}</option>
       </>
     )
 
@@ -255,7 +257,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDates, setCurrenc
       {/* TODO: Refactor this into one big grid when the elements and styles are set. */}
       <Grid w='80px' h='80px' templateRows='repeat(4, 1fr)' templateColumns='repeat(2, 1fr)' gap={0.5}>
         <GridItem rowSpan={1} colSpan={2}>
-          <img src={servantImage} style={style.image} />
+          <img src={rollData.targetImage} style={style.image} />
         </GridItem>
         <GridItem rowSpan={3} colSpan={1}>
           <IconButton ml='4px' size='sm' aria-label='Edit item' icon={<EditIcon />} onClick={confirmEdit} />
@@ -267,7 +269,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDates, setCurrenc
       <FormControl marginLeft="auto" marginRight="auto" onChange={handleFormUpdate}>
         <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(10, 1fr)' p="6px" gap={5}>
           <GridItem rowSpan={1} colSpan={3}>
-            <Select className="form-input" name="targetName" value={rollData.targetName} placeholder={'Target Servant'} onChange={() => 1 === 1} mb="8px" >
+            <Select className="form-input" name="targetNo" value={rollData.targetNo} placeholder={'Target Servant'} onChange={() => 1 === 1} mb="8px" >
               {servantsMap}
             </Select>
             <Input className="form-input" name="bannerDate" type="text" hidden={editingDates === true} readOnly={true} onClick={dateRangeUpdate} onChange={() => 1 === 1} value={dayjs(rollData.target).format('YYYY/MM/DD')} />

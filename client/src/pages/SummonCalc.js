@@ -43,9 +43,9 @@ const SummonCalc = () => {
   });
 
   const [summonStats, setSummonStats] = useState({
-    targetName: '',
-    targetImage: '',
     targetNo: '',
+    targetName: '',
+    targetImage: 'https://static.atlasacademy.io/JP/Faces/f_8001000.png',
     rarity: 'ssr',
     numRateup: 1,
     prob: 0.008,
@@ -564,8 +564,13 @@ const SummonCalc = () => {
       setSavedRolls(updatedRolls);
     };
 
-    setSummonStats({ ...summonStats, targetName: '', targetImage: '', targetNo: '' });
+    setSummonStats({ ...summonStats, targetNo: '', targetName: '', targetImage: 'https://static.atlasacademy.io/JP/Faces/f_8001000.png' });
     setEditState(false);
+  };
+
+  const handleEditCancel = () => {
+    setEditState(false)
+    setSummonStats({ ...summonStats, targetNo: '', targetName: '', targetImage: 'https://static.atlasacademy.io/JP/Faces/f_8001000.png' });
   };
 
   // let localRolls = [...savedRolls];
@@ -713,7 +718,7 @@ const SummonCalc = () => {
                 <Button marginTop={4} colorScheme="blue" onClick={saveSnapshot}>{editState === false ? 'Save Snapshot' : 'Update Snapshot'}</Button>
               </GridItem>
               <GridItem rowSpan={1} colSpan={2} hidden={editState === false}>
-                <Button marginTop={4} colorScheme="red" onClick={() => setEditState(false)} width={'400px'}>Cancel Edit</Button>
+                <Button marginTop={4} colorScheme="red" onClick={handleEditCancel} width={'400px'}>Cancel Edit</Button>
               </GridItem>
             </Grid>
           </FormControl>
