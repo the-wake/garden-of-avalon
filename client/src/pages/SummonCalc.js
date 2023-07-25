@@ -105,7 +105,6 @@ const SummonCalc = () => {
     },
   };
 
-  // 
   const odds = {
     ssr: [0.008, 0.005],
     sr: [0.02, 0.015, 0.012],
@@ -253,6 +252,8 @@ const SummonCalc = () => {
   const calcMasterMissions = (start, difference) => {
     let dayInc = 0;
     let sqGains = 0;
+    start = dayjs(start);
+    console.log(start, difference);
 
     for (var i = 0; i < difference; i++) {
       dayInc++;

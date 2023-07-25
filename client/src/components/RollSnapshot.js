@@ -141,25 +141,25 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDates, setCurrenc
     if (window.confirm('Delete selected roll?')) {
       console.log('Deleting roll.')
 
-      // let foundTarget = false;
+      let foundTarget = false;
 
-      // const rollIndex = rollData.slot;
-      // const updatedRolls = savedRolls.filter((roll, i) => {
-      //   if (roll.slot === rollIndex) {
-      //     console.log(`Matched roll index ${rollIndex}.`)
-      //     console.log(rollData);
-      //     foundTarget = true;
-      //     return;
-      //   } else {
-      //     if (foundTarget) {
-      //       roll.slot--
-      //     };
-      //     return roll;
-      //   };
-      // });
-      // console.log(updatedRolls);
-      // setSavedRolls(updatedRolls);
-      // setEditingDates(false);
+      const rollIndex = rollData.slot;
+      const updatedRolls = savedRolls.filter((roll, i) => {
+        if (roll.slot === rollIndex) {
+          console.log(`Matched roll index ${rollIndex}.`)
+          console.log(rollData);
+          foundTarget = true;
+          return;
+        } else {
+          if (foundTarget) {
+            roll.slot--
+          };
+          return roll;
+        };
+      });
+      console.log(updatedRolls);
+      setSavedRolls(updatedRolls);
+      setEditingDates(false);
     };
   };
 
