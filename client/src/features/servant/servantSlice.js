@@ -3,9 +3,17 @@ import { createSlice } from '@reduxjs/toolkit';
 export const servantSlice = createSlice({
   name: 'servants',
   initialState: {
-    roster: JSON.parse(localStorage.getItem('roster')) || [],
+    // Initial state needs to start as empty and update with API call immediately after load.
+    roster: [],
+    loading: true
   },
   reducers: {
+    getAllServants: (state, action) => {
+      state.roster = action.payload;
+    },
+    setLoading: (state) => {
+      state.loading = false
+    },
     // select: (servant) => {
     //   state.servant = servant;
     // },
@@ -26,6 +34,6 @@ export const servantSlice = createSlice({
   },
 });
 
-export const { addServant, removeServant } = servantSlice.actions;
+export const { getAllServants, addServant, removeServant } = servantSlice.actions;
 
 export default servantSlice.reducer;

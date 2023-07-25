@@ -42,15 +42,15 @@ const ServantList = () => {
   // });
 
 
-  console.log(servantNamesNA);
+  // console.log(servantNamesNA);
 
   const servantNamesJP = servantDataJP.map((servant) => {
     return servant.name;
   });
 
-  useEffect(() => {
-    console.log(roster);
-  }, [roster]);
+  // useEffect(() => {
+  //   console.log(roster);
+  // }, [roster]);
 
   // console.log(servantNamesNA);
   // console.log(servantNamesJP);
@@ -135,6 +135,7 @@ const ServantList = () => {
             cls !== 'Shielder'
               ? <MenuItem
                 name={cls}
+                key={pos}
                 onClick={handleClassChange}
               >
                 {cls}
