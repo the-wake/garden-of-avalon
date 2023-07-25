@@ -158,8 +158,8 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDates, setCurrenc
       console.log('Editing roll:', rollData);
       let newRoll = {};
 
-      const { sqPurchase, purchasePeriod, alreadyPurchased, sqStarting, txStarting, sqIncome, txIncome, sqExtra, txExtra } = rollData;
-      newRoll.currency = { sqPurchase, purchasePeriod, alreadyPurchased, sqStarting, txStarting, sqIncome, txIncome, sqExtra, txExtra };
+      const { sqPurchase, purchasePeriod, alreadyPurchased, sqStarting, txStarting, sqIncome, txIncome, sqExtra, txExtra, sqMinus, txMinus } = rollData;
+      newRoll.currency = { sqPurchase, purchasePeriod, alreadyPurchased, sqStarting, txStarting, sqIncome, txIncome, sqExtra, txExtra, sqMinus, txMinus };
 
       const { start, target } = rollData;
       newRoll.dates = { start, target };
@@ -226,6 +226,10 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDates, setCurrenc
   const servantsMap = servantData.map((servant) => {
     // console.log(servant.name);
     // console.log(servantsSoFar)
+
+    if (servant.rarity < 3 || servant.type === 'heroine' || servant.type === 'enemyCollectionDetail') {
+      return
+    };
 
     let useName = servant.name;
 

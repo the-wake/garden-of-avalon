@@ -28,6 +28,8 @@ const SummonCalc = () => {
     txIncome: '',
     sqExtra: '',
     txExtra: '',
+    sqMinus: '',
+    txMinus: '',
   });
   // console.log(currency);
 
@@ -345,6 +347,8 @@ const SummonCalc = () => {
     const purchases = calcPurchases(numMonths) || 0;
     const otherSq = parseInt(currency.sqExtra) || 0;
     const otherTx = parseInt(currency.txExtra) || 0;
+    const spentSq = parseInt(currency.sqMinus) || 0;
+    const spentTx = parseInt(currency.txMinus) || 0;
 
     // console.log(weeklies, logins, shop, events, purchases, otherSq, otherTx);
 
@@ -355,8 +359,10 @@ const SummonCalc = () => {
 
     // console.log(gains, weeklies)
 
-    const newSq = gainedSq + startingSq + purchases + otherSq || 0;
-    const newTx = gainedTx + startingTx + otherTx || 0;
+    const newSq = gainedSq + startingSq + purchases + otherSq - spentSq || 0;
+    const newTx = gainedTx + startingTx + otherTx - spentTx || 0;
+
+    console.log(spentSq, spentTx);
 
     // console.log(gainedTx, startingTx, otherTx);
 
@@ -395,7 +401,7 @@ const SummonCalc = () => {
     }
 
     // Handle all other updates with proper integer or string.
-    else if (currencyVals.includes(e.target.name)) {
+    else {
       setCurrency({ ...currency, [e.target.name]: targetVal });
     };
   };
@@ -447,15 +453,15 @@ const SummonCalc = () => {
 
   const clearForm = () => {
     setCurrency({
-      sqPurchase: '',
-      purchasePeriod: 0,
-      alreadyPurchased: false,
+      ...currency,
       sqStarting: '',
       txStarting: '',
       sqIncome: '',
       txIncome: '',
       sqExtra: '',
-      txExtra: ''
+      txExtra: '',
+      sqMinus: '',
+      txMinus: ''
     });
 
     setDates({
@@ -562,6 +568,7 @@ const SummonCalc = () => {
       });
       console.log(updatedRolls);
       setSavedRolls(updatedRolls);
+      clearForm();
     };
 
     setSummonStats({ ...summonStats, targetNo: '', targetName: '', targetImage: 'https://static.atlasacademy.io/JP/Faces/f_8001000.png' });
@@ -635,12 +642,20 @@ const SummonCalc = () => {
                 <Checkbox name="alreadyPurchased" defaultChecked={false} >Already purchased this month?</Checkbox>
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
-                <FormLabel>Extra SQ (can be negative):</FormLabel>
+                <FormLabel>Extra SQ:</FormLabel>
                 <Input className="form-input" name="sqExtra" type="number" placeholder="0" value={currency.sqExtra} onSubmit={calc} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
-                <FormLabel>Extra Tickets (can be negative):</FormLabel>
+                <FormLabel>Extra Tickets:</FormLabel>
                 <Input className="form-input" name="txExtra" type="number" placeholder="0" value={currency.txExtra} onSubmit={calc} />
+              </GridItem>
+              <GridItem rowSpan={1} colSpan={1} >
+                <FormLabel>Expected SQ Spending:</FormLabel>
+                <Input className="form-input" name="sqMinus" type="number" placeholder="0" value={currency.sqMinus} onSubmit={calc} />
+              </GridItem>
+              <GridItem rowSpan={1} colSpan={1} >
+                <FormLabel>Expected Ticket Spending:</FormLabel>
+                <Input className="form-input" name="txMinus" type="number" placeholder="0" value={currency.txMinus} onSubmit={calc} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
                 <FormLabel>Start Date:</FormLabel>
@@ -661,6 +676,7 @@ const SummonCalc = () => {
             <br />
             <Grid h='' templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
               <GridItem rowSpan={1} colSpan={1} >
+                {/* TODO: These forms can probably just set their values by calling other values directly, rather than going calculator functions. */}
                 <FormLabel>Total Quartz:</FormLabel>
                 <Input className="form-input" isReadOnly={true} name="sqSum" value={sums.sqSum} placeholder="0" />
               </GridItem>
