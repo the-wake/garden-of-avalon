@@ -8,7 +8,7 @@ const sanitizeEmpty = (obj) => {
     };
   });
   console.log('Sanitized', obj);
-  // return obj;
+  return obj;
 };
 
 export default sanitizeEmpty;

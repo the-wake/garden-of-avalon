@@ -13,6 +13,7 @@ import "react-datepicker/dist/react-datepicker.css";
 const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDates, setCurrency, setSummonStats, setSums, editState, setEditState, rollIndex }) => {
 
   let initRoll = rollObj;
+  console.log(`Rendering component:`, initRoll);
 
   const [rollData, setRollData] = useState(initRoll);
 
@@ -117,7 +118,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDates, setCurrenc
       newRoll.currency = { sqPurchase, purchasePeriod, alreadyPurchased, sqStarting, txStarting, sqIncome, txIncome, sqExtra, txExtra };
 
       const { start, target } = rollData;
-      newRoll.dates = { start, target} ;
+      newRoll.dates = { start, target };
 
       const { sqSum, txSum, totalSummons } = rollData;
       newRoll.sums = { sqSum, txSum, totalSummons };
@@ -128,15 +129,11 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDates, setCurrenc
       sanitizeEmpty(newRoll.currency);
       console.log(newRoll);
 
-      // setCurrency({ sqPurchase, purchasePeriod, alreadyPurchased, sqStarting, txStarting, sqIncome, txIncome, sqExtra, txExtra });
-      // setDates({ ...dates, start: new Date(rollData.savingDate), target: new Date(rollData.bannerDate) });
-    //   setReserves({ sq: snapshotData.reserves.sq || 0, tx: snapshotData.reserves.tx || 0 });
-    //   // setCurrency(snapshotData.currency);
-    //   setExtras(snapshotData.extras);
-    //   // TODO: Don't have way of adjusting num desired yet.
-    //   setSummonStats({ ...summonStats, targetName: rollData.targetName, slot: rollData.slot });
-    //   setSummonOdds(snapshotData.summonOdds);
-    //   setEditState(1);
+      setCurrency(newRoll.currency);
+      setDates(newRoll.dates);
+      setSummonStats(newRoll.summonStats);
+
+      setEditState(1);
     };
   };
 
@@ -195,7 +192,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDates, setCurrenc
             {/* I don't think it makes sense to have date range editing here. Probably just have a button to send the data back to the calculator if you want to re-calculate ranges. */}
             {
               editingDates === false
-                ? <Input className="form-input" name="bannerDate" type="text" readOnly={true} onClick={dateRangeUpdate} onChange={() => 1 === 1} value={rollData.target} />
+                ? <Input className="form-input" name="bannerDate" type="text" readOnly={true} onClick={dateRangeUpdate} onChange={() => 1 === 1} value={dayjs(rollData.target).format('YYYY/MM/DD')} />
                 : <DatePicker format={'yyyy/MM/dd'} selected={new Date(rollData.target)} autoFocus onBlur={() => setEditingDates(false)} onChange={(date) => setRollData({ ...rollData, bannerDate: dayjs(date).format('YYYY/MM/DD') })} />
             }
             {/* <DatePicker format={'yyyy/MM/dd'} selected={new Date(rollData.bannerDate)} onBlur={() => setEditingDates(false)} onChange={(date) => setRollData({ ...rollData, bannerDate: dayjs(date).format('YYYY/MM/DD') })} /> */}

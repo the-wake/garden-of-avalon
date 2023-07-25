@@ -114,13 +114,19 @@ const SummonCalc = () => {
 
   const today = dayjs().format('YYYY/MM/DD');
 
-  // TODO: This should probably use a context provider.
-  let rollsArr = [];
-
+  // Update currency and calendar state from local storage on component render.
   useEffect(() => {
+    // TODO: This should probably use a context provider.
     if (localStorage.getItem('currency')) {
       let localCurrency = JSON.parse(localStorage.getItem('currency'));
       setCurrency(localCurrency);
+    };
+
+    if (localStorage.getItem('calendar-data')) {
+      let { start, target } = JSON.parse(localStorage.getItem('calendar-data'));
+      const newStart = new Date(start)
+      const newTarget = new Date(target);
+      setDates({ start: newStart, target: newTarget });
     };
   }, []);
 
@@ -406,24 +412,16 @@ const SummonCalc = () => {
     else if (currencyVals.includes(e.target.name)) {
       setCurrency({ ...currency, [e.target.name]: targetVal });
     };
-
-    // Old handlers.
-    // else if (e.target.name === 'extraSq') {
-    //   setExtras({ ...extras, sq: parseInt(e.target.value) });
-    // } else if (e.target.name === 'extraTx') {
-    //   setExtras({ ...extras, tx: parseInt(e.target.value) });
-    // } else if (e.target.name === 'whale' || e.target.name === 'period') {
-    //   setPurchaseData({ ...purchaseData, [e.target.name]: parseInt(e.target.value) });
-    // } else if (e.target.name === 'alreadyPurchased') {
-    //   setPurchaseData({ ...purchaseData, alreadyPurchased: e.target.checked });
-    // };
   };
 
   useEffect(() => {
     setElementState({ ...elementState, odds: false });
-    console.log(currency);
     calc();
-    localStorage.setItem('currency', JSON.stringify(sanitizeEmpty(currency)));
+    const currencyClone = { ...currency };
+    // console.log(currency);
+    const sanitizedCurrency = sanitizeEmpty(currencyClone);
+    // console.log(sanitizedCurrency);
+    localStorage.setItem('currency', JSON.stringify(sanitizedCurrency));
   }, [currency, dates]);
 
   // Set local storage when updating login streak or currency totals.
@@ -451,7 +449,7 @@ const SummonCalc = () => {
   //   localStorage.setItem('extras', JSON.stringify({ ...extras }));
   // }, [extras]);
 
-  
+
   // let localRolls = JSON.parse(localStorage.getItem('saved-rolls')) || [];
 
   useEffect(() => {
@@ -463,15 +461,15 @@ const SummonCalc = () => {
 
   const clearForm = () => {
     setCurrency({
-      whale: '',
-      period: '',
+      sqPurchase: '',
+      purchasePeriod: 0,
       alreadyPurchased: false,
       sqStarting: '',
       txStarting: '',
       sqIncome: '',
       txIncome: '',
-      sqExtras: '',
-      txExtras: ''
+      sqExtra: '',
+      txExtra: ''
     });
 
     setDates({
@@ -568,25 +566,29 @@ const SummonCalc = () => {
   };
 
   const saveSnapshot = () => {
+    console.log(summonStats);
     const savedRoll = {
       ...dates,
       ...currency,
       ...sums,
       ...summonStats,
-      slot: getSlot()
     };
-    console.log(`Saving`, savedRoll);
 
+    // If making a new entry, generate a slot and save it.
     if (editState === 0) {
-
+      savedRoll.slot = getSlot();
+      console.log(`Saving`, savedRoll);
       setSavedRolls([...savedRolls, savedRoll]);
-
-    } else if (editState === 1) {
+    }
+    // If editing a roll, find its index and update it.
+    else if (editState === 1) {
+      let rollsClone = [...savedRolls];
+      console.log(rollsClone);
       const rollIndex = savedRoll.slot;
-      const updatedRolls = savedRolls.map((roll, i) => {
+      console.log(`Updating roll index ${rollIndex}`);
+      const updatedRolls = rollsClone.map((roll, i) => {
         if (roll.slot === rollIndex) {
-          // console.log(`Matched roll index ${rollIndex}.`)
-          // console.log(rollData);
+          console.log(`Matched roll index ${rollIndex}. Returning`, savedRoll);
           return savedRoll;
         } else {
           return roll;
@@ -595,12 +597,30 @@ const SummonCalc = () => {
       console.log(updatedRolls);
       setSavedRolls(updatedRolls);
     };
+
+    setSummonStats({ ...summonStats, targetName: '' });
     setEditState(0);
   };
 
+  // let localRolls = [...savedRolls];
+
   // useEffect(() => {
-  //   localRolls = JSON.parse(localStorage.getItem('saved-rolls')) || [];
-  // }, savedRolls);
+  //   localRolls = [...savedRolls];
+  //   console.log(localRolls);
+  // }, [savedRolls]);
+
+  let rollMap = () => {
+    {
+      return savedRolls.map((roll, pos) => (
+        <GridItem key={`${roll.slot}-${JSON.stringify(roll)}`}>
+          <RollSnapshot
+            rollObj={roll}
+            savedRolls={savedRolls} setSavedRolls={setSavedRolls} setDates={setDates} setCurrency={setCurrency} setSums={setSums} setSummonStats={setSummonStats} editState={editState} setEditState={setEditState} rollIndex={roll.slot}
+          />
+        </GridItem>
+      ))
+    }
+  };
 
   return (
     <>
@@ -635,7 +655,7 @@ const SummonCalc = () => {
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Frequency:</FormLabel>
-                <Select className="form-input" name="purchasePeriod" type="text">
+                <Select className="form-input" name="purchasePeriod" type="text" value={currency.purchasePeriod}>
                   <option value={0}>One-time</option>
                   <option value={1}>Monthly</option>
                 </Select>
@@ -653,7 +673,6 @@ const SummonCalc = () => {
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
                 <FormLabel>Start Date:</FormLabel>
-                {/* TODO: Refactor as dayjs? */}
                 <DatePicker name="start" format={'yyyy/MM/dd'} selected={new Date(dates.start)} onChange={(date) => setDates({ ...dates, start: dayjs(date).format('YYYY/MM/DD') })} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
@@ -734,16 +753,15 @@ const SummonCalc = () => {
           </FormControl>
         </GridItem>
         <GridItem rowSpan={1} colSpan={1}>
-          {savedRolls.map((roll, pos) => (
+          {rollMap()}
+          {/* {localRolls.map((roll, pos) => (
             <GridItem key={roll.slot}>
               <RollSnapshot
                 rollObj={roll}
                 savedRolls={savedRolls} setSavedRolls={setSavedRolls} setDates={setDates} setCurrency={setCurrency} setSums={setSums} setSummonStats={setSummonStats} editState={editState} setEditState={setEditState} rollIndex={roll.slot}
-              // dates={dates} currency={currency} summonStats={summonStats} sums={sums} 
-              // thisRoll={roll}
               />
             </GridItem>
-          ))}
+          ))} */}
         </GridItem>
       </Grid>
     </>
