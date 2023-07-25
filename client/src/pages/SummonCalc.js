@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import getSlot from '../utils/getSlot.js'
+import sanitizeEmpty from '../utils/sanitizeEmpty.js'
 
 import { Grid, GridItem } from '@chakra-ui/react'
 import { FormControl, FormLabel, Input, Button, Select, Checkbox } from '@chakra-ui/react'
@@ -31,14 +32,14 @@ const SummonCalc = () => {
   // console.log(currency);
 
   const [dates, setDates] = useState({
-    start: new Date(),
-    target: new Date(),
+    start: dayjs().format('YYYY/MM/DD'),
+    target: dayjs().format('YYYY/MM/DD'),
   });
 
   const [sums, setSums] = useState({
-    sqSum: '',
-    txSum: '',
-    totalSummons: '',
+    sqSum: 0,
+    txSum: 0,
+    totalSummons: 0,
   });
 
   const [summonStats, setSummonStats] = useState({
@@ -58,7 +59,6 @@ const SummonCalc = () => {
   const [editState, setEditState] = useState(0);
 
   const [savedRolls, setSavedRolls] = useState(JSON.parse(localStorage.getItem('saved-rolls')) || []);
-  // console.log(savedRolls);
 
   const servantData = {};
 
@@ -112,7 +112,7 @@ const SummonCalc = () => {
     r: [0.2],
   };
 
-  const today = dayjs().format('YYYY-MM-DD');
+  const today = dayjs().format('YYYY/MM/DD');
 
   // TODO: This should probably use a context provider.
   let rollsArr = [];
@@ -127,14 +127,13 @@ const SummonCalc = () => {
   // Treats and sets login data and currency.
   useEffect(() => {
     let { total, streak, date } = JSON.parse(localStorage.getItem('login-data')) || 0;
-    date = dayjs(date);
+    date = dayjs(date).format('YYYY/MM/DD');
     console.log(total, streak, date);
-
-    // console.log(dayjs(date));
 
     if (date === today) {
       console.log('today!')
     } else {
+      // console.log(`Today: ${today}; date: ${date}`)
       const difference = Math.ceil(dayjs().diff(date, 'days', true));
 
       // If it's been at least a week since last login, loop through difference to look for Master Mission refreshes in the elapsed duration.
@@ -146,14 +145,6 @@ const SummonCalc = () => {
           let sqNum = parseInt(currency.sqStarting);
           setCurrency({ sqStarting: sqNum += parseInt(masterMissionGains) || 0 });
           console.log(`Added ${masterMissionGains} SQ from Master Missions to ${sqNum} starting SQ.`);
-          //   let dayInc = 0;
-          //   for (var i = 0; i < difference; i++) {
-          //     dayInc++;
-          //     let currentDay = date.add(dayInc, 'days').format('ddd');
-
-
-          //   };
-          // };
         };
       };
       // console.log(`Last check was ${difference} days ago!`);
@@ -184,7 +175,6 @@ const SummonCalc = () => {
 
     // Update currency with new login rewards.
 
-    // TODO: Update currency with shop stuff? Might want to put in a note that tells the user it's doing that.
 
     setLoginData({
       total: total || 0,
@@ -278,11 +268,11 @@ const SummonCalc = () => {
 
     let distance = Math.ceil(target.diff(start, 'days', true));
 
-      // if (distance >= 1) {
-      //   distance++
-      // } else if (distance === 0 && (target.$y > today.$y || target.$M > today.$M || target.$d > today.$d)) {
-      //   distance++
-      // };
+    // if (distance >= 1) {
+    //   distance++
+    // } else if (distance === 0 && (target.$y > today.$y || target.$M > today.$M || target.$d > today.$d)) {
+    //   distance++
+    // };
 
     const endingLogins = startIndex + distance;
     const loginSQ = Math.floor(endingLogins / 50) * 30;
@@ -338,7 +328,7 @@ const SummonCalc = () => {
     };
 
     let numDays = Math.ceil(dayjs(target).diff(dayjs(start), 'day', true));
-    console.log(numDays);
+    // console.log(numDays);
     const numMonths = (target.$y - start.$y) * 12 + (target.$M - start.$M);
     // console.log(numDays);
     // console.log(numMonths);
@@ -433,16 +423,22 @@ const SummonCalc = () => {
     setElementState({ ...elementState, odds: false });
     console.log(currency);
     calc();
-    localStorage.setItem('currency', JSON.stringify(currency));
+    localStorage.setItem('currency', JSON.stringify(sanitizeEmpty(currency)));
   }, [currency, dates]);
 
   // Set local storage when updating login streak or currency totals.
   useEffect(() => {
     if (loginData.total || loginData.streak || loginData.date) {
       // console.log('Storing', loginData);
-      localStorage.setItem('login-data', JSON.stringify({ ...loginData }));
+      localStorage.setItem('login-data', JSON.stringify(loginData));
     };
   }, [loginData]);
+
+  useEffect(() => {
+    if (dates) {
+      localStorage.setItem('calendar-data', JSON.stringify(dates))
+    }
+  }, [dates]);
 
   // Old handlers.
   // useEffect(() => {
@@ -455,9 +451,14 @@ const SummonCalc = () => {
   //   localStorage.setItem('extras', JSON.stringify({ ...extras }));
   // }, [extras]);
 
+  
+  // let localRolls = JSON.parse(localStorage.getItem('saved-rolls')) || [];
+
   useEffect(() => {
     console.log(savedRolls);
     localStorage.setItem('saved-rolls', JSON.stringify(savedRolls));
+    // localRolls = savedRolls;
+    // console.log(`Saving Rolls:`, localRolls);
   }, [savedRolls]);
 
   const clearForm = () => {
@@ -473,12 +474,15 @@ const SummonCalc = () => {
       txExtras: ''
     });
 
-    // TODO: Refactor as dayjs?
     setDates({
-      start: new Date(),
-      target: new Date(),
+      start: dayjs().format('YYYY/MM/DD'),
+      target: dayjs().format('YYYY/MM/DD')
     });
   };
+
+  useEffect(() => {
+    console.log(dates);
+  }, [dates])
 
   // Handler pre-state
   // let totalSummons = Math.floor((sums.sqSum / 3 + sums.txSum) + Math.floor((sums.sqSum / 3 + sums.txSum) / 10));
@@ -570,15 +574,6 @@ const SummonCalc = () => {
       ...sums,
       ...summonStats,
       slot: getSlot()
-      // targetName: summonStats.targetName || '',
-      // savingDate: dayjs(dates.start).format('YYYY/MM/DD'),
-      // bannerDate: dayjs(dates.target).format('YYYY/MM/DD'),
-      // rate: summonStats.prob,
-      // numDesired: summonStats.desired,
-      // budget: { sq: currency.sq, tx: currency.tx },
-      // numRolls: totalSummons,
-      // probability: summonStats.summonOdds,
-      // slot: JSON.parse(localStorage.getItem('saved-rolls')).length
     };
     console.log(`Saving`, savedRoll);
 
@@ -597,11 +592,15 @@ const SummonCalc = () => {
           return roll;
         };
       });
-      // console.log(updatedRolls);
+      console.log(updatedRolls);
       setSavedRolls(updatedRolls);
     };
     setEditState(0);
   };
+
+  // useEffect(() => {
+  //   localRolls = JSON.parse(localStorage.getItem('saved-rolls')) || [];
+  // }, savedRolls);
 
   return (
     <>
@@ -655,11 +654,11 @@ const SummonCalc = () => {
               <GridItem rowSpan={1} colSpan={1} >
                 <FormLabel>Start Date:</FormLabel>
                 {/* TODO: Refactor as dayjs? */}
-                <DatePicker selected={dates.start} onChange={(date) => setDates({ ...dates, start: date })} />
+                <DatePicker name="start" format={'yyyy/MM/dd'} selected={new Date(dates.start)} onChange={(date) => setDates({ ...dates, start: dayjs(date).format('YYYY/MM/DD') })} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
                 <FormLabel>End Date:</FormLabel>
-                <DatePicker selected={dates.target} onChange={(date) => setDates({ ...dates, target: date })} />
+                <DatePicker name="target" format={'yyyy/MM/dd'} selected={new Date(dates.target)} onChange={(date) => setDates({ ...dates, target: dayjs(date).format('YYYY/MM/DD') })} />
               </GridItem>
               {/* <GridItem rowSpan={1} colSpan={1} >
             <Button marginTop={4} colorScheme="blue" onClick={calc} >Calculate</Button>
@@ -724,26 +723,22 @@ const SummonCalc = () => {
               <GridItem rowSpan={1} colSpan={2} >
                 <Button marginTop={4} colorScheme="blue" onClick={calcOdds} width={'400px'} >Calculate!</Button>
               </GridItem>
-              {elementState.odds === true
-                ? <GridItem rowSpan={1} colSpan={2}>
-                  <Input className="form-input" maxW='400px' isReadOnly={true} name="summonOdds" value={summonStats.summonOdds} />
-                  <Button marginTop={4} colorScheme="blue" onClick={saveSnapshot}>{editState === 0 ? 'Save Snapshot' : 'Update Snapshot'}</Button>
-                </GridItem>
-                : null
-              }
-              {editState === 1
-                ? <GridItem rowSpan={1} colSpan={2}>
-                  <Button marginTop={4} colorScheme="red" onClick={() => setEditState(0)} width={'400px'} >Cancel Edit</Button>
-                </GridItem>
-                : null
-              }
+              <GridItem rowSpan={1} colSpan={2} hidden={!elementState.odds}>
+                <Input className="form-input" maxW='400px' isReadOnly={true} name="summonOdds" value={summonStats.summonOdds} />
+                <Button marginTop={4} colorScheme="blue" onClick={saveSnapshot}>{editState === 0 ? 'Save Snapshot' : 'Update Snapshot'}</Button>
+              </GridItem>
+              <GridItem rowSpan={1} colSpan={2} hidden={!editState}>
+                <Button marginTop={4} colorScheme="red" onClick={() => setEditState(0)} width={'400px'} >Cancel Edit</Button>
+              </GridItem>
             </Grid>
           </FormControl>
         </GridItem>
         <GridItem rowSpan={1} colSpan={1}>
           {savedRolls.map((roll, pos) => (
             <GridItem key={roll.slot}>
-              <RollSnapshot savedRolls={savedRolls} setSavedRolls={setSavedRolls} setDates={setDates} setCurrency={setCurrency} setSums={setSums} setSummonStats={setSummonStats} editState={editState} setEditState={setEditState} rollIndex={roll.slot}
+              <RollSnapshot
+                rollObj={roll}
+                savedRolls={savedRolls} setSavedRolls={setSavedRolls} setDates={setDates} setCurrency={setCurrency} setSums={setSums} setSummonStats={setSummonStats} editState={editState} setEditState={setEditState} rollIndex={roll.slot}
               // dates={dates} currency={currency} summonStats={summonStats} sums={sums} 
               // thisRoll={roll}
               />

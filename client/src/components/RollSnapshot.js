@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
+import sanitizeEmpty from '../utils/sanitizeEmpty.js'
 
 import { Grid, GridItem } from '@chakra-ui/react'
 import { FormControl, FormLabel, Input, Button, Select, Checkbox, IconButton } from '@chakra-ui/react'
@@ -9,10 +10,9 @@ import DatePicker from "react-datepicker";
 
 import "react-datepicker/dist/react-datepicker.css";
 
-const RollSnapshot = ({ savedRolls, setSavedRolls, setDates, setCurrency, setSummonStats, setSums, editState, setEditState, rollIndex }) => {
+const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDates, setCurrency, setSummonStats, setSums, editState, setEditState, rollIndex }) => {
 
-  // Roll data is now initialized from local storage rather than the parent component to ensure data sync.
-  let initRoll = JSON.parse(localStorage.getItem('saved-rolls'))[0];
+  let initRoll = rollObj;
 
   const [rollData, setRollData] = useState(initRoll);
 
@@ -108,11 +108,28 @@ const RollSnapshot = ({ savedRolls, setSavedRolls, setDates, setCurrency, setSum
 
   // TODO: This should pull the data from local storage to make sure it's consistent across reloads.
   const confirmEdit = () => {
-    console.log(initRoll);
-    // if (window.confirm('Load selected roll into the editing form?')) {
-    //   console.log('Editing roll:', initRoll);
-    //   setCurrency(initRoll);
-    //   setDates({ ...dates, start: new Date(rollData.savingDate), target: new Date(rollData.bannerDate) });
+    // console.log(initRoll);
+    if (window.confirm('Load selected roll into the editing form?')) {
+      console.log('Editing roll:', rollData);
+      let newRoll = {};
+
+      const { sqPurchase, purchasePeriod, alreadyPurchased, sqStarting, txStarting, sqIncome, txIncome, sqExtra, txExtra } = rollData;
+      newRoll.currency = { sqPurchase, purchasePeriod, alreadyPurchased, sqStarting, txStarting, sqIncome, txIncome, sqExtra, txExtra };
+
+      const { start, target } = rollData;
+      newRoll.dates = { start, target} ;
+
+      const { sqSum, txSum, totalSummons } = rollData;
+      newRoll.sums = { sqSum, txSum, totalSummons };
+
+      const { targetName, rarity, numRateup, prob, desired, summonOdds, slot } = rollData;
+      newRoll.summonStats = { targetName, rarity, numRateup, prob, desired, summonOdds, slot };
+
+      sanitizeEmpty(newRoll.currency);
+      console.log(newRoll);
+
+      // setCurrency({ sqPurchase, purchasePeriod, alreadyPurchased, sqStarting, txStarting, sqIncome, txIncome, sqExtra, txExtra });
+      // setDates({ ...dates, start: new Date(rollData.savingDate), target: new Date(rollData.bannerDate) });
     //   setReserves({ sq: snapshotData.reserves.sq || 0, tx: snapshotData.reserves.tx || 0 });
     //   // setCurrency(snapshotData.currency);
     //   setExtras(snapshotData.extras);
@@ -120,7 +137,7 @@ const RollSnapshot = ({ savedRolls, setSavedRolls, setDates, setCurrency, setSum
     //   setSummonStats({ ...summonStats, targetName: rollData.targetName, slot: rollData.slot });
     //   setSummonOdds(snapshotData.summonOdds);
     //   setEditState(1);
-    // };
+    };
   };
 
   const confirmDelete = () => {
