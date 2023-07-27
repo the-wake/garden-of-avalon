@@ -3,7 +3,6 @@ import dayjs from 'dayjs';
 import sanitizeEmpty from '../utils/sanitizeEmpty.js'
 
 import { useSelector, useDispatch } from 'react-redux'
-// import { getAllServants, addServant, removeServant } from './features/servant/servantSlice.js';
 
 import { Grid, GridItem } from '@chakra-ui/react'
 import { FormControl, FormLabel, Input, Button, Select, Checkbox, IconButton } from '@chakra-ui/react'
@@ -13,10 +12,9 @@ import DatePicker from "react-datepicker";
 
 import "react-datepicker/dist/react-datepicker.css";
 
-const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDates, setCurrency, setSummonStats, setSums, editState, setEditState, rollIndex }) => {
+const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurrency, setSummonStats, setSums, editState, setEditState, rollIndex }) => {
 
   const servantData = useSelector((state) => state.servants.roster);
-  // const loading = useSelector((state) => state.servants.loading);
 
   let initRoll = rollObj;
   console.log(`Rendering component:`, initRoll);
@@ -114,7 +112,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDates, setCurrenc
   const dateRangeUpdate = () => {
     console.log('Updating date ranges.')
     setEditingDates(true);
-    console.log(editingDates);
+    // console.log(editingDates);
   };
 
   // Run setSavedRolls whenever an individual roll is updated.
@@ -140,20 +138,8 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDates, setCurrenc
     localStorage.setItem('saved-rolls', JSON.stringify(savedRolls));
   }, [savedRolls]);
 
-  // TODO: Refactor(?) and enable.
-  // useEffect(() => {
-  //   // If the probability is still p, treat it and convert it into a percent; otherwise just copy it from probability.
-  //   if (typeof rollData.percentage === 'number') {
-  //     const percentage = parseFloat(rollData.prob * 100).toFixed(2);
-  //     setRollData({ ...rollData, percentage: `${percentage}%` });
-  //   } else {
-  //     setRollData({ ...rollData, percentage: rollData.probability })
-  //   };
-  // }, [rollData.prob]);
-
-  // TODO: This should pull the data from local storage to make sure it's consistent across reloads.
+  // TODO: Should this pull the data from local storage to make sure it's consistent across reloads.
   const confirmEdit = () => {
-    // console.log(initRoll);
     if (window.confirm('Load selected roll into the editing form?')) {
       console.log('Editing roll:', rollData);
       let newRoll = {};
@@ -161,8 +147,8 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDates, setCurrenc
       const { sqPurchase, purchasePeriod, alreadyPurchased, sqStarting, txStarting, sqIncome, txIncome, sqExtra, txExtra, sqMinus, txMinus } = rollData;
       newRoll.currency = { sqPurchase, purchasePeriod, alreadyPurchased, sqStarting, txStarting, sqIncome, txIncome, sqExtra, txExtra, sqMinus, txMinus };
 
-      const { start, target } = rollData;
-      newRoll.dates = { start, target };
+      const { start, end } = rollData;
+      newRoll.dateData = { start, end };
 
       const { sqSum, txSum, totalSummons } = rollData;
       newRoll.sums = { sqSum, txSum, totalSummons };
@@ -174,17 +160,13 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDates, setCurrenc
       console.log(newRoll);
 
       setCurrency(newRoll.currency);
-      setDates(newRoll.dates);
+      setDateData(newRoll.dateData);
       setSummonStats(newRoll.summonStats);
 
       setEditState(newRoll.summonStats.slot);
       setEditStyle(true);
     };
   };
-
-  // useEffect(() => {
-  //   console.log(editState);
-  // }, [editState])
 
   const confirmDelete = () => {
     if (window.confirm('Delete selected roll?')) {
@@ -213,20 +195,10 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDates, setCurrenc
     };
   };
 
-  let servantImage = 'https://static.atlasacademy.io/JP/Faces/f_8001000.png';
-
-  useEffect(() => {
-    // console.log(rollData.targetName);
-    servantImage = '';
-  }, [rollData.targetNo]);
-
   // Used by following map to give individual names to each Servant where there are duplicates.
   let servantsSoFar = [];
 
   const servantsMap = servantData.map((servant) => {
-    // console.log(servant.name);
-    // console.log(servantsSoFar)
-
     if (servant.rarity < 3 || servant.type === 'heroine' || servant.type === 'enemyCollectionDetail') {
       return
     };
@@ -252,10 +224,6 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDates, setCurrenc
 
   });
 
-  // useEffect(() => {
-  //   console.log(servantData);
-  // }, [servantData]);
-
   return (
     <div style={editState === rollData.slot ? cardStyles.editing : cardStyles.normal}>
       {/* TODO: Refactor this into one big grid when the elements and styles are set. */}
@@ -276,10 +244,11 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDates, setCurrenc
             <Select className="form-input" name="targetNo" value={rollData.targetNo} placeholder={'Target Servant'} onChange={() => 1 === 1} mb="8px" >
               {servantsMap}
             </Select>
-            <Input className="form-input" name="bannerDate" type="text" hidden={editingDates === true} readOnly={true} onClick={dateRangeUpdate} onChange={() => 1 === 1} value={dayjs(rollData.target).format('YYYY/MM/DD')} />
+            <Input className="form-input" name="bannerDate" type="date" onChange={() => 1 === 1} value={rollData.end} />
+            {/* <Input className="form-input" name="bannerDate" type="text" hidden={editingDates === true} readOnly={true} onClick={dateRangeUpdate} onChange={() => 1 === 1} value={rollData.end} format={'yyyy/MM/dd'} />
             <GridItem hidden={editingDates === false}>
-              <DatePicker format={'yyyy/MM/dd'} selected={new Date(rollData.target)} autoFocus onBlur={() => setEditingDates(false)} onChange={(date) => setRollData({ ...rollData, bannerDate: dayjs(date).format('YYYY/MM/DD') })} />
-            </GridItem>
+              <DatePicker format={'yyyy/MM/dd'} selected={rollData.end} autoFocus onBlur={() => setEditingDates(false)} onChange={(date) => setRollData({ ...rollData, bannerDate: new Date(date) })} />
+            </GridItem> */}
           </GridItem>
           <GridItem rowSpan={2} colSpan={3}>
             <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(8, 1fr)' gap={2} >
@@ -314,7 +283,6 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDates, setCurrenc
               <GridItem colSpan={1}>
                 <FormLabel>Desired:</FormLabel>
               </GridItem>
-              {/* TODO: Run calc when updating relevant values? Or just make them send it back to the editor? */}
               <GridItem colSpan={3}>
                 <Input className="form-input" name="numDesired" type="number" readOnly={true} value={rollData.desired} />
               </GridItem>

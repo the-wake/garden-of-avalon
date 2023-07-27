@@ -15,7 +15,6 @@ import RollSnapshot from "../components/RollSnapshot";
 // TODO: Once we have MVP, refactor with reducers and better state handling.
 const SummonCalc = () => {
 
-  // TODO: May want to go over the data on load to sanitize any 0s to blank strings.
   const [loginData, setLoginData] = useState({});
 
   const [currency, setCurrency] = useState({
@@ -31,11 +30,10 @@ const SummonCalc = () => {
     sqMinus: '',
     txMinus: '',
   });
-  // console.log(currency);
 
-  const [dates, setDates] = useState({
-    start: dayjs().format('YYYY/MM/DD'),
-    target: dayjs().format('YYYY/MM/DD'),
+  const [dateData, setDateData] = useState({
+    start: '',
+    end: '',
   });
 
   const [sums, setSums] = useState({
@@ -63,8 +61,6 @@ const SummonCalc = () => {
   const [editState, setEditState] = useState(false);
 
   const [savedRolls, setSavedRolls] = useState(JSON.parse(localStorage.getItem('saved-rolls')) || []);
-
-  const servantData = {};
 
   const periodic = {
     weeklyLogin: [
@@ -126,31 +122,31 @@ const SummonCalc = () => {
     };
 
     if (localStorage.getItem('calendar-data')) {
-      let { start, target } = JSON.parse(localStorage.getItem('calendar-data'));
-      const newStart = new Date(start)
-      const newTarget = new Date(target);
-      setDates({ start: newStart, target: newTarget });
+      let { start, end } = JSON.parse(localStorage.getItem('calendar-data'));
+      const newStart = start
+      const newEnd = end;
+      setDateData({ start: newStart, end: newEnd });
     };
   }, []);
 
   // Treats and sets login data and currency.
   useEffect(() => {
     let { total, streak, date } = JSON.parse(localStorage.getItem('login-data')) || 0;
-    date = dayjs(date).format('YYYY/MM/DD');
-    console.log(total, streak, date);
+    const dateClone = dayjs(date).format('YYYY/MM/DD');
+    console.log(total, streak, dateClone);
 
-    if (date === today) {
+    if (dateClone === today) {
       console.log('today!')
     } else {
-      // console.log(`Today: ${today}; date: ${date}`)
-      const difference = Math.ceil(dayjs().diff(date, 'days', true));
+      // console.log(`Today: ${today}; date: ${dadateClonete}`)
+      const difference = Math.ceil(dayjs().diff(dateClone, 'days', true));
 
       // If it's been at least a week since last login, loop through difference to look for Master Mission refreshes in the elapsed duration.
       if (difference >= 7) {
         const updateWeeklies = window.confirm('It\'s been over a week since last login. Update with Master Missions and daily logins?')
 
         if (updateWeeklies) {
-          const masterMissionGains = calcMasterMissions(date, difference);
+          const masterMissionGains = calcMasterMissions(dateClone, difference);
           let sqNum = parseInt(currency.sqStarting);
           setCurrency({ sqStarting: sqNum += parseInt(masterMissionGains) || 0 });
           console.log(`Added ${masterMissionGains} SQ from Master Missions to ${sqNum} starting SQ.`);
@@ -162,10 +158,10 @@ const SummonCalc = () => {
       const origin = streak % 7;
       console.log(`Starting on index ${origin} of the daily array.`);
 
-      const addCurrency = calcWeeklies(date, difference, origin);
+      const addCurrency = calcWeeklies(dateClone, difference, origin);
       console.log('Adding to currency', addCurrency);
 
-      const monthsDiff = ((dayjs().$y - dayjs(date).$y) * 12) + (dayjs().$M - dayjs(date).$M);
+      const monthsDiff = ((dayjs().$y - dayjs(dateClone).$y) * 12) + (dayjs().$M - dayjs(dateClone).$M);
       if (monthsDiff !== 0) {
         const shopUpdate = window.confirm(`${monthsDiff} months have elapsed since last update. Should we add monthly shop tickets to your reserves?`);
         if (shopUpdate) {
@@ -178,7 +174,7 @@ const SummonCalc = () => {
 
       total += difference;
       streak += difference;
-      date = today;
+      dateClone = today;
       console.log(`Updating login history to ${today}: ${total} total logins, ${streak} login streak.`);
     };
 
@@ -186,7 +182,7 @@ const SummonCalc = () => {
     setLoginData({
       total: total || 0,
       streak: streak || 0,
-      date: date || today
+      date: dateClone || today
     });
   }, []);
 
@@ -194,7 +190,6 @@ const SummonCalc = () => {
 
   // Calculates master missions. Could rename to calcStreak instead to be clearer what data it cares about and produces.
   const calcWeeklies = (start, numDays, origin) => {
-    // let distance = Math.ceil(dayjs(start).diff(dayjs(today), 'days', true));
     console.log(`Calculating weeklies. Start: ${start}; numDays: ${numDays}.`);
 
     console.log(`${numDays} days from today to start date.`)
@@ -231,8 +226,6 @@ const SummonCalc = () => {
     // console.log(`Added ${weeklyGains.sq} Saint Quartz and ${weeklyGains.tx} Summoning Tickets.`)
     // console.log(weeklyGains);
 
-    // console.log(weeklyGains);
-
     return weeklyGains;
   };
 
@@ -254,24 +247,18 @@ const SummonCalc = () => {
   };
 
   // Calculates login streaks.
-  const calcLogins = (start, target) => {
+  const calcLogins = (start, end) => {
     const { total } = loginData;
     // console.log(loginData);
     const startIndex = total % 50;
     // console.log(startIndex);
 
-    let distance = Math.ceil(target.diff(start, 'days', true));
-
-    // if (distance >= 1) {
-    //   distance++
-    // } else if (distance === 0 && (target.$y > today.$y || target.$M > today.$M || target.$d > today.$d)) {
-    //   distance++
-    // };
+    let distance = Math.ceil(end.diff(start, 'days', true));
 
     const endingLogins = startIndex + distance;
     const loginSQ = Math.floor(endingLogins / 50) * 30;
 
-    console.log(`${distance} days until target date. Total logins gain will be ${loginSQ} Quartz.`);
+    console.log(`${distance} days until end date. Total logins gain will be ${loginSQ} Quartz.`);
 
     return loginSQ;
   };
@@ -298,7 +285,6 @@ const SummonCalc = () => {
   };
 
   // Calculates purchases.
-  // TODO: Allow for repeating monthly purchases.
   const calcPurchases = (numMonths) => {
     const { sqPurchase, purchasePeriod, alreadyPurchased } = currency;
     // console.log(sqPurchase, purchasePeriod, alreadyPurchased);
@@ -314,36 +300,25 @@ const SummonCalc = () => {
   const calc = () => {
     // Purchases should be sent as an object and destructured into number of purchases and number of SQ per. Everything else can probably come from state since the element sending the function call probably won't have direct access to that data.
 
-    const start = dayjs(dates.start);
-    const target = dayjs(dates.target);
+    const start = dayjs(dateData.start);
+    const end = dayjs(dateData.end);
 
-    if (target.diff(start) < 0) {
+    if (end.diff(start) < 0) {
       return;
     };
 
-    let numDays = Math.ceil(dayjs(target).diff(dayjs(start), 'day', true));
+    let numDays = Math.ceil(dayjs(end).diff(dayjs(start), 'day', true));
     // console.log(numDays);
-    const numMonths = (target.$y - start.$y) * 12 + (target.$M - start.$M);
+    const numMonths = (end.$y - start.$y) * 12 + (end.$M - start.$M);
     // console.log(numDays);
     // console.log(numMonths);
-
-    // It seems like we need to manually adjust differences since anything that should be 1 or higher is reduced by 1.
-    // if (numDays >= 1) {
-    //   numDays++
-    // } else if (numDays === 0 && (target.$y > start.$y || target.$M > start.$M || target.$d > start.$d)) {
-    //   numDays++
-    // };
-
-    // console.log(`${numDays} days between dates.`)
-
-    // console.log(start);
 
     const startingSq = currency.sqStarting || 0
     const startingTx = currency.txStarting || 0;
     const weeklies = calcWeeklies(start, numDays);
-    const logins = calcLogins(start, target);
+    const logins = calcLogins(start, end);
     const shop = calcShop(numMonths);
-    const events = calcEvents(start, target);
+    const events = calcEvents(start, end);
     const purchases = calcPurchases(numMonths) || 0;
     const otherSq = parseInt(currency.sqExtra) || 0;
     const otherTx = parseInt(currency.txExtra) || 0;
@@ -380,7 +355,7 @@ const SummonCalc = () => {
   };
 
   const handleFormUpdate = (e) => {
-    const currencyVals = ['sqPurchase', 'purchasePeriod', 'alreadyPurchased', 'sqStarting', 'txStarting', 'sqIncome', 'txIncome', 'sqExtra', 'txExtra'];
+    // const currencyVals = ['sqPurchase', 'purchasePeriod', 'alreadyPurchased', 'sqStarting', 'txStarting', 'sqIncome', 'txIncome', 'sqExtra', 'txExtra'];
 
     // Sanitize any ints passed as strings.
     let targetVal = e.target.value;
@@ -391,9 +366,10 @@ const SummonCalc = () => {
     console.log(targetVal);
 
     // Handle login updates. (Dates are handled separately.)
-    // TODO: Should dates actually be handled separately or not?
-    if (e.target.name === 'total' || e.target.name === 'streak') {
-      setLoginData({ ...loginData, [e.target.name]: parseInt(e.target.value), date: dayjs().format('YYYY-MM-DD') });
+    if (e.target.name === 'start' || e.target.name === 'end') {
+      setDateData({ ...dateData, [e.target.name]: e.target.value });
+    } else if (e.target.name === 'total' || e.target.name === 'streak') {
+      setLoginData({ ...loginData, [e.target.name]: parseInt(e.target.value) });
     }
 
     else if (e.target.name === 'alreadyPurchased') {
@@ -414,7 +390,8 @@ const SummonCalc = () => {
     const sanitizedCurrency = sanitizeEmpty(currencyClone);
     // console.log(sanitizedCurrency);
     localStorage.setItem('currency', JSON.stringify(sanitizedCurrency));
-  }, [currency, dates]);
+    // console.log('Dates: ', dateData);
+  }, [currency, dateData]);
 
   // Set local storage when updating login streak or currency totals.
   useEffect(() => {
@@ -425,35 +402,20 @@ const SummonCalc = () => {
   }, [loginData]);
 
   useEffect(() => {
-    if (dates) {
-      localStorage.setItem('calendar-data', JSON.stringify(dates))
+    if (dateData) {
+      localStorage.setItem('calendar-data', JSON.stringify(dateData))
     }
-  }, [dates]);
-
-  // Old handlers.
-  // useEffect(() => {
-  //   console.log('Storing', purchaseData);
-  //   localStorage.setItem('purchase-data', JSON.stringify({ ...purchaseData }));
-  // }, [purchaseData]);
-
-  // useEffect(() => {
-  //   console.log('Storing', extras);
-  //   localStorage.setItem('extras', JSON.stringify({ ...extras }));
-  // }, [extras]);
-
-
-  // let localRolls = JSON.parse(localStorage.getItem('saved-rolls')) || [];
+  }, [dateData]);
 
   useEffect(() => {
     console.log(savedRolls);
     localStorage.setItem('saved-rolls', JSON.stringify(savedRolls));
-    // localRolls = savedRolls;
-    // console.log(`Saving Rolls:`, localRolls);
   }, [savedRolls]);
 
   const clearForm = () => {
     setCurrency({
       ...currency,
+      sqPurchase: '',
       sqStarting: '',
       txStarting: '',
       sqIncome: '',
@@ -464,15 +426,11 @@ const SummonCalc = () => {
       txMinus: ''
     });
 
-    setDates({
-      start: dayjs().format('YYYY/MM/DD'),
-      target: dayjs().format('YYYY/MM/DD')
+    setDateData({
+      start: '',
+      end: ''
     });
   };
-
-  useEffect(() => {
-    console.log(dates);
-  }, [dates])
 
   const probHandler = (e) => {
     if (e.target.name === 'rarity') {
@@ -487,10 +445,10 @@ const SummonCalc = () => {
   };
 
   const calcOdds = () => {
-    const start = dayjs(dates.start);
-    const target = dayjs(dates.target);
-    if (target.isBefore(start, 'day')) {
-      window.alert('Target date can\'t be before start date');
+    const start = dayjs(dateData.start);
+    const end = dayjs(dateData.end);
+    if (end.isBefore(start, 'day')) {
+      window.alert('End date can\'t be before start date');
       return;
     };
 
@@ -538,13 +496,16 @@ const SummonCalc = () => {
   };
 
   const saveSnapshot = () => {
-    console.log(summonStats);
     const savedRoll = {
-      ...dates,
+      ...dateData,
       ...currency,
       ...sums,
       ...summonStats,
     };
+    // console.log(dateData);
+    // savedRoll.start = dateData.start;
+    // savedRoll.end = dateData.end;
+    // console.log(savedRoll);
 
     // If making a new entry, generate a slot and save it.
     if (editState === false) {
@@ -575,6 +536,16 @@ const SummonCalc = () => {
     setEditState(false);
   };
 
+  // const assignSlots = () => {
+  //   savedRolls.sort((a, b) => {
+  //     return new Date(b.date) - new Date(a.date);
+  //   });
+  // };
+
+  // useEffect(() => {
+  //   console.log(assignSlots());
+  // }, [savedRolls]);
+
   const handleEditCancel = () => {
     setEditState(false)
     setSummonStats({ ...summonStats, targetNo: '', targetName: '', targetImage: 'https://static.atlasacademy.io/JP/Faces/f_8001000.png' });
@@ -587,13 +558,13 @@ const SummonCalc = () => {
   //   console.log(localRolls);
   // }, [savedRolls]);
 
-  let rollMap = () => {
+  const rollMap = () => {
     {
       return savedRolls.map((roll, pos) => (
         <GridItem key={`${roll.slot}-${JSON.stringify(roll)}`}>
           <RollSnapshot
             rollObj={roll}
-            savedRolls={savedRolls} setSavedRolls={setSavedRolls} setDates={setDates} setCurrency={setCurrency} setSums={setSums} setSummonStats={setSummonStats} editState={editState} setEditState={setEditState} rollIndex={roll.slot}
+            savedRolls={savedRolls} setSavedRolls={setSavedRolls} setDateData={setDateData} setCurrency={setCurrency} setSums={setSums} setSummonStats={setSummonStats} editState={editState} setEditState={setEditState} rollIndex={roll.slot}
           />
         </GridItem>
       ))
@@ -613,23 +584,23 @@ const SummonCalc = () => {
             <Grid h='' templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Login Streak:</FormLabel>
-                <Input className="form-input" name="streak" type="number" placeholder="0" value={loginData.streak} />
+                <Input className="form-input" name="streak" type="number" placeholder="0" value={loginData.streak === 0 ? '' : loginData.streak} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
                 <FormLabel>Total Logins:</FormLabel>
-                <Input className="form-input" name="total" type="number" placeholder="0" value={loginData.total} />
+                <Input className="form-input" name="total" type="number" placeholder="0" value={loginData.total === 0 ? '' : loginData.total} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
                 <FormLabel>Starting Quartz:</FormLabel>
-                <Input className="form-input" name="sqStarting" type="number" placeholder="0" value={currency.sqStarting} />
+                <Input className="form-input" name="sqStarting" type="number" placeholder="0" value={currency.sqStarting === 0 ? '' : currency.sqStarting} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Starting Tickets:</FormLabel>
-                <Input className="form-input" name="txStarting" type="number" placeholder="0" value={currency.txStarting} />
+                <Input className="form-input" name="txStarting" type="number" placeholder="0" value={currency.txStarting === 0 ? '' : currency.txStarting} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
                 <FormLabel>SQ Purchases:</FormLabel>
-                <Input className="form-input" name="sqPurchase" type="number" placeholder="0" value={currency.sqPurchase} />
+                <Input className="form-input" name="sqPurchase" type="number" placeholder="0" value={currency.sqPurchase === 0 ? '' : currency.sqPurchase} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Frequency:</FormLabel>
@@ -643,28 +614,36 @@ const SummonCalc = () => {
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
                 <FormLabel>Extra SQ:</FormLabel>
-                <Input className="form-input" name="sqExtra" type="number" placeholder="0" value={currency.sqExtra} onSubmit={calc} />
+                <Input className="form-input" name="sqExtra" type="number" placeholder="0" value={currency.sqExtra === 0 ? '' : currency.sqExtra} onSubmit={calc} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
                 <FormLabel>Extra Tickets:</FormLabel>
-                <Input className="form-input" name="txExtra" type="number" placeholder="0" value={currency.txExtra} onSubmit={calc} />
+                <Input className="form-input" name="txExtra" type="number" placeholder="0" value={currency.txExtra === 0 ? '' : currency.txExtra} onSubmit={calc} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
                 <FormLabel>Expected SQ Spending:</FormLabel>
-                <Input className="form-input" name="sqMinus" type="number" placeholder="0" value={currency.sqMinus} onSubmit={calc} />
+                <Input className="form-input" name="sqMinus" type="number" placeholder="0" value={currency.sqMinus === 0 ? '' : currency.sqMinus} onSubmit={calc} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
                 <FormLabel>Expected Ticket Spending:</FormLabel>
-                <Input className="form-input" name="txMinus" type="number" placeholder="0" value={currency.txMinus} onSubmit={calc} />
+                <Input className="form-input" name="txMinus" type="number" placeholder="0" value={currency.txMinus === 0 ? '' : currency.txMinus} onSubmit={calc} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
                 <FormLabel>Start Date:</FormLabel>
-                <DatePicker name="start" format={'yyyy/MM/dd'} selected={new Date(dates.start)} onChange={(date) => setDates({ ...dates, start: dayjs(date).format('YYYY/MM/DD') })} />
+                <Input name="start" type="date" defaultValue={dateData.start} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
                 <FormLabel>End Date:</FormLabel>
-                <DatePicker name="target" format={'yyyy/MM/dd'} selected={new Date(dates.target)} onChange={(date) => setDates({ ...dates, target: dayjs(date).format('YYYY/MM/DD') })} />
+                <Input name="end" type="date" defaultValue={dateData.end} />
               </GridItem>
+              {/* <GridItem rowSpan={1} colSpan={1} >
+                <FormLabel>Start Date:</FormLabel>
+                <DatePicker name="start" format={'yyyy/MM/dd'} selected={dateData.start} onChange={(date) => setDateData({ ...dateData, start: new Date(date) })} />
+              </GridItem>
+              <GridItem rowSpan={1} colSpan={1} >
+                <FormLabel>End Date:</FormLabel>
+                <DatePicker name="end" format={'yyyy/MM/dd'} selected={dateData.end} onChange={(date) => setDateData({ ...dateData, end: new Date(date) })} />
+              </GridItem> */}
               {/* <GridItem rowSpan={1} colSpan={1} >
             <Button marginTop={4} colorScheme="blue" onClick={calc} >Calculate</Button>
           </GridItem> */}
