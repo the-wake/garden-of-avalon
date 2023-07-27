@@ -426,10 +426,10 @@ const SummonCalc = () => {
       txMinus: ''
     });
 
-    setDateData({
-      start: '',
-      end: ''
-    });
+    // setDateData({
+    //   start: '',
+    //   end: ''
+    // });
   };
 
   const probHandler = (e) => {
@@ -630,11 +630,11 @@ const SummonCalc = () => {
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
                 <FormLabel>Start Date:</FormLabel>
-                <Input name="start" type="date" defaultValue={dateData.start} />
+                <Input name="start" type="date" value={dateData.start} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
                 <FormLabel>End Date:</FormLabel>
-                <Input name="end" type="date" defaultValue={dateData.end} />
+                <Input name="end" type="date" value={dateData.end} />
               </GridItem>
               {/* <GridItem rowSpan={1} colSpan={1} >
                 <FormLabel>Start Date:</FormLabel>

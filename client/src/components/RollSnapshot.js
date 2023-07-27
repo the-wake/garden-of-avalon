@@ -109,12 +109,13 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
     };
   };
 
-  const dateRangeUpdate = () => {
-    console.log('Updating date ranges.')
-    setEditingDates(true);
-    // console.log(editingDates);
-  };
+  // const dateRangeUpdate = () => {
+  //   console.log('Updating date ranges.')
+  //   setEditingDates(true);
+  //   // console.log(editingDates);
+  // };
 
+  // TODO: Will eventually want to allow for tweaking from this form. This will have to be refactored as setting an isEdited flag, which gives a save button (in place of the 'send to editor' button).
   // Run setSavedRolls whenever an individual roll is updated.
   useEffect(() => {
     const rollIndex = rollData.slot;
@@ -241,10 +242,11 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
       <FormControl marginLeft="auto" marginRight="auto" onChange={handleFormUpdate}>
         <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(10, 1fr)' p="6px" gap={5}>
           <GridItem rowSpan={1} colSpan={3}>
+            {/* TODO: Fix up the placeholder, since selecting it causes issues. */}
             <Select className="form-input" name="targetNo" value={rollData.targetNo} placeholder={'Target Servant'} onChange={() => 1 === 1} mb="8px" >
               {servantsMap}
             </Select>
-            <Input className="form-input" name="bannerDate" type="date" onChange={() => 1 === 1} value={rollData.end} />
+            <Input className="form-input" name="end" type="text" readOnly={true} value={rollData.end} />
             {/* <Input className="form-input" name="bannerDate" type="text" hidden={editingDates === true} readOnly={true} onClick={dateRangeUpdate} onChange={() => 1 === 1} value={rollData.end} format={'yyyy/MM/dd'} />
             <GridItem hidden={editingDates === false}>
               <DatePicker format={'yyyy/MM/dd'} selected={rollData.end} autoFocus onBlur={() => setEditingDates(false)} onChange={(date) => setRollData({ ...rollData, bannerDate: new Date(date) })} />
