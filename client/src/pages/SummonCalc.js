@@ -132,7 +132,7 @@ const SummonCalc = () => {
   // Treats and sets login data and currency.
   useEffect(() => {
     let { total, streak, date } = JSON.parse(localStorage.getItem('login-data')) || 0;
-    const dateClone = dayjs(date).format('YYYY/MM/DD');
+    let dateClone = dayjs(date).format('YYYY/MM/DD');
     console.log(total, streak, dateClone);
 
     if (dateClone === today) {
@@ -538,7 +538,7 @@ const SummonCalc = () => {
 
   // const assignSlots = () => {
   //   savedRolls.sort((a, b) => {
-  //     return new Date(b.date) - new Date(a.date);
+  //     return new Date(b.end) - new Date(a.end);
   //   });
   // };
 

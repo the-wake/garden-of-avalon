@@ -6,7 +6,7 @@ import { useSelector, useDispatch } from 'react-redux'
 
 import { Grid, GridItem } from '@chakra-ui/react'
 import { FormControl, FormLabel, Input, Button, Select, Checkbox, IconButton } from '@chakra-ui/react'
-import { EditIcon, DeleteIcon } from '@chakra-ui/icons'
+import { EditIcon, DeleteIcon, ArrowUpIcon, ArrowDownIcon } from '@chakra-ui/icons'
 import DatePicker from "react-datepicker";
 
 
@@ -200,7 +200,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
   let servantsSoFar = [];
 
   const servantsMap = servantData.map((servant) => {
-    if (servant.rarity < 3 || servant.type === 'heroine' || servant.type === 'enemyCollectionDetail') {
+    if (servant.rarity < 3 || servant.type === 'heroine' || servant.type === 'enemyCollectionDetail' || servant.name === 'Habetrot') {
       return
     };
 
@@ -228,6 +228,8 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
   return (
     <div style={editState === rollData.slot ? cardStyles.editing : cardStyles.normal}>
       {/* TODO: Refactor this into one big grid when the elements and styles are set. */}
+      <IconButton ml='4px' size='sm' aria-label='Edit item' icon={<ArrowUpIcon />} />
+      <IconButton ml='4px' size='sm' aria-label='Edit item' icon={<ArrowDownIcon />} />
       <Grid w='80px' h='80px' templateRows='repeat(4, 1fr)' templateColumns='repeat(2, 1fr)' gap={0.5}>
         <GridItem rowSpan={1} colSpan={2}>
           <img src={rollData.targetImage} style={style.image} />
