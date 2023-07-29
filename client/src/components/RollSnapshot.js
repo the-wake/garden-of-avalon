@@ -5,9 +5,9 @@ import sanitizeEmpty from '../utils/sanitizeEmpty.js'
 import { useSelector, useDispatch } from 'react-redux'
 
 import { Grid, GridItem } from '@chakra-ui/react'
+import { Flex, Spacer } from '@chakra-ui/react'
 import { FormControl, FormLabel, Input, Button, Select, Checkbox, IconButton } from '@chakra-ui/react'
 import { EditIcon, DeleteIcon, ArrowUpIcon, ArrowDownIcon } from '@chakra-ui/icons'
-import DatePicker from "react-datepicker";
 
 
 import "react-datepicker/dist/react-datepicker.css";
@@ -196,11 +196,61 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
     };
   };
 
+  // Probably have to use indexOf for this instead of slot. Slot probably isn't doing anything to help us here because the map is always going to refer to the index as it loops.
+  const moveSnapshot = (dir) => {
+    console.log(`Moving ${dir}.`);
+    if (dir === 'up') {
+      const targetIndex = rollData.slot - 1;
+      const targetNewIndex = rollData.slot;
+      const rollsClone = [...savedRolls];
+      const other = rollsClone.filter((roll) => {
+        return roll.slot === targetIndex;
+      })[0];
+      const poppedArr = rollsClone.filter((roll) => {
+        return (roll.slot !== targetIndex && roll.slot !== rollData.slot);
+      });
+      console.log(other, poppedArr);
+      setRollData({ ...rollData, slot: targetIndex });
+
+      // The following gets us the proper array, but it doesn't reflect the new slot order. This makes them populate in the wrong order when we map over them in the parent component.
+      let updatedRolls = ([...poppedArr, { ...rollData, slot: targetIndex}, { ...other, slot: targetNewIndex }]);
+      console.log(updatedRolls);
+      let freshArr = [];
+
+      for (let i = 0; i < updatedRolls.length; i++) {
+        updatedRolls.map((roll, pos) => {
+          if (roll.slot === i) {
+            console.log(roll);
+            return freshArr.push(roll);
+          };
+        });
+      };
+      console.log(freshArr);
+      setSavedRolls(freshArr);
+
+      // const sortedRolls = updatedRolls.map((roll, pos) => {
+      //   console.log(roll);
+      //   if (roll.slot === pos) {
+      //     return roll;
+      //   };
+      // // });
+      // console.log(sortedRolls);
+      // setSavedRolls(sortedRolls);
+
+      // setSavedRolls([...poppedArr, { ...rollData, slot: targetIndex}, { ...other, slot: targetNewIndex }]);
+
+      // setSavedRolls([ ...treatedArray, savedRolls[targetIndex + 1] = other ]);
+      // setRollData({ ...rollData, slot: targetIndex });
+    } else if (dir === 'down') {
+      // rollData.slot++
+    };
+  };
+
   // Used by following map to give individual names to each Servant where there are duplicates.
   let servantsSoFar = [];
 
   const servantsMap = servantData.map((servant) => {
-    if (servant.rarity < 3 || servant.type === 'heroine' || servant.type === 'enemyCollectionDetail' || servant.name === 'Habetrot') {
+    if (servant.rarity < 3 || servant.type === 'heroine' || servant.type === 'enemyCollectionDetail' || servant.name === 'Altria Pendragon (Lily)' || servant.name === 'Habetrot') {
       return
     };
 
@@ -227,9 +277,10 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
 
   return (
     <div style={editState === rollData.slot ? cardStyles.editing : cardStyles.normal}>
-      {/* TODO: Refactor this into one big grid when the elements and styles are set. */}
-      <IconButton ml='4px' size='sm' aria-label='Edit item' icon={<ArrowUpIcon />} />
-      <IconButton ml='4px' size='sm' aria-label='Edit item' icon={<ArrowDownIcon />} />
+      <Flex direction='column' align='center' justify='space-evenly' pr='6px'>
+        <IconButton ml='4px' size='sm' aria-label='Move item up' name='moveUpIcon' isDisabled={rollData.slot === 0} onClick={() => { moveSnapshot('up') }} icon={<ArrowUpIcon name='moveUp' />} />
+        <IconButton ml='4px' size='sm' aria-label='Move item down' name='moveDownIcon' isDisabled={rollData.slot === savedRolls.length - 1} onClick={() => { moveSnapshot('down') }} icon={<ArrowDownIcon name='moveDown' />} />
+      </Flex>
       <Grid w='80px' h='80px' templateRows='repeat(4, 1fr)' templateColumns='repeat(2, 1fr)' gap={0.5}>
         <GridItem rowSpan={1} colSpan={2}>
           <img src={rollData.targetImage} style={style.image} />
@@ -249,10 +300,6 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
               {servantsMap}
             </Select>
             <Input className="form-input" name="end" type="text" readOnly={true} value={rollData.end} />
-            {/* <Input className="form-input" name="bannerDate" type="text" hidden={editingDates === true} readOnly={true} onClick={dateRangeUpdate} onChange={() => 1 === 1} value={rollData.end} format={'yyyy/MM/dd'} />
-            <GridItem hidden={editingDates === false}>
-              <DatePicker format={'yyyy/MM/dd'} selected={rollData.end} autoFocus onBlur={() => setEditingDates(false)} onChange={(date) => setRollData({ ...rollData, bannerDate: new Date(date) })} />
-            </GridItem> */}
           </GridItem>
           <GridItem rowSpan={2} colSpan={3}>
             <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(8, 1fr)' gap={2} >

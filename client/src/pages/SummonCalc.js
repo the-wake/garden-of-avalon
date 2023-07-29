@@ -5,7 +5,6 @@ import sanitizeEmpty from '../utils/sanitizeEmpty.js'
 
 import { Grid, GridItem } from '@chakra-ui/react'
 import { FormControl, FormLabel, Input, Button, Select, Checkbox } from '@chakra-ui/react'
-import DatePicker from "react-datepicker";
 import Statistics from "statistics.js";
 
 import "react-datepicker/dist/react-datepicker.css";
