@@ -3,8 +3,9 @@ import dayjs from 'dayjs';
 import getSlot from '../utils/getSlot.js'
 import sanitizeEmpty from '../utils/sanitizeEmpty.js'
 
-import { Grid, GridItem } from '@chakra-ui/react'
-import { FormControl, FormLabel, Input, Button, Select, Checkbox } from '@chakra-ui/react'
+import { useMediaQuery } from '@chakra-ui/react';
+import { Grid, GridItem, Flex, Spacer } from '@chakra-ui/react';
+import { FormControl, FormLabel, Input, Button, Select, Checkbox } from '@chakra-ui/react';
 import Statistics from "statistics.js";
 
 import "react-datepicker/dist/react-datepicker.css";
@@ -60,6 +61,28 @@ const SummonCalc = () => {
   const [editState, setEditState] = useState(false);
 
   const [savedRolls, setSavedRolls] = useState(JSON.parse(localStorage.getItem('saved-rolls')) || []);
+
+  const style = {
+    flexContainer: {
+      display: 'flex',
+      flexDirection: 'row',
+    },
+    formEl: {
+      flex: '2 3 300px'
+    },
+    listEl: {
+      flex: '3 2 400px'
+    },
+  };
+  
+  // single media query with no options
+// const [isLargerThan800] = useMediaQuery('(min-width: 800px)')
+
+// ssr-friendly media query with fallback
+const [isLargerThan1680] = useMediaQuery('(min-width: 1680px)', {
+  ssr: true,
+  fallback: false, // return false on the server, and re-evaluate on the client side
+});
 
   const periodic = {
     weeklyLogin: [
@@ -577,8 +600,11 @@ const SummonCalc = () => {
       <br />
 
       {/* Dynamically render the parent grid component only if there are saved rolls. */}
-      <Grid h='' templateRows="repeat(1, fr)" templateColumns="repeat(2, 1fr)">
-        <GridItem rowSpan={1} colSpan={1}>
+      {/* <Grid h='' templateRows="repeat(1, fr)" templateColumns="repeat(2, 1fr)"> */}
+      {/* <GridItem rowSpan={1} colSpan={1}> */}
+      {/* <div style={style.flexContainer}> */}
+      <Flex flexDirection={isLargerThan1680 ? 'row' : 'column'}>
+        <div style={style.formEl}>
           <FormControl maxW="600px" marginLeft="auto" marginRight="auto" onChange={handleFormUpdate}>
             <Grid h='' templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
               <GridItem rowSpan={1} colSpan={1}>
@@ -635,17 +661,6 @@ const SummonCalc = () => {
                 <FormLabel>End Date:</FormLabel>
                 <Input name="end" type="date" value={dateData.end} />
               </GridItem>
-              {/* <GridItem rowSpan={1} colSpan={1} >
-                <FormLabel>Start Date:</FormLabel>
-                <DatePicker name="start" format={'yyyy/MM/dd'} selected={dateData.start} onChange={(date) => setDateData({ ...dateData, start: new Date(date) })} />
-              </GridItem>
-              <GridItem rowSpan={1} colSpan={1} >
-                <FormLabel>End Date:</FormLabel>
-                <DatePicker name="end" format={'yyyy/MM/dd'} selected={dateData.end} onChange={(date) => setDateData({ ...dateData, end: new Date(date) })} />
-              </GridItem> */}
-              {/* <GridItem rowSpan={1} colSpan={1} >
-            <Button marginTop={4} colorScheme="blue" onClick={calc} >Calculate</Button>
-          </GridItem> */}
               <GridItem rowSpan={1} colSpan={2} >
                 <Button marginTop={4} colorScheme="blue" onClick={clearForm} >Clear</Button>
               </GridItem>
@@ -669,8 +684,6 @@ const SummonCalc = () => {
                 <Input className="form-input" isReadOnly={true} name="totalSummons" value={sums.totalSummons} />
               </GridItem>
             </Grid>
-          </FormControl>
-          <FormControl mt={6} maxW="600px" marginLeft="auto" marginRight="auto">
             <Grid h='' templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Desired Servant Rarity:</FormLabel>
@@ -716,19 +729,14 @@ const SummonCalc = () => {
               </GridItem>
             </Grid>
           </FormControl>
-        </GridItem>
-        <GridItem rowSpan={1} colSpan={1}>
+        </div>
+        <div style={style.listEl}>
           {rollMap()}
-          {/* {localRolls.map((roll, pos) => (
-            <GridItem key={roll.slot}>
-              <RollSnapshot
-                rollObj={roll}
-                savedRolls={savedRolls} setSavedRolls={setSavedRolls} setDates={setDates} setCurrency={setCurrency} setSums={setSums} setSummonStats={setSummonStats} editState={editState} setEditState={setEditState} rollIndex={roll.slot}
-              />
-            </GridItem>
-          ))} */}
-        </GridItem>
-      </Grid>
+        </div>
+      </Flex>
+      {/* </div > */}
+      {/* </GridItem> */}
+      {/* </Grid> */}
     </>
   )
 };

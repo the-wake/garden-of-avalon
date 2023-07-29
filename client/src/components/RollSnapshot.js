@@ -4,8 +4,7 @@ import sanitizeEmpty from '../utils/sanitizeEmpty.js'
 
 import { useSelector, useDispatch } from 'react-redux'
 
-import { Grid, GridItem } from '@chakra-ui/react'
-import { Flex, Spacer } from '@chakra-ui/react'
+import { Grid, GridItem, Flex, Spacer } from '@chakra-ui/react'
 import { FormControl, FormLabel, Input, Button, Select, Checkbox, IconButton } from '@chakra-ui/react'
 import { EditIcon, DeleteIcon, ArrowUpIcon, ArrowDownIcon } from '@chakra-ui/icons'
 
@@ -196,7 +195,6 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
     };
   };
 
-  // Probably have to use indexOf for this instead of slot. Slot probably isn't doing anything to help us here because the map is always going to refer to the index as it loops.
   const moveSnapshot = (dir) => {
     console.log(`Moving ${dir}.`);
     let targetIndex;
@@ -232,20 +230,6 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
     };
     console.log(freshArr);
     setSavedRolls(freshArr);
-
-    // const sortedRolls = updatedRolls.map((roll, pos) => {
-    //   console.log(roll);
-    //   if (roll.slot === pos) {
-    //     return roll;
-    //   };
-    // // });
-    // console.log(sortedRolls);
-    // setSavedRolls(sortedRolls);
-
-    // setSavedRolls([...poppedArr, { ...rollData, slot: targetIndex}, { ...other, slot: targetNewIndex }]);
-
-    // setSavedRolls([ ...treatedArray, savedRolls[targetIndex + 1] = other ]);
-    // setRollData({ ...rollData, slot: targetIndex });
   };
 
   // Used by following map to give individual names to each Servant where there are duplicates.
