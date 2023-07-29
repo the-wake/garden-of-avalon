@@ -199,51 +199,53 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
   // Probably have to use indexOf for this instead of slot. Slot probably isn't doing anything to help us here because the map is always going to refer to the index as it loops.
   const moveSnapshot = (dir) => {
     console.log(`Moving ${dir}.`);
+    let targetIndex;
     if (dir === 'up') {
-      const targetIndex = rollData.slot - 1;
-      const targetNewIndex = rollData.slot;
-      const rollsClone = [...savedRolls];
-      const other = rollsClone.filter((roll) => {
-        return roll.slot === targetIndex;
-      })[0];
-      const poppedArr = rollsClone.filter((roll) => {
-        return (roll.slot !== targetIndex && roll.slot !== rollData.slot);
-      });
-      console.log(other, poppedArr);
-      setRollData({ ...rollData, slot: targetIndex });
-
-      // The following gets us the proper array, but it doesn't reflect the new slot order. This makes them populate in the wrong order when we map over them in the parent component.
-      let updatedRolls = ([...poppedArr, { ...rollData, slot: targetIndex}, { ...other, slot: targetNewIndex }]);
-      console.log(updatedRolls);
-      let freshArr = [];
-
-      for (let i = 0; i < updatedRolls.length; i++) {
-        updatedRolls.map((roll, pos) => {
-          if (roll.slot === i) {
-            console.log(roll);
-            return freshArr.push(roll);
-          };
-        });
-      };
-      console.log(freshArr);
-      setSavedRolls(freshArr);
-
-      // const sortedRolls = updatedRolls.map((roll, pos) => {
-      //   console.log(roll);
-      //   if (roll.slot === pos) {
-      //     return roll;
-      //   };
-      // // });
-      // console.log(sortedRolls);
-      // setSavedRolls(sortedRolls);
-
-      // setSavedRolls([...poppedArr, { ...rollData, slot: targetIndex}, { ...other, slot: targetNewIndex }]);
-
-      // setSavedRolls([ ...treatedArray, savedRolls[targetIndex + 1] = other ]);
-      // setRollData({ ...rollData, slot: targetIndex });
+      targetIndex = rollData.slot - 1;
     } else if (dir === 'down') {
-      // rollData.slot++
+      targetIndex = rollData.slot + 1;
     };
+    
+    const targetNewIndex = rollData.slot;
+    const rollsClone = [...savedRolls];
+    const other = rollsClone.filter((roll) => {
+      return roll.slot === targetIndex;
+    })[0];
+    const poppedArr = rollsClone.filter((roll) => {
+      return (roll.slot !== targetIndex && roll.slot !== rollData.slot);
+    });
+    console.log(other, poppedArr);
+    setRollData({ ...rollData, slot: targetIndex });
+
+    // The following gets us the proper array, but it doesn't reflect the new slot order. This makes them populate in the wrong order when we map over them in the parent component.
+    let updatedRolls = ([...poppedArr, { ...rollData, slot: targetIndex }, { ...other, slot: targetNewIndex }]);
+    console.log(updatedRolls);
+    let freshArr = [];
+
+    for (let i = 0; i < updatedRolls.length; i++) {
+      updatedRolls.map((roll, pos) => {
+        if (roll.slot === i) {
+          console.log(roll);
+          return freshArr.push(roll);
+        };
+      });
+    };
+    console.log(freshArr);
+    setSavedRolls(freshArr);
+
+    // const sortedRolls = updatedRolls.map((roll, pos) => {
+    //   console.log(roll);
+    //   if (roll.slot === pos) {
+    //     return roll;
+    //   };
+    // // });
+    // console.log(sortedRolls);
+    // setSavedRolls(sortedRolls);
+
+    // setSavedRolls([...poppedArr, { ...rollData, slot: targetIndex}, { ...other, slot: targetNewIndex }]);
+
+    // setSavedRolls([ ...treatedArray, savedRolls[targetIndex + 1] = other ]);
+    // setRollData({ ...rollData, slot: targetIndex });
   };
 
   // Used by following map to give individual names to each Servant where there are duplicates.
