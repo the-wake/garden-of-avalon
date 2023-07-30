@@ -29,6 +29,7 @@ const SummonCalc = () => {
     txExtra: '',
     sqMinus: '',
     txMinus: '',
+    dailySingles: ''
   });
 
   const [dateData, setDateData] = useState({
@@ -74,15 +75,15 @@ const SummonCalc = () => {
       flex: '3 2 400px'
     },
   };
-  
-  // single media query with no options
-// const [isLargerThan800] = useMediaQuery('(min-width: 800px)')
 
-// ssr-friendly media query with fallback
-const [isLargerThan1680] = useMediaQuery('(min-width: 1680px)', {
-  ssr: true,
-  fallback: false, // return false on the server, and re-evaluate on the client side
-});
+  // single media query with no options
+  // const [isLargerThan800] = useMediaQuery('(min-width: 800px)')
+
+  // ssr-friendly media query with fallback
+  const [isLargerThan1680] = useMediaQuery('(min-width: 1680px)', {
+    ssr: true,
+    fallback: false, // return false on the server, and re-evaluate on the client side
+  });
 
   const periodic = {
     weeklyLogin: [
@@ -160,7 +161,6 @@ const [isLargerThan1680] = useMediaQuery('(min-width: 1680px)', {
     if (dateClone === today) {
       console.log('today!')
     } else {
-      // console.log(`Today: ${today}; date: ${dadateClonete}`)
       const difference = Math.ceil(dayjs().diff(dateClone, 'days', true));
 
       // If it's been at least a week since last login, loop through difference to look for Master Mission refreshes in the elapsed duration.
@@ -346,6 +346,8 @@ const [isLargerThan1680] = useMediaQuery('(min-width: 1680px)', {
     const otherTx = parseInt(currency.txExtra) || 0;
     const spentSq = parseInt(currency.sqMinus) || 0;
     const spentTx = parseInt(currency.txMinus) || 0;
+    const dailySpending = parseInt(currency.dailySingles) * numDays || 0;
+    console.log(currency, numDays, dailySpending);
 
     // console.log(weeklies, logins, shop, events, purchases, otherSq, otherTx);
 
@@ -356,7 +358,7 @@ const [isLargerThan1680] = useMediaQuery('(min-width: 1680px)', {
 
     // console.log(gains, weeklies)
 
-    const newSq = gainedSq + startingSq + purchases + otherSq - spentSq || 0;
+    const newSq = gainedSq + startingSq + purchases + otherSq - spentSq - dailySpending || 0;
     const newTx = gainedTx + startingTx + otherTx - spentTx || 0;
 
     console.log(spentSq, spentTx);
@@ -445,7 +447,8 @@ const [isLargerThan1680] = useMediaQuery('(min-width: 1680px)', {
       sqExtra: '',
       txExtra: '',
       sqMinus: '',
-      txMinus: ''
+      txMinus: '',
+      dailySingles: ''
     });
 
     // setDateData({
@@ -573,6 +576,14 @@ const [isLargerThan1680] = useMediaQuery('(min-width: 1680px)', {
     setSummonStats({ ...summonStats, targetNo: '', targetName: '', targetImage: 'https://static.atlasacademy.io/JP/Faces/f_8001000.png' });
   };
 
+  const totalDays = () => {
+    const start = dayjs(dateData.start);
+    const end = dayjs(dateData.end);
+    const range = Math.ceil(end.diff(start, 'days', true));
+    // console.log(range);
+    return range;
+  };
+
   // let localRolls = [...savedRolls];
 
   // useEffect(() => {
@@ -596,14 +607,7 @@ const [isLargerThan1680] = useMediaQuery('(min-width: 1680px)', {
   return (
     <>
       <h1>Calculate SQ</h1>
-      <br />
-      <br />
-
-      {/* Dynamically render the parent grid component only if there are saved rolls. */}
-      {/* <Grid h='' templateRows="repeat(1, fr)" templateColumns="repeat(2, 1fr)"> */}
-      {/* <GridItem rowSpan={1} colSpan={1}> */}
-      {/* <div style={style.flexContainer}> */}
-      <Flex flexDirection={isLargerThan1680 ? 'row' : 'column'}>
+      <Flex mt={10} flexDirection={isLargerThan1680 ? 'row' : 'column'}>
         <div style={style.formEl}>
           <FormControl maxW="600px" marginLeft="auto" marginRight="auto" onChange={handleFormUpdate}>
             <Grid h='' templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
@@ -661,13 +665,19 @@ const [isLargerThan1680] = useMediaQuery('(min-width: 1680px)', {
                 <FormLabel>End Date:</FormLabel>
                 <Input name="end" type="date" value={dateData.end} />
               </GridItem>
+              <GridItem rowSpan={1} colSpan={1} >
+                <FormLabel># Daily Singles</FormLabel>
+                <Input name="dailySingles" type="input" placeholder="0" value={currency.dailySingles === 0 ? '' : currency.dailySingles} />
+              </GridItem>
+              <GridItem rowSpan={1} colSpan={1} >
+                <FormLabel>Total Days</FormLabel>
+                <Input name="dateRange" type="input" readOnly={true} value={totalDays()} />
+              </GridItem>
               <GridItem rowSpan={1} colSpan={2} >
                 <Button marginTop={4} colorScheme="blue" onClick={clearForm} >Clear</Button>
               </GridItem>
             </Grid>
-            <br />
-            <br />
-            <Grid h='' templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
+            <Grid mt={10} h="" templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
               <GridItem rowSpan={1} colSpan={1} >
                 {/* TODO: These forms can probably just set their values by calling other values directly, rather than going calculator functions. */}
                 <FormLabel>Total Quartz:</FormLabel>
@@ -730,13 +740,10 @@ const [isLargerThan1680] = useMediaQuery('(min-width: 1680px)', {
             </Grid>
           </FormControl>
         </div>
-        <div style={style.listEl}>
+        <div style={style.listEl} hidden={savedRolls.length === 0}>
           {rollMap()}
         </div>
       </Flex>
-      {/* </div > */}
-      {/* </GridItem> */}
-      {/* </Grid> */}
     </>
   )
 };
