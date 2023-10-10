@@ -203,7 +203,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
     } else if (dir === 'down') {
       targetIndex = rollData.slot + 1;
     };
-    
+
     const targetNewIndex = rollData.slot;
     const rollsClone = [...savedRolls];
     const other = rollsClone.filter((roll) => {
@@ -279,58 +279,88 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
         </GridItem>
       </Grid>
       <FormControl marginLeft="auto" marginRight="auto" onChange={handleFormUpdate}>
-        <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(10, 1fr)' p="6px" gap={5}>
-          <GridItem rowSpan={1} colSpan={3}>
-            {/* TODO: Fix up the placeholder, since selecting it causes issues. */}
-            <Select className="form-input" name="targetNo" value={rollData.targetNo} placeholder={'Target Servant'} onChange={() => 1 === 1} mb="8px" >
-              {servantsMap}
-            </Select>
-            <Input className="form-input" name="end" type="text" readOnly={true} value={rollData.end} />
-          </GridItem>
-          <GridItem rowSpan={2} colSpan={2}>
-            <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(8, 1fr)' gap={2} >
-              <GridItem colSpan={1}>
-                <FormLabel>SQ:</FormLabel>
+        <Grid w='100%' gridAutoFlow="column" templateRows='repeat(2, 1fr)' templateColumns='repeat(10, 1fr)' p="6px" gap={1}>
+
+          <GridItem rowSpan={2} colSpan={3}>
+            <Grid w='100%' templateRows='repeat(2, 1fr)' templateColumns='repeat(1, 1fr)' gap={1}>
+              <GridItem colSpan={1} rowSpan={1}>
+                {/* TODO: Fix up the placeholder, since selecting it causes issues. */}
+                <Select className="form-input" name="targetNo" value={rollData.targetNo} placeholder={'Target Servant'} onChange={() => 1 === 1} mb="8px" >
+                  {servantsMap}
+                </Select>
               </GridItem>
-              <GridItem colSpan={7}>
+              <GridItem>
+                <Input className="form-input" name="end" type="text" readOnly={true} value={rollData.end} />
+              </GridItem>
+            </Grid>
+          </GridItem>
+
+          <GridItem rowSpan={1} colSpan={2}>
+            <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(2, 1fr)' gap={1}>
+              <GridItem colSpan={1} rowSpan={1}>
+                <FormLabel h="100%" textAlign="right" lineHeight="40px" m="auto">SQ:</FormLabel>
+              </GridItem>
+              <GridItem colSpan={1} rowSpan={1}>
                 <Input className="form-input" name="sq" type="number" onChange={() => 1 === 1} value={rollData.sqSum} />
               </GridItem>
-              <GridItem colSpan={1}>
-                <FormLabel>Tickets:</FormLabel>
+            </Grid>
+          </GridItem>
+
+          <GridItem rowSpan={1} colSpan={2}>
+            <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(2, 1fr)' gap={1}>
+              <GridItem colSpan={1} rowSpan={1}>
+                <FormLabel h="100%" textAlign="right" lineHeight="40px" m="auto">Tickets:</FormLabel>
               </GridItem>
-              <GridItem colSpan={7}>
+              <GridItem colSpan={1} rowSpan={1}>
                 <Input className="form-input" name="tx" type="number" onChange={() => 1 === 1} value={rollData.txSum} />
               </GridItem>
             </Grid>
           </GridItem>
-          <GridItem rowSpan={2} colSpan={5}>
-            <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(8, 1fr)' gap={2} >
-              <GridItem colSpan={1}>
-                <FormLabel>Rolls:</FormLabel>
+
+          <GridItem rowSpan={1} colSpan={2}>
+            <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(2, 1fr)' gap={1}>
+              <GridItem colSpan={1} rowSpan={1}>
+                <FormLabel h="100%" textAlign="right" lineHeight="40px" m="auto">Rolls:</FormLabel>
               </GridItem>
-              <GridItem colSpan={3}>
+              <GridItem colSpan={1} rowSpan={1}>
                 <Input className="form-input" name="numRolls" type="number" readOnly={true} value={rollData.totalSummons} />
               </GridItem>
-              <GridItem colSpan={1}>
-                <FormLabel>Rate:</FormLabel>
+            </Grid>
+          </GridItem>
+
+          <GridItem rowSpan={1} colSpan={2}>
+            <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(2, 1fr)' gap={1}>
+              <GridItem colSpan={1} rowSpan={1}>
+                <FormLabel h="100%" textAlign="right" lineHeight="40px" m="auto">Rate:</FormLabel>
               </GridItem>
-              <GridItem colSpan={3}>
+              <GridItem colSpan={1} rowSpan={1}>
                 <Input className="form-input" name="numRolls" type="number" readOnly={true} value={rollData.prob} />
               </GridItem>
-              <GridItem colSpan={1}>
-                <FormLabel>Desired:</FormLabel>
+            </Grid>
+          </GridItem>
+
+          <GridItem rowSpan={1} colSpan={3}>
+            <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(3, 1fr)' gap={1}>
+              <GridItem colSpan={1} rowSpan={1}>
+                <FormLabel h="100%" textAlign="right" lineHeight="40px" m="auto">Desired:</FormLabel>
               </GridItem>
-              <GridItem colSpan={3}>
+              <GridItem colSpan={2} rowSpan={1}>
                 <Input className="form-input" name="numDesired" type="number" readOnly={true} value={rollData.desired} />
               </GridItem>
-              <GridItem colSpan={1}>
-                <FormLabel>Odds:</FormLabel>
+            </Grid>
+          </GridItem>
+
+          <GridItem rowSpan={1} colSpan={3}>
+            <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(3, 1fr)' gap={1}>
+              <GridItem colSpan={1} rowSpan={1}>
+                <FormLabel h="100%" textAlign="right" lineHeight="40px" m="auto">Odds:</FormLabel>
               </GridItem>
-              <GridItem colSpan={3}>
+              <GridItem colSpan={2} rowSpan={1}>
                 <Input className="form-input" name="numRolls" type="text" readOnly={true} value={rollData.summonOdds} />
               </GridItem>
             </Grid>
           </GridItem>
+
         </Grid >
       </FormControl>
     </div>
