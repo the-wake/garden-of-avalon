@@ -287,7 +287,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
             </Select>
             <Input className="form-input" name="end" type="text" readOnly={true} value={rollData.end} />
           </GridItem>
-          <GridItem rowSpan={2} colSpan={3}>
+          <GridItem rowSpan={2} colSpan={2}>
             <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(8, 1fr)' gap={2} >
               <GridItem colSpan={1}>
                 <FormLabel>SQ:</FormLabel>
@@ -303,7 +303,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
               </GridItem>
             </Grid>
           </GridItem>
-          <GridItem rowSpan={2} colSpan={4}>
+          <GridItem rowSpan={2} colSpan={5}>
             <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(8, 1fr)' gap={2} >
               <GridItem colSpan={1}>
                 <FormLabel>Rolls:</FormLabel>
