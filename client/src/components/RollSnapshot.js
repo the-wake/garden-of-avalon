@@ -75,6 +75,8 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
       minHeight: '80px',
       textAlign: 'left',
       display: 'flex',
+      paddingTop: '4px',
+      paddingBottom: '7px',
       margin: '12px'
     },
     editing: {
@@ -83,6 +85,8 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
       minHeight: '80px',
       textAlign: 'left',
       display: 'flex',
+      paddingTop: '4px',
+      paddingBottom: '7px',
       margin: '12px'
     }
   };

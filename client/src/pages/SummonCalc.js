@@ -225,7 +225,7 @@ const SummonCalc = () => {
       sq: 0,
       tx: 0
     };
-
+    
     const masterMissionGains = calcMasterMissions(start, numDays);
     // console.log(`Calculating Master Mission. Start: ${start}; Number of Days: ${numDays}.`);
     weeklyGains.sq += masterMissionGains;
