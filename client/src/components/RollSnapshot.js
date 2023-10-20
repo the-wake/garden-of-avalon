@@ -4,8 +4,7 @@ import sanitizeEmpty from '../utils/sanitizeEmpty.js'
 
 import { useSelector, useDispatch } from 'react-redux'
 
-import { Grid, GridItem } from '@chakra-ui/react'
-import { Flex, Spacer } from '@chakra-ui/react'
+import { Grid, GridItem, Flex, Spacer } from '@chakra-ui/react'
 import { FormControl, FormLabel, Input, Button, Select, Checkbox, IconButton } from '@chakra-ui/react'
 import { EditIcon, DeleteIcon, ArrowUpIcon, ArrowDownIcon } from '@chakra-ui/icons'
 
@@ -76,6 +75,8 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
       minHeight: '80px',
       textAlign: 'left',
       display: 'flex',
+      paddingTop: '4px',
+      paddingBottom: '7px',
       margin: '12px'
     },
     editing: {
@@ -84,6 +85,8 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
       minHeight: '80px',
       textAlign: 'left',
       display: 'flex',
+      paddingTop: '4px',
+      paddingBottom: '7px',
       margin: '12px'
     }
   };
@@ -145,8 +148,8 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
       console.log('Editing roll:', rollData);
       let newRoll = {};
 
-      const { sqPurchase, purchasePeriod, alreadyPurchased, sqStarting, txStarting, sqIncome, txIncome, sqExtra, txExtra, sqMinus, txMinus } = rollData;
-      newRoll.currency = { sqPurchase, purchasePeriod, alreadyPurchased, sqStarting, txStarting, sqIncome, txIncome, sqExtra, txExtra, sqMinus, txMinus };
+      const { sqPurchase, purchasePeriod, alreadyPurchased, sqStarting, txStarting, sqIncome, txIncome, sqExtra, txExtra, sqMinus, txMinus, dailySingles } = rollData;
+      newRoll.currency = { sqPurchase, purchasePeriod, alreadyPurchased, sqStarting, txStarting, sqIncome, txIncome, sqExtra, txExtra, sqMinus, txMinus, dailySingles };
 
       const { start, end } = rollData;
       newRoll.dateData = { start, end };
@@ -196,54 +199,41 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
     };
   };
 
-  // Probably have to use indexOf for this instead of slot. Slot probably isn't doing anything to help us here because the map is always going to refer to the index as it loops.
   const moveSnapshot = (dir) => {
     console.log(`Moving ${dir}.`);
+    let targetIndex;
     if (dir === 'up') {
-      const targetIndex = rollData.slot - 1;
-      const targetNewIndex = rollData.slot;
-      const rollsClone = [...savedRolls];
-      const other = rollsClone.filter((roll) => {
-        return roll.slot === targetIndex;
-      })[0];
-      const poppedArr = rollsClone.filter((roll) => {
-        return (roll.slot !== targetIndex && roll.slot !== rollData.slot);
-      });
-      console.log(other, poppedArr);
-      setRollData({ ...rollData, slot: targetIndex });
-
-      // The following gets us the proper array, but it doesn't reflect the new slot order. This makes them populate in the wrong order when we map over them in the parent component.
-      let updatedRolls = ([...poppedArr, { ...rollData, slot: targetIndex}, { ...other, slot: targetNewIndex }]);
-      console.log(updatedRolls);
-      let freshArr = [];
-
-      for (let i = 0; i < updatedRolls.length; i++) {
-        updatedRolls.map((roll, pos) => {
-          if (roll.slot === i) {
-            console.log(roll);
-            return freshArr.push(roll);
-          };
-        });
-      };
-      console.log(freshArr);
-      setSavedRolls(freshArr);
-
-      // const sortedRolls = updatedRolls.map((roll, pos) => {
-      //   console.log(roll);
-      //   if (roll.slot === pos) {
-      //     return roll;
-      //   };
-      // // });
-      // console.log(sortedRolls);
-      // setSavedRolls(sortedRolls);
-
-      // setSavedRolls([...poppedArr, { ...rollData, slot: targetIndex}, { ...other, slot: targetNewIndex }]);
-
-      // setSavedRolls([ ...treatedArray, savedRolls[targetIndex + 1] = other ]);
-      // setRollData({ ...rollData, slot: targetIndex });
+      targetIndex = rollData.slot - 1;
     } else if (dir === 'down') {
-      // rollData.slot++
+      targetIndex = rollData.slot + 1;
     };
+
+    const targetNewIndex = rollData.slot;
+    const rollsClone = [...savedRolls];
+    const other = rollsClone.filter((roll) => {
+      return roll.slot === targetIndex;
+    })[0];
+    const poppedArr = rollsClone.filter((roll) => {
+      return (roll.slot !== targetIndex && roll.slot !== rollData.slot);
+    });
+    console.log(other, poppedArr);
+    setRollData({ ...rollData, slot: targetIndex });
+
+    // The following gets us the proper array, but it doesn't reflect the new slot order. This makes them populate in the wrong order when we map over them in the parent component.
+    let updatedRolls = ([...poppedArr, { ...rollData, slot: targetIndex }, { ...other, slot: targetNewIndex }]);
+    console.log(updatedRolls);
+    let freshArr = [];
+
+    for (let i = 0; i < updatedRolls.length; i++) {
+      updatedRolls.map((roll, pos) => {
+        if (roll.slot === i) {
+          console.log(roll);
+          return freshArr.push(roll);
+        };
+      });
+    };
+    console.log(freshArr);
+    setSavedRolls(freshArr);
   };
 
   // Used by following map to give individual names to each Servant where there are duplicates.
@@ -293,58 +283,88 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
         </GridItem>
       </Grid>
       <FormControl marginLeft="auto" marginRight="auto" onChange={handleFormUpdate}>
-        <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(10, 1fr)' p="6px" gap={5}>
-          <GridItem rowSpan={1} colSpan={3}>
-            {/* TODO: Fix up the placeholder, since selecting it causes issues. */}
-            <Select className="form-input" name="targetNo" value={rollData.targetNo} placeholder={'Target Servant'} onChange={() => 1 === 1} mb="8px" >
-              {servantsMap}
-            </Select>
-            <Input className="form-input" name="end" type="text" readOnly={true} value={rollData.end} />
-          </GridItem>
+        <Grid w='100%' gridAutoFlow="column" templateRows='repeat(2, 1fr)' templateColumns='repeat(10, 1fr)' p="6px" gap={1}>
+
           <GridItem rowSpan={2} colSpan={3}>
-            <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(8, 1fr)' gap={2} >
-              <GridItem colSpan={1}>
-                <FormLabel>SQ:</FormLabel>
+            <Grid w='100%' templateRows='repeat(2, 1fr)' templateColumns='repeat(1, 1fr)' gap={1}>
+              <GridItem colSpan={1} rowSpan={1}>
+                {/* TODO: Fix up the placeholder, since selecting it causes issues. */}
+                <Select className="form-input" name="targetNo" value={rollData.targetNo} placeholder={'Target Servant'} onChange={() => 1 === 1} mb="8px" >
+                  {servantsMap}
+                </Select>
               </GridItem>
-              <GridItem colSpan={7}>
+              <GridItem>
+                <Input className="form-input" name="end" type="text" readOnly={true} value={rollData.end} />
+              </GridItem>
+            </Grid>
+          </GridItem>
+
+          <GridItem rowSpan={1} colSpan={2}>
+            <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(2, 1fr)' gap={1}>
+              <GridItem colSpan={1} rowSpan={1}>
+                <FormLabel h="100%" textAlign="right" lineHeight="40px" m="auto">SQ:</FormLabel>
+              </GridItem>
+              <GridItem colSpan={1} rowSpan={1}>
                 <Input className="form-input" name="sq" type="number" onChange={() => 1 === 1} value={rollData.sqSum} />
               </GridItem>
-              <GridItem colSpan={1}>
-                <FormLabel>Tickets:</FormLabel>
+            </Grid>
+          </GridItem>
+
+          <GridItem rowSpan={1} colSpan={2}>
+            <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(2, 1fr)' gap={1}>
+              <GridItem colSpan={1} rowSpan={1}>
+                <FormLabel h="100%" textAlign="right" lineHeight="40px" m="auto">Tickets:</FormLabel>
               </GridItem>
-              <GridItem colSpan={7}>
+              <GridItem colSpan={1} rowSpan={1}>
                 <Input className="form-input" name="tx" type="number" onChange={() => 1 === 1} value={rollData.txSum} />
               </GridItem>
             </Grid>
           </GridItem>
-          <GridItem rowSpan={2} colSpan={4}>
-            <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(8, 1fr)' gap={2} >
-              <GridItem colSpan={1}>
-                <FormLabel>Rolls:</FormLabel>
+
+          <GridItem rowSpan={1} colSpan={2}>
+            <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(2, 1fr)' gap={1}>
+              <GridItem colSpan={1} rowSpan={1}>
+                <FormLabel h="100%" textAlign="right" lineHeight="40px" m="auto">Rolls:</FormLabel>
               </GridItem>
-              <GridItem colSpan={3}>
+              <GridItem colSpan={1} rowSpan={1}>
                 <Input className="form-input" name="numRolls" type="number" readOnly={true} value={rollData.totalSummons} />
               </GridItem>
-              <GridItem colSpan={1}>
-                <FormLabel>Rate:</FormLabel>
+            </Grid>
+          </GridItem>
+
+          <GridItem rowSpan={1} colSpan={2}>
+            <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(2, 1fr)' gap={1}>
+              <GridItem colSpan={1} rowSpan={1}>
+                <FormLabel h="100%" textAlign="right" lineHeight="40px" m="auto">Rate:</FormLabel>
               </GridItem>
-              <GridItem colSpan={3}>
+              <GridItem colSpan={1} rowSpan={1}>
                 <Input className="form-input" name="numRolls" type="number" readOnly={true} value={rollData.prob} />
               </GridItem>
-              <GridItem colSpan={1}>
-                <FormLabel>Desired:</FormLabel>
+            </Grid>
+          </GridItem>
+
+          <GridItem rowSpan={1} colSpan={3}>
+            <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(3, 1fr)' gap={1}>
+              <GridItem colSpan={1} rowSpan={1}>
+                <FormLabel h="100%" textAlign="right" lineHeight="40px" m="auto">Desired:</FormLabel>
               </GridItem>
-              <GridItem colSpan={3}>
+              <GridItem colSpan={2} rowSpan={1}>
                 <Input className="form-input" name="numDesired" type="number" readOnly={true} value={rollData.desired} />
               </GridItem>
-              <GridItem colSpan={1}>
-                <FormLabel>Odds:</FormLabel>
+            </Grid>
+          </GridItem>
+
+          <GridItem rowSpan={1} colSpan={3}>
+            <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(3, 1fr)' gap={1}>
+              <GridItem colSpan={1} rowSpan={1}>
+                <FormLabel h="100%" textAlign="right" lineHeight="40px" m="auto">Odds:</FormLabel>
               </GridItem>
-              <GridItem colSpan={3}>
+              <GridItem colSpan={2} rowSpan={1}>
                 <Input className="form-input" name="numRolls" type="text" readOnly={true} value={rollData.summonOdds} />
               </GridItem>
             </Grid>
           </GridItem>
+
         </Grid >
       </FormControl>
     </div>
