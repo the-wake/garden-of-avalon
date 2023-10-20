@@ -225,7 +225,7 @@ const SummonCalc = () => {
       sq: 0,
       tx: 0
     };
-    
+
     const masterMissionGains = calcMasterMissions(start, numDays);
     // console.log(`Calculating Master Mission. Start: ${start}; Number of Days: ${numDays}.`);
     weeklyGains.sq += masterMissionGains;
@@ -606,7 +606,6 @@ const SummonCalc = () => {
 
   return (
     <>
-      <h1>Calculate SQ</h1>
       <Flex mt={10} flexDirection={isLargerThan1680 ? 'row' : 'column'}>
         <div style={style.formEl}>
           <FormControl maxW="600px" marginLeft="auto" marginRight="auto" onChange={handleFormUpdate}>
