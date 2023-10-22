@@ -10,7 +10,8 @@ import Statistics from "statistics.js";
 
 import "react-datepicker/dist/react-datepicker.css";
 
-import RollSnapshot from "../components/RollSnapshot";
+import RollSnapshot from "../components/RollSnapshot.js";
+import RateupMenu from "../components/RateupMenu.js";
 
 // TODO: Once we have MVP, refactor with reducers and better state handling.
 const SummonCalc = () => {
@@ -132,11 +133,13 @@ const SummonCalc = () => {
     },
   };
 
-  const odds = {
+  const oddsObj = {
     ssr: [0.008, 0.004],
     sr: [0.015, 0.012, 0.007, 0.007, 0.005],
     r: [0.04],
   };
+
+  console.log(oddsObj);
 
   const today = dayjs().format('YYYY/MM/DD');
 
@@ -467,10 +470,11 @@ const SummonCalc = () => {
 
   const probHandler = (e) => {
     if (e.target.name === 'rarity') {
-      const newProb = odds[e.target.value][summonStats.numRateup - 1];
+      setSummonStats({ ...summonStats, numRateup: 1 });
+      const newProb = oddsObj[e.target.value][summonStats.numRateup - 1] || oddsObj[e.target.value][0];
       setSummonStats({ ...summonStats, [e.target.name]: e.target.value, prob: newProb });
     } else if (e.target.name === 'numRateup') {
-      const newProb = odds[summonStats.rarity][e.target.value - 1];
+      const newProb = oddsObj[summonStats.rarity][e.target.value - 1];
       setSummonStats({ ...summonStats, [e.target.name]: parseInt(e.target.value), prob: newProb });
     } else if (e.target.name === 'desired') {
       setSummonStats({ ...summonStats, desired: parseInt(e.target.value) });
@@ -526,6 +530,13 @@ const SummonCalc = () => {
 
     setElementState({ ...elementState, odds: true });
     setSummonStats({ ...summonStats, summonOdds: oddsRender });
+
+    setTimeout(() => {
+      document.querySelector('.results-area').scrollIntoView({
+        alignToTop: true,
+        behavior: 'smooth'
+      })
+    }, 50)
   };
 
   const saveSnapshot = () => {
@@ -710,7 +721,8 @@ const SummonCalc = () => {
               </GridItem>
             </Grid>
             <Grid h='' templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
-              <GridItem rowSpan={1} colSpan={1}>
+              <RateupMenu probHandler={probHandler} summonStats={summonStats} setSummonStats={setSummonStats} oddsObj={oddsObj} />
+              {/* <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Desired Servant Rarity:</FormLabel>
                 <Select className="form-input" name="rarity" type="text" onChange={probHandler}>
                   <option value={'ssr'}>5* (SSR)</option>
@@ -718,7 +730,6 @@ const SummonCalc = () => {
                   <option value={'r'}>3* (R)</option>
                 </Select>
               </GridItem>
-              {/* TODO: Display this only if previous form input is 3* or 4*. */}
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Total Servants on Rateup:</FormLabel>
                 <Select className="form-input" name="numRateup" type="text" onChange={probHandler} defaultValue={1}>
@@ -735,7 +746,7 @@ const SummonCalc = () => {
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
                 <Input className="form-input" isReadOnly={summonStats.numRateup !== 0 ? true : false} name="prob" value={summonStats.prob} />
-              </GridItem>
+              </GridItem> */}
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Number of Copies Desired:</FormLabel>
               </GridItem>
@@ -745,7 +756,7 @@ const SummonCalc = () => {
               <GridItem rowSpan={1} colSpan={2} >
                 <Button marginTop={4} colorScheme="blue" onClick={calcOdds} width={'400px'} >Calculate!</Button>
               </GridItem>
-              <GridItem rowSpan={1} colSpan={2} hidden={!elementState.odds}>
+              <GridItem className="results-area" rowSpan={1} colSpan={2} hidden={!elementState.odds}>
                 <Input className="form-input" maxW='400px' isReadOnly={true} name="summonOdds" value={summonStats.summonOdds} />
                 <Button marginTop={4} colorScheme="blue" onClick={saveSnapshot}>{editState === false ? 'Save Snapshot' : 'Update Snapshot'}</Button>
               </GridItem>
