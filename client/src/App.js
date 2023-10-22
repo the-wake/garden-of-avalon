@@ -21,7 +21,8 @@ function App() {
 
   const style = {
     background: "#FEFEFE",
-    minHeight: "100vh"
+    minHeight: "100vh",
+    paddingBottom: "20px"
   };
 
   useEffect(() => {

@@ -25,6 +25,8 @@ const SummonCalc = () => {
     txStarting: '',
     sqIncome: '',
     txIncome: '',
+    sqEvent: '',
+    txEvent: '',
     sqExtra: '',
     txExtra: '',
     sqMinus: '',
@@ -66,13 +68,15 @@ const SummonCalc = () => {
   const style = {
     flexContainer: {
       display: 'flex',
-      flexDirection: 'row',
+      flexDirection: 'row'
     },
     formEl: {
       flex: '2 3 300px'
     },
     listEl: {
-      flex: '3 2 400px'
+      flex: '3 2 400px',
+      background: '#dae8ed',
+      borderRadius: '9px'
     },
   };
 
@@ -129,9 +133,9 @@ const SummonCalc = () => {
   };
 
   const odds = {
-    ssr: [0.008, 0.005],
-    sr: [0.02, 0.015, 0.012],
-    r: [0.2],
+    ssr: [0.008, 0.004],
+    sr: [0.015, 0.012, 0.007, 0.007, 0.005],
+    r: [0.04],
   };
 
   const today = dayjs().format('YYYY/MM/DD');
@@ -342,6 +346,8 @@ const SummonCalc = () => {
     const shop = calcShop(numMonths);
     const events = calcEvents(start, end);
     const purchases = calcPurchases(numMonths) || 0;
+    const eventSq = parseInt(currency.sqEvent) || 0;
+    const eventTx = parseInt(currency.txEvent) || 0;
     const otherSq = parseInt(currency.sqExtra) || 0;
     const otherTx = parseInt(currency.txExtra) || 0;
     const spentSq = parseInt(currency.sqMinus) || 0;
@@ -358,8 +364,8 @@ const SummonCalc = () => {
 
     // console.log(gains, weeklies)
 
-    const newSq = gainedSq + startingSq + purchases + otherSq - spentSq - dailySpending || 0;
-    const newTx = gainedTx + startingTx + otherTx - spentTx || 0;
+    const newSq = gainedSq + startingSq + purchases + eventSq + otherSq - spentSq - dailySpending || 0;
+    const newTx = gainedTx + startingTx + +eventTx + otherTx - spentTx || 0;
 
     console.log(spentSq, spentTx);
 
@@ -444,6 +450,8 @@ const SummonCalc = () => {
       txStarting: '',
       sqIncome: '',
       txIncome: '',
+      sqEvent: '',
+      txEvent: '',
       sqExtra: '',
       txExtra: '',
       sqMinus: '',
@@ -513,7 +521,7 @@ const SummonCalc = () => {
     let oddsRender = `${percentage}%`;
 
     if (k === 1 && n >= 330) {
-      oddsRender = `Guaranteed pity (330 summons)`
+      oddsRender = `Pity (330 summons)`
     };
 
     setElementState({ ...elementState, odds: true });
@@ -639,6 +647,14 @@ const SummonCalc = () => {
               </GridItem>
               <GridItem rowSpan={1} colSpan={2} hidden={currency.purchasePeriod === 0}>
                 <Checkbox name="alreadyPurchased" defaultChecked={false} >Already purchased this month?</Checkbox>
+              </GridItem>
+              <GridItem rowSpan={1} colSpan={1} >
+                <FormLabel>Event SQ:</FormLabel>
+                <Input className="form-input" name="sqEvent" type="number" placeholder="0" value={currency.sqEvent === 0 ? '' : currency.sqEvent} onSubmit={calc} />
+              </GridItem>
+              <GridItem rowSpan={1} colSpan={1} >
+                <FormLabel>Event Tickets:</FormLabel>
+                <Input className="form-input" name="txEvent" type="number" placeholder="0" value={currency.txEvent === 0 ? '' : currency.txEvent} onSubmit={calc} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
                 <FormLabel>Extra SQ:</FormLabel>
