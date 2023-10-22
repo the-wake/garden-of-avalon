@@ -268,8 +268,8 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
   return (
     <div style={editState === rollData.slot ? cardStyles.editing : cardStyles.normal}>
       <Flex direction='column' align='center' justify='space-evenly' pr='6px'>
-        <IconButton ml='4px' size='sm' aria-label='Move item up' name='moveUpIcon' isDisabled={rollData.slot === 0} onClick={() => { moveSnapshot('up') }} icon={<ArrowUpIcon name='moveUp' />} />
-        <IconButton ml='4px' size='sm' aria-label='Move item down' name='moveDownIcon' isDisabled={rollData.slot === savedRolls.length - 1} onClick={() => { moveSnapshot('down') }} icon={<ArrowDownIcon name='moveDown' />} />
+        <IconButton ml='4px' size='sm' aria-label='Move item up' name='moveUpIcon' isDisabled={rollData.slot === 0 || editState !== false} onClick={() => { moveSnapshot('up') }} icon={<ArrowUpIcon name='moveUp' />} />
+        <IconButton ml='4px' size='sm' aria-label='Move item down' name='moveDownIcon' isDisabled={rollData.slot === savedRolls.length - 1 || editState !== false} onClick={() => { moveSnapshot('down') }} icon={<ArrowDownIcon name='moveDown' />} />
       </Flex>
       <Grid w='80px' h='80px' templateRows='repeat(4, 1fr)' templateColumns='repeat(2, 1fr)' gap={0.5}>
         <GridItem rowSpan={1} colSpan={2}>
