@@ -48,10 +48,13 @@ const AdjustMenu = ({ handleBulkUpdate, editState }) => {
 
           <ModalFooter>
             <Button mr={3} variant="ghost" onClick={onClose}>Cancel</Button>
-            <Button colorScheme="blue" onClick={() => {
-              handleBulkUpdate(adjustments.sqAdjust, adjustments.txAdjust);
-              onClose();
-            }}>Adjust Rolls</Button>
+            <Button colorScheme="blue"
+              onClick={() => {
+                handleBulkUpdate(adjustments.sqAdjust, adjustments.txAdjust);
+                setAdjustments({ sqAdjust: 0, txAdjust: 0 })
+                onClose();
+              }}
+            >Adjust Rolls</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>

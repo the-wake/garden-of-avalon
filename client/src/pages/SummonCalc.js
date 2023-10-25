@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import getSlot from '../utils/getSlot.js'
 import sanitizeEmpty from '../utils/sanitizeEmpty.js'
+import DateHelper from "../utils/dateHelper.js"
 
 import { useSelector, useDispatch } from 'react-redux';
 
@@ -39,8 +40,8 @@ const SummonCalc = () => {
   });
 
   const [dateData, setDateData] = useState({
-    start: '',
-    end: '',
+    start: DateHelper(new Date().toLocaleDateString()),
+    end:  DateHelper(new Date().toLocaleDateString()),
   });
 
   const [sums, setSums] = useState({
@@ -613,16 +614,6 @@ const SummonCalc = () => {
     setEditState(false);
   };
 
-  // const assignSlots = () => {
-  //   savedRolls.sort((a, b) => {
-  //     return new Date(b.end) - new Date(a.end);
-  //   });
-  // };
-
-  // useEffect(() => {
-  //   console.log(assignSlots());
-  // }, [savedRolls]);
-
   const handleEditCancel = () => {
     setEditState(false)
     setSummonStats({ ...summonStats, targetNo: '', targetName: '', targetImage: 'https://static.atlasacademy.io/JP/Faces/f_8001000.png' });
@@ -631,8 +622,9 @@ const SummonCalc = () => {
   const totalDays = () => {
     const start = dayjs(dateData.start);
     const end = dayjs(dateData.end);
-    const range = Math.ceil(end.diff(start, 'days', true));
+    let range = Math.ceil(end.diff(start, 'days', true));
     // console.log(range);
+    isNaN(range) ? range = 0 : range = range;
     return range;
   };
 
@@ -649,33 +641,9 @@ const SummonCalc = () => {
       return newMath;
     });
 
-    // const newRolls = savedRolls.map((roll, pos) => {
-    //   return { ...roll, sqStarting: roll.sqStarting += sq, txStarting: roll.txStarting += tx, sqSum: roll.sqSum += sq, txSum: roll.txSum += tx };
-    // });
-
     console.log(newRolls);
     setSavedRolls(newRolls);
   };
-
-  // Not fully implemented here, but meant to re-calculate odds if anything changes a roll's total currency data.
-  // useEffect(() => {
-  //   const newRolls = savedRolls.map((roll, pos) => {
-  //     const nSummons = totalSummons(roll.sqSum, roll.txSum);
-  //     const updatedObj = { ...roll, totalSummons: nSummons};
-  //     const newMath = goMath(updatedObj);
-  //     console.log(newMath);
-  //     return roll;
-  //   });
-  //   console.log(newRolls);
-  //   setSavedRolls(newRolls);
-  // }, [savedRolls.sqSum, savedRolls.txSum]);
-
-  // let localRolls = [...savedRolls];
-
-  // useEffect(() => {
-  //   localRolls = [...savedRolls];
-  //   console.log(localRolls);
-  // }, [savedRolls]);
 
   const rollMap = () => {
     {
@@ -764,7 +732,7 @@ const SummonCalc = () => {
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
                 <FormLabel>Total Days</FormLabel>
-                <Input name="dateRange" type="input" readOnly={true} value={totalDays()} />
+                <Input name="dateRange" type="input" readOnly={true} placeholder="0" value={totalDays() === 0 ? '' : totalDays()} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
                 <Button marginTop={4} colorScheme="blue" onClick={clearForm} >Clear</Button>
