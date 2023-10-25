@@ -3,6 +3,8 @@ import dayjs from 'dayjs';
 import getSlot from '../utils/getSlot.js'
 import sanitizeEmpty from '../utils/sanitizeEmpty.js'
 
+import { useSelector, useDispatch } from 'react-redux';
+
 import { useMediaQuery } from '@chakra-ui/react';
 import { Grid, GridItem, Flex, Spacer } from '@chakra-ui/react';
 import { FormControl, FormLabel, Input, Button, Select, Checkbox } from '@chakra-ui/react';
@@ -12,6 +14,7 @@ import "react-datepicker/dist/react-datepicker.css";
 
 import RollSnapshot from "../components/RollSnapshot.js";
 import RateupMenu from "../components/RateupMenu.js";
+import AdjustMenu from "../components/AdjustMenu.js"
 
 // TODO: Once we have MVP, refactor with reducers and better state handling.
 const SummonCalc = () => {
@@ -139,7 +142,7 @@ const SummonCalc = () => {
     r: [0.04],
   };
 
-  console.log(oddsObj);
+  // console.log(oddsObj);
 
   const today = dayjs().format('YYYY/MM/DD');
 
@@ -322,7 +325,7 @@ const SummonCalc = () => {
     // console.log(sqPurchase, numPurchases);
 
     const totalPurchases = parseInt(sqPurchase) * numPurchases || 0;
-    console.log(totalPurchases);
+    // console.log(totalPurchases);
     return totalPurchases;
   };
 
@@ -370,22 +373,41 @@ const SummonCalc = () => {
     const newSq = gainedSq + startingSq + purchases + eventSq + otherSq - spentSq - dailySpending || 0;
     const newTx = gainedTx + startingTx + +eventTx + otherTx - spentTx || 0;
 
-    console.log(spentSq, spentTx);
+    // console.log(spentSq, spentTx);
 
     // console.log(gainedTx, startingTx, otherTx);
 
-    console.log(gainedSq, startingSq, startingTx, purchases, otherSq);
+    // console.log(gainedSq, startingSq, startingTx, purchases, otherSq);
 
-    let total = Math.floor((newSq / 3 + newTx) + Math.floor((newSq / 3 + newTx) / 10));
+    // Doesn't currently return anything, but running setSums will useEffect setSums.totalSummons.
+
+    // let total = Math.floor((newSq / 3 + newTx) + Math.floor((newSq / 3 + newTx) / 10));
+
+    // if (isNaN(total) || total < 0) {
+    //   total = 0;
+    // };
+
+    // console.log(total);
+    // setSums({ sqSum: newSq, txSum: newTx, totalSummons: total });
+    const newSummons = totalSummons(newSq, newTx);
+    setSums({ sqSum: newSq, txSum: newTx, totalSummons: newSummons });
+    // return currency;
+  };
+
+  const totalSummons = (sq, tx, rolls) => {
+    const total = rolls || Math.floor((sq / 3 + tx) + Math.floor((sq / 3 + tx) / 10));
 
     if (isNaN(total) || total < 0) {
       total = 0;
     };
 
-    console.log(total);
-    setSums({ sqSum: newSq, txSum: newTx, totalSummons: total });
-    // return currency;
+    return total;
   };
+
+  // Necessary?
+  useEffect(() => {
+    totalSummons(sums.sqSum, sums.txSum);
+  }, [sums.sqSum, sums.txSum]);
 
   const handleFormUpdate = (e) => {
     // const currencyVals = ['sqPurchase', 'purchasePeriod', 'alreadyPurchased', 'sqStarting', 'txStarting', 'sqIncome', 'txIncome', 'sqExtra', 'txExtra'];
@@ -488,18 +510,21 @@ const SummonCalc = () => {
       window.alert('End date can\'t be before start date');
       return;
     };
+    goMath();
+  };
 
+  const goMath = (rollObj) => {
     // TODO: Refactor into factory function.
-    const n = sums.totalSummons;
-    const p = summonStats.prob;
+    const n = rollObj?.totalSummons || sums.totalSummons;
+    const p = rollObj?.prob || summonStats.prob;
     // const q = (1 - summonStats.prob);
-    const k = summonStats.desired;
+    const k = rollObj?.desired || summonStats.desired;
 
     var stats = new Statistics({
-      n: sums.totalSummons,
-      p: summonStats.prob,
+      n: rollObj?.totalSummons || sums.totalSummons,
+      p: rollObj?.prob || summonStats.prob,
       // q: (1 - summonStats.prob),
-      k: summonStats.desired
+      k: rollObj?.desired || summonStats.desired
     });
 
     const binomial = stats.binomialDistribution(n, p);
@@ -528,15 +553,23 @@ const SummonCalc = () => {
       oddsRender = `Pity (330 summons)`
     };
 
-    setElementState({ ...elementState, odds: true });
-    setSummonStats({ ...summonStats, summonOdds: oddsRender });
+    // If an existing roll is being passed to the function, use and update its existing data. Otherwise, grab that data from the form.
+    if (rollObj) {
+      const nSummons = totalSummons(null, null, n);
+      console.log(`Updating existing roll, ${n} rolls total`)
+      console.log({ ...rollObj, totalSummons: totalSummons(null, null, n), summonOdds: oddsRender });
+      return { ...rollObj, totalSummons: totalSummons(null, null, n), summonOdds: oddsRender };
+    } else {
+      setElementState({ ...elementState, odds: true });
+      setSummonStats({ ...summonStats, summonOdds: oddsRender });
 
-    setTimeout(() => {
-      document.querySelector('.results-area').scrollIntoView({
-        alignToTop: true,
-        behavior: 'smooth'
-      })
-    }, 50)
+      setTimeout(() => {
+        document.querySelector('.results-area').scrollIntoView({
+          alignToTop: true,
+          behavior: 'smooth'
+        });
+      }, 50)
+    }
   };
 
   const saveSnapshot = () => {
@@ -602,6 +635,40 @@ const SummonCalc = () => {
     // console.log(range);
     return range;
   };
+
+  const handleBulkUpdate = (sq, tx) => {
+    sq = parseInt(sq);
+    tx = parseInt(tx);
+    console.log(sq, tx);
+
+    const newRolls = savedRolls.map((roll, pos) => {
+      const nSummons = totalSummons(roll.sqSum + sq, roll.txSum + tx);
+      const updatedObj = { ...roll, sqStarting: roll.sqStarting + sq, txStarting: roll.txStarting + tx, sqSum: roll.sqSum + sq, txSum: roll.txSum + tx, totalSummons: nSummons };
+      const newMath = goMath(updatedObj);
+      console.log(newMath);
+      return newMath;
+    });
+
+    // const newRolls = savedRolls.map((roll, pos) => {
+    //   return { ...roll, sqStarting: roll.sqStarting += sq, txStarting: roll.txStarting += tx, sqSum: roll.sqSum += sq, txSum: roll.txSum += tx };
+    // });
+
+    console.log(newRolls);
+    setSavedRolls(newRolls);
+  };
+
+  // Not fully implemented here, but meant to re-calculate odds if anything changes a roll's total currency data.
+  // useEffect(() => {
+  //   const newRolls = savedRolls.map((roll, pos) => {
+  //     const nSummons = totalSummons(roll.sqSum, roll.txSum);
+  //     const updatedObj = { ...roll, totalSummons: nSummons};
+  //     const newMath = goMath(updatedObj);
+  //     console.log(newMath);
+  //     return roll;
+  //   });
+  //   console.log(newRolls);
+  //   setSavedRolls(newRolls);
+  // }, [savedRolls.sqSum, savedRolls.txSum]);
 
   // let localRolls = [...savedRolls];
 
@@ -699,9 +766,10 @@ const SummonCalc = () => {
                 <FormLabel>Total Days</FormLabel>
                 <Input name="dateRange" type="input" readOnly={true} value={totalDays()} />
               </GridItem>
-              <GridItem rowSpan={1} colSpan={2} >
+              <GridItem rowSpan={1} colSpan={1} >
                 <Button marginTop={4} colorScheme="blue" onClick={clearForm} >Clear</Button>
               </GridItem>
+              <AdjustMenu handleBulkUpdate={handleBulkUpdate} editState={editState} />
             </Grid>
             <Grid mt={10} h="" templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
               <GridItem rowSpan={1} colSpan={1} >
@@ -722,31 +790,6 @@ const SummonCalc = () => {
             </Grid>
             <Grid h='' templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
               <RateupMenu probHandler={probHandler} summonStats={summonStats} setSummonStats={setSummonStats} oddsObj={oddsObj} />
-              {/* <GridItem rowSpan={1} colSpan={1}>
-                <FormLabel>Desired Servant Rarity:</FormLabel>
-                <Select className="form-input" name="rarity" type="text" onChange={probHandler}>
-                  <option value={'ssr'}>5* (SSR)</option>
-                  <option value={'sr'}>4* (SR)</option>
-                  <option value={'r'}>3* (R)</option>
-                </Select>
-              </GridItem>
-              <GridItem rowSpan={1} colSpan={1}>
-                <FormLabel>Total Servants on Rateup:</FormLabel>
-                <Select className="form-input" name="numRateup" type="text" onChange={probHandler} defaultValue={1}>
-                  <option value={1}>Single Rateup</option>
-                  <option value={2}>2 Rateups</option>
-                  <option value={3}>3 Rateups</option>
-                  <option value={4}>4 Rateups</option>
-                  <option value={5}>5 Rateups</option>
-                  <option value={0}>Other (please specify odds manually)</option>
-                </Select>
-              </GridItem>
-              <GridItem rowSpan={1} colSpan={1}>
-                <FormLabel>Probability of success per roll:</FormLabel>
-              </GridItem>
-              <GridItem rowSpan={1} colSpan={1}>
-                <Input className="form-input" isReadOnly={summonStats.numRateup !== 0 ? true : false} name="prob" value={summonStats.prob} />
-              </GridItem> */}
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Number of Copies Desired:</FormLabel>
               </GridItem>
