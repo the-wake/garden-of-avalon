@@ -16,7 +16,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
   const servantData = useSelector((state) => state.servants.roster);
 
   let initRoll = rollObj;
-  console.log(`Rendering component:`, initRoll);
+  // console.log(`Rendering component:`, initRoll);
 
   const [rollData, setRollData] = useState(initRoll);
 
@@ -200,7 +200,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
   };
 
   const moveSnapshot = (dir) => {
-    console.log(`Moving ${dir}.`);
+    // console.log(`Moving ${dir}.`);
     let targetIndex;
     if (dir === 'up') {
       targetIndex = rollData.slot - 1;
