@@ -631,8 +631,9 @@ const SummonCalc = () => {
   const totalDays = () => {
     const start = dayjs(dateData.start);
     const end = dayjs(dateData.end);
-    const range = Math.ceil(end.diff(start, 'days', true));
+    let range = Math.ceil(end.diff(start, 'days', true));
     // console.log(range);
+    isNaN(range) ? range = 0 : range = range;
     return range;
   };
 
@@ -764,7 +765,7 @@ const SummonCalc = () => {
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
                 <FormLabel>Total Days</FormLabel>
-                <Input name="dateRange" type="input" readOnly={true} value={totalDays()} />
+                <Input name="dateRange" type="input" readOnly={true} placeholder="0" value={totalDays() === 0 ? '' : totalDays()} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1} >
                 <Button marginTop={4} colorScheme="blue" onClick={clearForm} >Clear</Button>
