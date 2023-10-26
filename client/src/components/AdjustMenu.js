@@ -19,6 +19,10 @@ const AdjustMenu = ({ handleBulkUpdate, editState, savedRolls }) => {
     console.log(adjustments);
   }, [adjustments]);
 
+  useEffect(() => {
+    setAdjustments({ sqAdjust: 0, txAdjust: 0 });
+  }, [isOpen]);
+
   return (
     <>
       <GridItem rowSpan={1} colSpan={1} >

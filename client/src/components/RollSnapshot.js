@@ -148,8 +148,8 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
       console.log('Editing roll:', rollData);
       let newRoll = {};
 
-      const { sqPurchase, purchasePeriod, alreadyPurchased, sqStarting, txStarting, sqIncome, txIncome, sqExtra, txExtra, sqMinus, txMinus, dailySingles } = rollData;
-      newRoll.currency = { sqPurchase, purchasePeriod, alreadyPurchased, sqStarting, txStarting, sqIncome, txIncome, sqExtra, txExtra, sqMinus, txMinus, dailySingles };
+      const { sqPurchase, purchasePeriod, alreadyPurchased, sqStarting, txStarting, sqIncome, txIncome, sqEvent, txEvent, sqExtra, txExtra, sqMinus, txMinus, dailySingles } = rollData;
+      newRoll.currency = { sqPurchase, purchasePeriod, alreadyPurchased, sqStarting, txStarting, sqIncome, txIncome, sqEvent, txEvent, sqExtra, txExtra, sqMinus, txMinus, dailySingles };
 
       const { start, end } = rollData;
       newRoll.dateData = { start, end };
@@ -239,9 +239,9 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
   // Used by following map to give individual names to each Servant where there are duplicates.
   let servantsSoFar = [];
 
-  const servantsMap = servantData.map((servant) => {
+  const servantsMap = servantData.map((servant, pos) => {
     if (servant.rarity < 3 || servant.type === 'heroine' || servant.type === 'enemyCollectionDetail' || servant.name === 'Altria Pendragon (Lily)' || servant.name === 'Habetrot') {
-      return
+      return;
     };
 
     let useName = servant.name;
@@ -258,10 +258,8 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
     };
 
     return (
-      <>
-        <option value={servant.collectionNo}>{useName}</option>
-      </>
-    )
+      <option key={pos} value={servant.collectionNo}>{useName}</option>
+    );
 
   });
 

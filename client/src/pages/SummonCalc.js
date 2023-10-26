@@ -13,9 +13,10 @@ import Statistics from "statistics.js";
 
 import "react-datepicker/dist/react-datepicker.css";
 
-import RollSnapshot from "../components/RollSnapshot.js";
-import RateupMenu from "../components/RateupMenu.js";
-import AdjustMenu from "../components/AdjustMenu.js"
+import RollSnapshot from '../components/RollSnapshot.js';
+import RateupMenu from '../components/RateupMenu.js';
+import AdjustMenu from '../components/AdjustMenu.js';
+import CalcFooter from '../components/CalcFooter.js';
 
 // TODO: Once we have MVP, refactor with reducers and better state handling.
 const SummonCalc = () => {
@@ -41,7 +42,7 @@ const SummonCalc = () => {
 
   const [dateData, setDateData] = useState({
     start: DateHelper(new Date().toLocaleDateString()),
-    end:  DateHelper(new Date().toLocaleDateString()),
+    end: DateHelper(new Date().toLocaleDateString()),
   });
 
   const [sums, setSums] = useState({
@@ -288,7 +289,8 @@ const SummonCalc = () => {
     const startIndex = total % 50;
     // console.log(startIndex);
 
-    let distance = Math.ceil(end.diff(start, 'days', true));
+    // Changed from ceil to floor.
+    let distance = Math.floor(end.diff(start, 'days', true));
 
     const endingLogins = startIndex + distance;
     const loginSQ = Math.floor(endingLogins / 50) * 30;
@@ -601,7 +603,7 @@ const SummonCalc = () => {
       console.log(`Updating roll index ${rollIndex}`);
       const updatedRolls = rollsClone.map((roll, i) => {
         if (roll.slot === rollIndex) {
-          console.log(`Matched roll index ${rollIndex}. Returning`, savedRoll);
+          // console.log(`Matched roll index ${rollIndex}. Returning`, savedRoll);
           return savedRoll;
         } else {
           return roll;
@@ -624,7 +626,8 @@ const SummonCalc = () => {
   const totalDays = () => {
     const start = dayjs(dateData.start);
     const end = dayjs(dateData.end);
-    let range = Math.ceil(end.diff(start, 'days', true));
+    // Was ceil, changed to floor.
+    let range = Math.floor(end.diff(start, 'days', true));
     // console.log(range);
     isNaN(range) ? range = 0 : range = range;
     return range;
@@ -651,13 +654,13 @@ const SummonCalc = () => {
     {
       return savedRolls.map((roll, pos) => (
         <GridItem key={`${roll.slot}-${JSON.stringify(roll)}`}>
-          <RollSnapshot
+          <RollSnapshot key={pos}
             rollObj={roll}
             savedRolls={savedRolls} setSavedRolls={setSavedRolls} setDateData={setDateData} setCurrency={setCurrency} setSums={setSums} setSummonStats={setSummonStats} editState={editState} setEditState={setEditState} rollIndex={roll.slot}
           />
         </GridItem>
-      ))
-    }
+      ));
+    };
   };
 
   return (
@@ -766,16 +769,13 @@ const SummonCalc = () => {
               <GridItem rowSpan={1} colSpan={1}>
                 <Input className="form-input" name="desired" value={summonStats.desired} onChange={probHandler} />
               </GridItem>
-              <GridItem rowSpan={1} colSpan={2} >
-                <Button marginTop={4} colorScheme="blue" onClick={calcOdds} width={'400px'} >Calculate!</Button>
-              </GridItem>
               <GridItem className="results-area" rowSpan={1} colSpan={2} hidden={!elementState.odds}>
-                <Input className="form-input" maxW='400px' isReadOnly={true} name="summonOdds" value={summonStats.summonOdds} />
-                <Button marginTop={4} colorScheme="blue" onClick={saveSnapshot}>{editState === false ? 'Save Snapshot' : 'Update Snapshot'}</Button>
+                <Flex flexDirection='row' justifyContent='space-evenly' gap={4}>
+                  <Input className="form-input" maxW='400px' isReadOnly={true} name="summonOdds" value={summonStats.summonOdds} />
+                  <Button colorScheme="blue" onClick={saveSnapshot}>{editState === false ? 'Save Snapshot' : 'Update Snapshot'}</Button>
+                </Flex>
               </GridItem>
-              <GridItem rowSpan={1} colSpan={2} hidden={editState === false}>
-                <Button marginTop={4} colorScheme="red" onClick={handleEditCancel} width={'400px'}>Cancel Edit</Button>
-              </GridItem>
+              <CalcFooter calcOdds={calcOdds} elementState={elementState} summonStats={summonStats} saveSnapshot={saveSnapshot} editState={editState} handleEditCancel={handleEditCancel} />
             </Grid>
           </FormControl>
         </div>
