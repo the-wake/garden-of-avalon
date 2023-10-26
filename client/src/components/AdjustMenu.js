@@ -7,7 +7,7 @@ import { NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepp
 import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, useDisclosure } from '@chakra-ui/react'
 
 
-const AdjustMenu = ({ handleBulkUpdate, editState }) => {
+const AdjustMenu = ({ handleBulkUpdate, editState, savedRolls }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [adjustments, setAdjustments] = useState({ sqAdjust: 0, txAdjust: 0 });
 
@@ -22,7 +22,7 @@ const AdjustMenu = ({ handleBulkUpdate, editState }) => {
   return (
     <>
       <GridItem rowSpan={1} colSpan={1} >
-        <Button marginTop={4} colorScheme="blue" disabled={editState !== false} onClick={onOpen} >Adjustment</Button>
+        <Button marginTop={4} colorScheme="blue" disabled={editState !== false} hidden={savedRolls.length === 0} onClick={onOpen} >Adjust Saved</Button>
       </GridItem>
 
       <Modal isOpen={isOpen} onClose={onClose}>

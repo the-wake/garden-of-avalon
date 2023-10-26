@@ -167,12 +167,14 @@ const SummonCalc = () => {
   useEffect(() => {
     let { total, streak, date } = JSON.parse(localStorage.getItem('login-data')) || 0;
     let dateClone = dayjs(date).format('YYYY/MM/DD');
-    console.log(total, streak, dateClone);
+    console.log(total, streak, dateClone, today);
 
-    if (dateClone === today) {
+    if (1 === 2) {
       console.log('today!')
     } else {
-      const difference = Math.ceil(dayjs().diff(dateClone, 'days', true));
+      // TODO: Make sure this is working re: Math.floor vs. Math.ciel.
+      const difference = Math.floor(dayjs().diff(dateClone, 'days', true));
+      console.log(`Difference: ${difference}`);
 
       // If it's been at least a week since last login, loop through difference to look for Master Mission refreshes in the elapsed duration.
       if (difference >= 7) {
@@ -266,14 +268,14 @@ const SummonCalc = () => {
     let dayInc = 0;
     let sqGains = 0;
     start = dayjs(start);
-    console.log(start, difference);
+    // console.log(start, difference);
 
     for (var i = 0; i < difference; i++) {
       dayInc++;
       const currentDay = start.add(dayInc, 'day').format('ddd');
       if (currentDay === "Sun") {
         sqGains += 3;
-        console.log(`Adding 3 SQ to total`)
+        // console.log(`Adding 3 SQ to total`)
       };
     };
     return sqGains;
@@ -406,9 +408,9 @@ const SummonCalc = () => {
   };
 
   // Necessary?
-  useEffect(() => {
-    totalSummons(sums.sqSum, sums.txSum);
-  }, [sums.sqSum, sums.txSum]);
+  // useEffect(() => {
+  //   totalSummons(sums.sqSum, sums.txSum);
+  // }, [sums.sqSum, sums.txSum]);
 
   const handleFormUpdate = (e) => {
     // const currencyVals = ['sqPurchase', 'purchasePeriod', 'alreadyPurchased', 'sqStarting', 'txStarting', 'sqIncome', 'txIncome', 'sqExtra', 'txExtra'];
@@ -737,7 +739,7 @@ const SummonCalc = () => {
               <GridItem rowSpan={1} colSpan={1} >
                 <Button marginTop={4} colorScheme="blue" onClick={clearForm} >Clear</Button>
               </GridItem>
-              <AdjustMenu handleBulkUpdate={handleBulkUpdate} editState={editState} />
+              <AdjustMenu handleBulkUpdate={handleBulkUpdate} editState={editState} savedRolls={savedRolls} />
             </Grid>
             <Grid mt={10} h="" templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
               <GridItem rowSpan={1} colSpan={1} >
