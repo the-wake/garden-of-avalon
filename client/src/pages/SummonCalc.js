@@ -59,6 +59,7 @@ const SummonCalc = () => {
     prob: 0.008,
     desired: 1,
     summonOdds: 0,
+    summonNotes: '',
     slot: '',
   });
 
@@ -169,7 +170,7 @@ const SummonCalc = () => {
     let dateClone = dayjs(date).format('YYYY/MM/DD');
     console.log(total, streak, dateClone, today);
 
-    if (1 === 2) {
+    if (dateClone === today) {
       console.log('today!')
     } else {
       // TODO: Make sure this is working re: Math.floor vs. Math.ciel.
@@ -333,7 +334,8 @@ const SummonCalc = () => {
     return totalPurchases;
   };
 
-  const calc = () => {
+  const calcSums = (rollObj) => {
+    // console.log(rollObj);
     // Purchases should be sent as an object and destructured into number of purchases and number of SQ per. Everything else can probably come from state since the element sending the function call probably won't have direct access to that data.
 
     const start = dayjs(dateData.start);
@@ -395,7 +397,61 @@ const SummonCalc = () => {
     // setSums({ sqSum: newSq, txSum: newTx, totalSummons: total });
     const newSummons = totalSummons(newSq, newTx);
     setSums({ sqSum: newSq, txSum: newTx, totalSummons: newSummons });
+
+    const newOdds = calcOdds(newSummons, summonStats.prob, summonStats.desired);
+    
+    if (rollObj) {
+      // const nSummons = totalSummons(null, null, newSummons);
+      console.log(`Updating existing roll, ${newSummons} rolls total`)
+      console.log({ ...rollObj, totalSummons: totalSummons(null, null, newSummons), summonOdds: newOdds });
+      return { ...rollObj, totalSummons: totalSummons(null, null, newSummons), summonOdds: newOdds };
+    }
+    else {
+      setElementState({ ...elementState, odds: true });
+      setSummonStats({ ...summonStats, summonOdds: newOdds });
+    };
     // return currency;
+  };
+
+  const calcOdds = (n, p, k) => {
+    // n: total summons
+    // p: prob
+    // k: desired
+
+    var stats = new Statistics({
+      n,
+      p,
+      // q: (1 - summonStats.prob),
+      k
+    });
+
+    const binomial = stats.binomialDistribution(n, p);
+
+    const binomCalc = () => {
+      let totalProb = 0;
+      for (let i = k; i < binomial.length; i++) {
+        // console.log(binomial[i]);
+        if (isNaN(binomial[i])) {
+          console.log(totalProb);
+          return totalProb;
+        } else {
+          totalProb += binomial[i];
+        };
+      };
+      return totalProb;
+    };
+
+    const totalProb = binomCalc();
+
+    const percentage = parseFloat(totalProb * 100).toFixed(2);
+
+    let oddsRender = `${percentage}%`;
+
+    if (k === 1 && n >= 330) {
+      oddsRender = `Pity (330 summons)`
+    };
+
+    return oddsRender;
   };
 
   const totalSummons = (sq, tx, rolls) => {
@@ -439,20 +495,19 @@ const SummonCalc = () => {
     else {
       setCurrency({ ...currency, [e.target.name]: targetVal });
     };
-    calc();
-    goMath();
+    calcSums({ ...currency, });
   };
 
   useEffect(() => {
     setElementState({ ...elementState, odds: false });
     const currencyClone = { ...currency };
-    calc();
-    goMath();
     // console.log(currency);
     const sanitizedCurrency = sanitizeEmpty(currencyClone);
     // console.log(sanitizedCurrency);
     localStorage.setItem('currency', JSON.stringify(sanitizedCurrency));
     // console.log('Dates: ', dateData);
+    calcSums();
+    console.log(`State changed: ${summonStats.summonOdds}`);
   }, [loginData, currency, dateData]);
 
   // Set local storage when updating login streak or currency totals.
@@ -491,6 +546,11 @@ const SummonCalc = () => {
       dailySingles: ''
     });
 
+    // setSummonStats({
+    //   ...summonStats,
+    //   summonNotes: ''
+    // });
+
     // setDateData({
     //   start: '',
     //   end: ''
@@ -506,77 +566,8 @@ const SummonCalc = () => {
       const newProb = oddsObj[summonStats.rarity][e.target.value - 1];
       setSummonStats({ ...summonStats, [e.target.name]: parseInt(e.target.value), prob: newProb });
     } else if (e.target.name === 'desired') {
-      setSummonStats({ ...summonStats, desired: parseInt(e.target.value) });
+      setSummonStats({ ...summonStats, desired: parseInt(e.target.value) || 1 });
     };
-  };
-
-  const calcOdds = () => {
-    const start = dayjs(dateData.start);
-    const end = dayjs(dateData.end);
-    if (end.isBefore(start, 'day')) {
-      window.alert('End date can\'t be before start date');
-      return;
-    };
-    goMath();
-  };
-
-  const goMath = (rollObj) => {
-    // TODO: Refactor into factory function.
-    const n = rollObj?.totalSummons || sums.totalSummons;
-    const p = rollObj?.prob || summonStats.prob;
-    // const q = (1 - summonStats.prob);
-    const k = rollObj?.desired || summonStats.desired;
-
-    var stats = new Statistics({
-      n: rollObj?.totalSummons || sums.totalSummons,
-      p: rollObj?.prob || summonStats.prob,
-      // q: (1 - summonStats.prob),
-      k: rollObj?.desired || summonStats.desired
-    });
-
-    const binomial = stats.binomialDistribution(n, p);
-
-    const binomCalc = () => {
-      let totalProb = 0;
-      for (let i = k; i < binomial.length; i++) {
-        // console.log(binomial[i]);
-        if (isNaN(binomial[i])) {
-          console.log(totalProb);
-          return totalProb;
-        } else {
-          totalProb += binomial[i];
-        };
-      };
-      return totalProb;
-    };
-
-    const totalProb = binomCalc();
-
-    const percentage = parseFloat(totalProb * 100).toFixed(2);
-
-    let oddsRender = `${percentage}%`;
-
-    if (k === 1 && n >= 330) {
-      oddsRender = `Pity (330 summons)`
-    };
-
-    // If an existing roll is being passed to the function, use and update its existing data. Otherwise, grab that data from the form.
-    if (rollObj) {
-      const nSummons = totalSummons(null, null, n);
-      console.log(`Updating existing roll, ${n} rolls total`)
-      console.log({ ...rollObj, totalSummons: totalSummons(null, null, n), summonOdds: oddsRender });
-      return { ...rollObj, totalSummons: totalSummons(null, null, n), summonOdds: oddsRender };
-    } else {
-      setElementState({ ...elementState, odds: true });
-      setSummonStats({ ...summonStats, summonOdds: oddsRender });
-
-      setTimeout(() => {
-        document.querySelector('.results-area').scrollIntoView({
-          alignToTop: true,
-          behavior: 'smooth'
-        });
-      }, 50)
-    }
   };
 
   const saveSnapshot = () => {
@@ -616,13 +607,13 @@ const SummonCalc = () => {
       clearForm();
     };
 
-    setSummonStats({ ...summonStats, targetNo: '', targetName: '', targetImage: 'https://static.atlasacademy.io/JP/Faces/f_8001000.png' });
+    setSummonStats({ ...summonStats, targetNo: '', targetName: '', targetImage: 'https://static.atlasacademy.io/JP/Faces/f_8001000.png', summonNotes: '' });
     setEditState(false);
   };
-
+  
   const handleEditCancel = () => {
     setEditState(false)
-    setSummonStats({ ...summonStats, targetNo: '', targetName: '', targetImage: 'https://static.atlasacademy.io/JP/Faces/f_8001000.png' });
+    setSummonStats({ ...summonStats, targetNo: '', targetName: '', targetImage: 'https://static.atlasacademy.io/JP/Faces/f_8001000.png', summonNotes: '' });
   };
 
   const totalDays = () => {
@@ -635,10 +626,6 @@ const SummonCalc = () => {
     return range;
   };
 
-  const setNote = () => {
-    console.log('Note set.');
-  };
-
   const handleBulkUpdate = (sq, tx) => {
     sq = parseInt(sq);
     tx = parseInt(tx);
@@ -646,15 +633,19 @@ const SummonCalc = () => {
 
     const newRolls = savedRolls.map((roll, pos) => {
       const nSummons = totalSummons(roll.sqSum + sq, roll.txSum + tx);
-      const updatedObj = { ...roll, sqStarting: roll.sqStarting + sq, txStarting: roll.txStarting + tx, sqSum: roll.sqSum + sq, txSum: roll.txSum + tx, totalSummons: nSummons };
-      const newMath = goMath(updatedObj);
+      const newMath = calcOdds(nSummons, summonStats.prob, summonStats.desired);
       console.log(newMath);
-      return newMath;
+      const updatedObj = { ...roll, sqStarting: roll.sqStarting + sq, txStarting: roll.txStarting + tx, sqSum: roll.sqSum + sq, txSum: roll.txSum + tx, totalSummons: nSummons, summonOdds: newMath };
+      return updatedObj;
     });
 
     console.log(newRolls);
     setSavedRolls(newRolls);
   };
+
+  useEffect(() => {
+    console.log(summonStats.summonOdds);
+  }, [summonStats.summonOdds]);
 
   const rollMap = () => {
     {
@@ -662,7 +653,7 @@ const SummonCalc = () => {
         <GridItem key={`${roll.slot}-${JSON.stringify(roll)}`}>
           <RollSnapshot key={pos}
             rollObj={roll}
-            savedRolls={savedRolls} setSavedRolls={setSavedRolls} setDateData={setDateData} setCurrency={setCurrency} setSums={setSums} setSummonStats={setSummonStats} editState={editState} setEditState={setEditState} rollIndex={roll.slot}
+            savedRolls={savedRolls} setSavedRolls={setSavedRolls} setDateData={setDateData} setCurrency={setCurrency} setSums={setSums} setSummonStats={setSummonStats} editState={editState} setEditState={setEditState} rollIndex={roll.slot} calcOdds={calcOdds}
           />
         </GridItem>
       ));
@@ -707,27 +698,27 @@ const SummonCalc = () => {
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Event SQ:</FormLabel>
-                <Input className="form-input" name="sqEvent" type="number" placeholder="0" value={currency.sqEvent === 0 ? '' : currency.sqEvent} onSubmit={calc} />
+                <Input className="form-input" name="sqEvent" type="number" placeholder="0" value={currency.sqEvent === 0 ? '' : currency.sqEvent} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Event Tickets:</FormLabel>
-                <Input className="form-input" name="txEvent" type="number" placeholder="0" value={currency.txEvent === 0 ? '' : currency.txEvent} onSubmit={calc} />
+                <Input className="form-input" name="txEvent" type="number" placeholder="0" value={currency.txEvent === 0 ? '' : currency.txEvent} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Extra SQ:</FormLabel>
-                <Input className="form-input" name="sqExtra" type="number" placeholder="0" value={currency.sqExtra === 0 ? '' : currency.sqExtra} onSubmit={calc} />
+                <Input className="form-input" name="sqExtra" type="number" placeholder="0" value={currency.sqExtra === 0 ? '' : currency.sqExtra} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Extra Tickets:</FormLabel>
-                <Input className="form-input" name="txExtra" type="number" placeholder="0" value={currency.txExtra === 0 ? '' : currency.txExtra} onSubmit={calc} />
+                <Input className="form-input" name="txExtra" type="number" placeholder="0" value={currency.txExtra === 0 ? '' : currency.txExtra} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Expected SQ Spending:</FormLabel>
-                <Input className="form-input" name="sqMinus" type="number" placeholder="0" value={currency.sqMinus === 0 ? '' : currency.sqMinus} onSubmit={calc} />
+                <Input className="form-input" name="sqMinus" type="number" placeholder="0" value={currency.sqMinus === 0 ? '' : currency.sqMinus} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Expected Ticket Spending:</FormLabel>
-                <Input className="form-input" name="txMinus" type="number" placeholder="0" value={currency.txMinus === 0 ? '' : currency.txMinus} onSubmit={calc} />
+                <Input className="form-input" name="txMinus" type="number" placeholder="0" value={currency.txMinus === 0 ? '' : currency.txMinus} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Start Date:</FormLabel>
@@ -781,7 +772,7 @@ const SummonCalc = () => {
           {rollMap()}
         </div>
       </Flex>
-      <CalcFooter setNote={setNote} calcOdds={calcOdds} editState={editState} handleEditCancel={handleEditCancel} handleBulkUpdate={handleBulkUpdate} savedRolls={savedRolls} clearForm={clearForm} />
+      <CalcFooter summonStats={summonStats} setSummonStats={setSummonStats} calcOdds={calcOdds} editState={editState} handleEditCancel={handleEditCancel} handleBulkUpdate={handleBulkUpdate} savedRolls={savedRolls} clearForm={clearForm} />
     </>
   )
 };

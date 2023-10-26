@@ -157,8 +157,8 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
       const { sqSum, txSum, totalSummons } = rollData;
       newRoll.sums = { sqSum, txSum, totalSummons };
 
-      const { targetNo, targetName, targetImage, rarity, numRateup, prob, desired, summonOdds, slot } = rollData;
-      newRoll.summonStats = { targetNo, targetName, targetImage, rarity, numRateup, prob, desired, summonOdds, slot };
+      const { targetNo, targetName, targetImage, rarity, numRateup, prob, desired, summonOdds, summonNotes, slot } = rollData;
+      newRoll.summonStats = { targetNo, targetName, targetImage, rarity, numRateup, prob, desired, summonOdds, summonNotes, slot };
 
       sanitizeEmpty(newRoll.currency);
       console.log(newRoll);
