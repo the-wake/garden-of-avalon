@@ -225,9 +225,9 @@ const SummonCalc = () => {
 
   // Calculates master missions. Could rename to calcStreak instead to be clearer what data it cares about and produces.
   const calcWeeklies = (start, numDays, origin) => {
-    console.log(`Calculating weeklies. Start: ${start}; numDays: ${numDays}.`);
+    // console.log(`Calculating weeklies. Start: ${start}; numDays: ${numDays}.`);
 
-    console.log(`${numDays} days from today to start date.`)
+    // console.log(`${numDays} days from today to start date.`)
 
     // The weekly index of the start day.
     let index;
@@ -439,18 +439,21 @@ const SummonCalc = () => {
     else {
       setCurrency({ ...currency, [e.target.name]: targetVal });
     };
+    calc();
+    goMath();
   };
 
   useEffect(() => {
     setElementState({ ...elementState, odds: false });
-    calc();
     const currencyClone = { ...currency };
+    calc();
+    goMath();
     // console.log(currency);
     const sanitizedCurrency = sanitizeEmpty(currencyClone);
     // console.log(sanitizedCurrency);
     localStorage.setItem('currency', JSON.stringify(sanitizedCurrency));
     // console.log('Dates: ', dateData);
-  }, [currency, dateData]);
+  }, [loginData, currency, dateData]);
 
   // Set local storage when updating login streak or currency totals.
   useEffect(() => {
@@ -632,6 +635,10 @@ const SummonCalc = () => {
     return range;
   };
 
+  const setNote = () => {
+    console.log('Note set.');
+  };
+
   const handleBulkUpdate = (sq, tx) => {
     sq = parseInt(sq);
     tx = parseInt(tx);
@@ -755,18 +762,16 @@ const SummonCalc = () => {
                 <Input className="form-input" isReadOnly={true} name="totalSummons" value={sums.totalSummons} />
               </GridItem>
             </Grid>
-            <Grid h='' templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
+            <Grid templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
               <RateupMenu probHandler={probHandler} summonStats={summonStats} setSummonStats={setSummonStats} oddsObj={oddsObj} />
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Number of Copies Desired:</FormLabel>
-              </GridItem>
-              <GridItem rowSpan={1} colSpan={1}>
                 <Input className="form-input" name="desired" value={summonStats.desired} onChange={probHandler} />
               </GridItem>
-              <GridItem className="results-area" rowSpan={1} colSpan={2} hidden={!elementState.odds}>
+              <GridItem className="results-area" rowSpan={1} colSpan={2}>
                 <Flex flexDirection='row' justifyContent='space-evenly' gap={4}>
-                  <Input className="form-input" maxW='400px' isReadOnly={true} name="summonOdds" value={summonStats.summonOdds} />
-                  <Button colorScheme="blue" onClick={saveSnapshot}>{editState === false ? 'Save Snapshot' : 'Update Snapshot'}</Button>
+                  <Input className="form-input" isReadOnly={true} name="summonOdds" value={summonStats.summonOdds} />
+                  <Button colorScheme="blue" width='400px' onClick={saveSnapshot}>{editState === false ? 'Save Snapshot' : 'Update Snapshot'}</Button>
                 </Flex>
               </GridItem>
             </Grid>
@@ -776,7 +781,7 @@ const SummonCalc = () => {
           {rollMap()}
         </div>
       </Flex>
-      <CalcFooter calcOdds={calcOdds} editState={editState} handleEditCancel={handleEditCancel} handleBulkUpdate={handleBulkUpdate} savedRolls={savedRolls} clearForm={clearForm} />
+      <CalcFooter setNote={setNote} calcOdds={calcOdds} editState={editState} handleEditCancel={handleEditCancel} handleBulkUpdate={handleBulkUpdate} savedRolls={savedRolls} clearForm={clearForm} />
     </>
   )
 };
