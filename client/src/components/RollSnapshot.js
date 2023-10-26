@@ -11,7 +11,7 @@ import { EditIcon, DeleteIcon, ArrowUpIcon, ArrowDownIcon } from '@chakra-ui/ico
 
 import "react-datepicker/dist/react-datepicker.css";
 
-const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurrency, setSummonStats, setSums, editState, setEditState, rollIndex }) => {
+const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurrency, summonStats, setSummonStats, setSums, editState, setEditState, rollIndex }) => {
 
   const servantData = useSelector((state) => state.servants.roster);
 
@@ -196,6 +196,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
       setSavedRolls(updatedRolls);
       setEditingDates(false);
       setEditState(false);
+      setSummonStats({ ...summonStats, summonNotes: '' });
     };
   };
 
@@ -274,7 +275,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
           <img src={rollData.targetImage} style={style.image} />
         </GridItem>
         <GridItem rowSpan={3} colSpan={1}>
-          <IconButton ml='4px' size='sm' aria-label='Edit item' icon={<EditIcon />} onClick={confirmEdit} />
+          <IconButton ml='4px' size='sm' aria-label='Edit item' icon={<EditIcon />} isDisabled={editState !== false} onClick={confirmEdit} />
         </GridItem>
         <GridItem rowSpan={1} colSpan={1}>
           <IconButton mr='4px' size='sm' aria-label='Delete item' icon={<DeleteIcon />} onClick={confirmDelete} />

@@ -334,7 +334,7 @@ const SummonCalc = () => {
     return totalPurchases;
   };
 
-  const calcSums = (rollObj) => {
+  const calcSums = () => {
     // console.log(rollObj);
     // Purchases should be sent as an object and destructured into number of purchases and number of SQ per. Everything else can probably come from state since the element sending the function call probably won't have direct access to that data.
 
@@ -399,17 +399,17 @@ const SummonCalc = () => {
     setSums({ sqSum: newSq, txSum: newTx, totalSummons: newSummons });
 
     const newOdds = calcOdds(newSummons, summonStats.prob, summonStats.desired);
-    
-    if (rollObj) {
-      // const nSummons = totalSummons(null, null, newSummons);
-      console.log(`Updating existing roll, ${newSummons} rolls total`)
-      console.log({ ...rollObj, totalSummons: totalSummons(null, null, newSummons), summonOdds: newOdds });
-      return { ...rollObj, totalSummons: totalSummons(null, null, newSummons), summonOdds: newOdds };
-    }
-    else {
-      setElementState({ ...elementState, odds: true });
-      setSummonStats({ ...summonStats, summonOdds: newOdds });
-    };
+
+    // if (rollObj) {
+    //   // const nSummons = totalSummons(null, null, newSummons);
+    //   console.log(`Updating existing roll, ${newSummons} rolls total`)
+    //   console.log({ ...rollObj, totalSummons: totalSummons(null, null, newSummons), summonOdds: newOdds });
+    //   return { ...rollObj, totalSummons: totalSummons(null, null, newSummons), summonOdds: newOdds };
+    // }
+    // else {
+    setElementState({ ...elementState, odds: true });
+    setSummonStats({ ...summonStats, summonOdds: newOdds });
+    // };
     // return currency;
   };
 
@@ -495,7 +495,7 @@ const SummonCalc = () => {
     else {
       setCurrency({ ...currency, [e.target.name]: targetVal });
     };
-    calcSums({ ...currency, });
+    calcSums();
   };
 
   useEffect(() => {
@@ -610,7 +610,7 @@ const SummonCalc = () => {
     setSummonStats({ ...summonStats, targetNo: '', targetName: '', targetImage: 'https://static.atlasacademy.io/JP/Faces/f_8001000.png', summonNotes: '' });
     setEditState(false);
   };
-  
+
   const handleEditCancel = () => {
     setEditState(false)
     setSummonStats({ ...summonStats, targetNo: '', targetName: '', targetImage: 'https://static.atlasacademy.io/JP/Faces/f_8001000.png', summonNotes: '' });
@@ -653,7 +653,7 @@ const SummonCalc = () => {
         <GridItem key={`${roll.slot}-${JSON.stringify(roll)}`}>
           <RollSnapshot key={pos}
             rollObj={roll}
-            savedRolls={savedRolls} setSavedRolls={setSavedRolls} setDateData={setDateData} setCurrency={setCurrency} setSums={setSums} setSummonStats={setSummonStats} editState={editState} setEditState={setEditState} rollIndex={roll.slot} calcOdds={calcOdds}
+            savedRolls={savedRolls} setSavedRolls={setSavedRolls} setDateData={setDateData} setCurrency={setCurrency} setSums={setSums} summonStats={summonStats} setSummonStats={setSummonStats} editState={editState} setEditState={setEditState} rollIndex={roll.slot} calcOdds={calcOdds}
           />
         </GridItem>
       ));
@@ -772,7 +772,7 @@ const SummonCalc = () => {
           {rollMap()}
         </div>
       </Flex>
-      <CalcFooter summonStats={summonStats} setSummonStats={setSummonStats} calcOdds={calcOdds} editState={editState} handleEditCancel={handleEditCancel} handleBulkUpdate={handleBulkUpdate} savedRolls={savedRolls} clearForm={clearForm} />
+      <CalcFooter summonStats={summonStats} setSummonStats={setSummonStats} calcOdds={calcOdds} editState={editState} handleEditCancel={handleEditCancel} handleBulkUpdate={handleBulkUpdate} savedRolls={savedRolls} setSavedRolls={setSavedRolls} clearForm={clearForm} />
     </>
   )
 };

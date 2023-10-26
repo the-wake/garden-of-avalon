@@ -6,11 +6,28 @@ import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody,
 
 import AdjustMenu from '../components/AdjustMenu.js';
 
-const CalcFooter = ({ summonStats, setSummonStats, editState, handleEditCancel, handleBulkUpdate, savedRolls, clearForm }) => {
+const CalcFooter = ({ summonStats, setSummonStats, editState, handleEditCancel, handleBulkUpdate, savedRolls, setSavedRolls, clearForm }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const noteHandler = (e) => {
-    setSummonStats({...summonStats, summonNotes: e.target.value});
+  const noteChangeHandler = (e) => {
+    setSummonStats({ ...summonStats, summonNotes: e.target.value });
+  };
+
+  const noteSubmitHandler = (e) => {
+    console.log(editState);
+    const currentRoll = savedRolls[editState];
+    const updatedRoll = { ...currentRoll, summonNotes: summonStats.summonNotes };
+    console.log(updatedRoll);
+
+    const updatedRolls = savedRolls.map((roll, pos) => {
+      if (roll.slot === editState) {
+        return updatedRoll;
+      } else {
+        return roll;
+      }
+    });
+    console.log(updatedRolls);
+    setSavedRolls(updatedRolls);
   };
 
   return (
@@ -30,14 +47,14 @@ const CalcFooter = ({ summonStats, setSummonStats, editState, handleEditCancel, 
           <ModalHeader>Notes</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Textarea h='250px' name='summonNotes' value={summonStats.summonNotes} onChange={noteHandler}></Textarea>
+            <Textarea h='250px' name='summonNotes' value={summonStats.summonNotes} onChange={noteChangeHandler}></Textarea>
           </ModalBody>
 
           <ModalFooter>
             {/* <Button mr={3} variant="ghost" onClick={onClose}>Cancel</Button> */}
             <Button colorScheme="blue"
               onClick={() => {
-                // handleBulkUpdate(adjustments.sqAdjust, adjustments.txAdjust);
+                noteSubmitHandler();
                 onClose();
               }}
             >Done</Button>
