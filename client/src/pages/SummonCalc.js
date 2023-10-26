@@ -15,7 +15,6 @@ import "react-datepicker/dist/react-datepicker.css";
 
 import RollSnapshot from '../components/RollSnapshot.js';
 import RateupMenu from '../components/RateupMenu.js';
-import AdjustMenu from '../components/AdjustMenu.js';
 import CalcFooter from '../components/CalcFooter.js';
 
 // TODO: Once we have MVP, refactor with reducers and better state handling.
@@ -665,7 +664,7 @@ const SummonCalc = () => {
 
   return (
     <>
-      <Flex mt={10} flexDirection={isLargerThan1680 ? 'row' : 'column'}>
+      <Flex mt={8} pb='80px' flexDirection={isLargerThan1680 ? 'row' : 'column'}>
         <div style={style.formEl}>
           <FormControl maxW="600px" marginLeft="auto" marginRight="auto" onChange={handleFormUpdate}>
             <Grid h='' templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
@@ -673,11 +672,11 @@ const SummonCalc = () => {
                 <FormLabel>Login Streak:</FormLabel>
                 <Input className="form-input" name="streak" type="number" placeholder="0" value={loginData.streak === 0 ? '' : loginData.streak} />
               </GridItem>
-              <GridItem rowSpan={1} colSpan={1} >
+              <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Total Logins:</FormLabel>
                 <Input className="form-input" name="total" type="number" placeholder="0" value={loginData.total === 0 ? '' : loginData.total} />
               </GridItem>
-              <GridItem rowSpan={1} colSpan={1} >
+              <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Starting Quartz:</FormLabel>
                 <Input className="form-input" name="sqStarting" type="number" placeholder="0" value={currency.sqStarting === 0 ? '' : currency.sqStarting} />
               </GridItem>
@@ -685,7 +684,7 @@ const SummonCalc = () => {
                 <FormLabel>Starting Tickets:</FormLabel>
                 <Input className="form-input" name="txStarting" type="number" placeholder="0" value={currency.txStarting === 0 ? '' : currency.txStarting} />
               </GridItem>
-              <GridItem rowSpan={1} colSpan={1} >
+              <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>SQ Purchases:</FormLabel>
                 <Input className="form-input" name="sqPurchase" type="number" placeholder="0" value={currency.sqPurchase === 0 ? '' : currency.sqPurchase} />
               </GridItem>
@@ -699,58 +698,53 @@ const SummonCalc = () => {
               <GridItem rowSpan={1} colSpan={2} hidden={currency.purchasePeriod === 0}>
                 <Checkbox name="alreadyPurchased" defaultChecked={false} >Already purchased this month?</Checkbox>
               </GridItem>
-              <GridItem rowSpan={1} colSpan={1} >
+              <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Event SQ:</FormLabel>
                 <Input className="form-input" name="sqEvent" type="number" placeholder="0" value={currency.sqEvent === 0 ? '' : currency.sqEvent} onSubmit={calc} />
               </GridItem>
-              <GridItem rowSpan={1} colSpan={1} >
+              <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Event Tickets:</FormLabel>
                 <Input className="form-input" name="txEvent" type="number" placeholder="0" value={currency.txEvent === 0 ? '' : currency.txEvent} onSubmit={calc} />
               </GridItem>
-              <GridItem rowSpan={1} colSpan={1} >
+              <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Extra SQ:</FormLabel>
                 <Input className="form-input" name="sqExtra" type="number" placeholder="0" value={currency.sqExtra === 0 ? '' : currency.sqExtra} onSubmit={calc} />
               </GridItem>
-              <GridItem rowSpan={1} colSpan={1} >
+              <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Extra Tickets:</FormLabel>
                 <Input className="form-input" name="txExtra" type="number" placeholder="0" value={currency.txExtra === 0 ? '' : currency.txExtra} onSubmit={calc} />
               </GridItem>
-              <GridItem rowSpan={1} colSpan={1} >
+              <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Expected SQ Spending:</FormLabel>
                 <Input className="form-input" name="sqMinus" type="number" placeholder="0" value={currency.sqMinus === 0 ? '' : currency.sqMinus} onSubmit={calc} />
               </GridItem>
-              <GridItem rowSpan={1} colSpan={1} >
+              <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Expected Ticket Spending:</FormLabel>
                 <Input className="form-input" name="txMinus" type="number" placeholder="0" value={currency.txMinus === 0 ? '' : currency.txMinus} onSubmit={calc} />
               </GridItem>
-              <GridItem rowSpan={1} colSpan={1} >
+              <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Start Date:</FormLabel>
                 <Input name="start" type="date" value={dateData.start} />
               </GridItem>
-              <GridItem rowSpan={1} colSpan={1} >
+              <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>End Date:</FormLabel>
                 <Input name="end" type="date" value={dateData.end} />
               </GridItem>
-              <GridItem rowSpan={1} colSpan={1} >
+              <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel># Daily Singles</FormLabel>
                 <Input name="dailySingles" type="input" placeholder="0" value={currency.dailySingles === 0 ? '' : currency.dailySingles} />
               </GridItem>
-              <GridItem rowSpan={1} colSpan={1} >
+              <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Total Days</FormLabel>
                 <Input name="dateRange" type="input" readOnly={true} placeholder="0" value={totalDays() === 0 ? '' : totalDays()} />
               </GridItem>
-              <GridItem rowSpan={1} colSpan={1} >
-                <Button marginTop={4} colorScheme="blue" onClick={clearForm} >Clear</Button>
-              </GridItem>
-              <AdjustMenu handleBulkUpdate={handleBulkUpdate} editState={editState} savedRolls={savedRolls} />
             </Grid>
-            <Grid mt={10} h="" templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
-              <GridItem rowSpan={1} colSpan={1} >
-                {/* TODO: These forms can probably just set their values by calling other values directly, rather than going calculator functions. */}
+            <Grid mt={6} templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
+              <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Total Quartz:</FormLabel>
                 <Input className="form-input" isReadOnly={true} name="sqSum" value={sums.sqSum} placeholder="0" />
               </GridItem>
-              <GridItem rowSpan={1} colSpan={1} >
+              <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Total Tickets:</FormLabel>
                 <Input className="form-input" isReadOnly={true} name="txSum" value={sums.txSum} placeholder="0" />
               </GridItem>
@@ -775,7 +769,6 @@ const SummonCalc = () => {
                   <Button colorScheme="blue" onClick={saveSnapshot}>{editState === false ? 'Save Snapshot' : 'Update Snapshot'}</Button>
                 </Flex>
               </GridItem>
-              <CalcFooter calcOdds={calcOdds} elementState={elementState} summonStats={summonStats} saveSnapshot={saveSnapshot} editState={editState} handleEditCancel={handleEditCancel} />
             </Grid>
           </FormControl>
         </div>
@@ -783,6 +776,7 @@ const SummonCalc = () => {
           {rollMap()}
         </div>
       </Flex>
+      <CalcFooter calcOdds={calcOdds} editState={editState} handleEditCancel={handleEditCancel} handleBulkUpdate={handleBulkUpdate} savedRolls={savedRolls} clearForm={clearForm} />
     </>
   )
 };
