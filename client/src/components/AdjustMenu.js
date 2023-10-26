@@ -3,9 +3,7 @@ import { Grid, GridItem, Flex, Spacer } from '@chakra-ui/react';
 import { FormControl, FormLabel, Input, Button, Select, Checkbox } from '@chakra-ui/react';
 import { NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper } from '@chakra-ui/react'
 
-
 import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, useDisclosure } from '@chakra-ui/react'
-
 
 const AdjustMenu = ({ handleBulkUpdate, editState, savedRolls }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -19,11 +17,13 @@ const AdjustMenu = ({ handleBulkUpdate, editState, savedRolls }) => {
     console.log(adjustments);
   }, [adjustments]);
 
+  useEffect(() => {
+    setAdjustments({ sqAdjust: 0, txAdjust: 0 });
+  }, [isOpen]);
+
   return (
     <>
-      <GridItem rowSpan={1} colSpan={1} >
-        <Button marginTop={4} colorScheme="blue" disabled={editState !== false} hidden={savedRolls.length === 0} onClick={onOpen} >Adjust Saved</Button>
-      </GridItem>
+      <Button colorScheme="blue" width='100%' disabled={editState !== false} hidden={savedRolls.length === 0} onClick={onOpen}>Adjust Saved</Button>
 
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />

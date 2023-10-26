@@ -20,9 +20,8 @@ function App() {
   const dispatch = useDispatch();
 
   const style = {
-    background: "#FEFEFE",
-    minHeight: "100vh",
-    paddingBottom: "20px"
+    background: '#FEFEFE',
+    minHeight: '100vh',
   };
 
   useEffect(() => {

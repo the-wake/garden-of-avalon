@@ -40,8 +40,6 @@ const RateupMenu = ({ probHandler, summonStats, setSummonStats, oddsObj }) => {
       </GridItem>
       <GridItem rowSpan={1} colSpan={1}>
         <FormLabel>Probability of success per roll:</FormLabel>
-      </GridItem>
-      <GridItem rowSpan={1} colSpan={1}>
         <Input className="form-input" isReadOnly={summonStats.numRateup !== 0 ? true : false} name="prob" value={summonStats.prob} />
       </GridItem>
     </>

@@ -11,7 +11,7 @@ import { EditIcon, DeleteIcon, ArrowUpIcon, ArrowDownIcon } from '@chakra-ui/ico
 
 import "react-datepicker/dist/react-datepicker.css";
 
-const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurrency, setSummonStats, setSums, editState, setEditState, rollIndex }) => {
+const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurrency, summonStats, setSummonStats, setSums, editState, setEditState, rollIndex }) => {
 
   const servantData = useSelector((state) => state.servants.roster);
 
@@ -148,8 +148,8 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
       console.log('Editing roll:', rollData);
       let newRoll = {};
 
-      const { sqPurchase, purchasePeriod, alreadyPurchased, sqStarting, txStarting, sqIncome, txIncome, sqExtra, txExtra, sqMinus, txMinus, dailySingles } = rollData;
-      newRoll.currency = { sqPurchase, purchasePeriod, alreadyPurchased, sqStarting, txStarting, sqIncome, txIncome, sqExtra, txExtra, sqMinus, txMinus, dailySingles };
+      const { sqPurchase, purchasePeriod, alreadyPurchased, sqStarting, txStarting, sqIncome, txIncome, sqEvent, txEvent, sqExtra, txExtra, sqMinus, txMinus, dailySingles } = rollData;
+      newRoll.currency = { sqPurchase, purchasePeriod, alreadyPurchased, sqStarting, txStarting, sqIncome, txIncome, sqEvent, txEvent, sqExtra, txExtra, sqMinus, txMinus, dailySingles };
 
       const { start, end } = rollData;
       newRoll.dateData = { start, end };
@@ -157,8 +157,8 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
       const { sqSum, txSum, totalSummons } = rollData;
       newRoll.sums = { sqSum, txSum, totalSummons };
 
-      const { targetNo, targetName, targetImage, rarity, numRateup, prob, desired, summonOdds, slot } = rollData;
-      newRoll.summonStats = { targetNo, targetName, targetImage, rarity, numRateup, prob, desired, summonOdds, slot };
+      const { targetNo, targetName, targetImage, rarity, numRateup, prob, desired, summonOdds, summonNotes, slot } = rollData;
+      newRoll.summonStats = { targetNo, targetName, targetImage, rarity, numRateup, prob, desired, summonOdds, summonNotes, slot };
 
       sanitizeEmpty(newRoll.currency);
       console.log(newRoll);
@@ -196,6 +196,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
       setSavedRolls(updatedRolls);
       setEditingDates(false);
       setEditState(false);
+      setSummonStats({ ...summonStats, summonNotes: '' });
     };
   };
 
@@ -239,9 +240,9 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
   // Used by following map to give individual names to each Servant where there are duplicates.
   let servantsSoFar = [];
 
-  const servantsMap = servantData.map((servant) => {
+  const servantsMap = servantData.map((servant, pos) => {
     if (servant.rarity < 3 || servant.type === 'heroine' || servant.type === 'enemyCollectionDetail' || servant.name === 'Altria Pendragon (Lily)' || servant.name === 'Habetrot') {
-      return
+      return;
     };
 
     let useName = servant.name;
@@ -258,10 +259,8 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
     };
 
     return (
-      <>
-        <option value={servant.collectionNo}>{useName}</option>
-      </>
-    )
+      <option key={pos} value={servant.collectionNo}>{useName}</option>
+    );
 
   });
 
@@ -276,7 +275,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
           <img src={rollData.targetImage} style={style.image} />
         </GridItem>
         <GridItem rowSpan={3} colSpan={1}>
-          <IconButton ml='4px' size='sm' aria-label='Edit item' icon={<EditIcon />} onClick={confirmEdit} />
+          <IconButton ml='4px' size='sm' aria-label='Edit item' icon={<EditIcon />} isDisabled={editState !== false} onClick={confirmEdit} />
         </GridItem>
         <GridItem rowSpan={1} colSpan={1}>
           <IconButton mr='4px' size='sm' aria-label='Delete item' icon={<DeleteIcon />} onClick={confirmDelete} />
