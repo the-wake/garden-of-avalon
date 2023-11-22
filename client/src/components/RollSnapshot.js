@@ -8,7 +8,6 @@ import { Grid, GridItem, Flex, Spacer } from '@chakra-ui/react'
 import { FormControl, FormLabel, Input, Button, Select, Checkbox, IconButton } from '@chakra-ui/react'
 import { EditIcon, DeleteIcon, ArrowUpIcon, ArrowDownIcon } from '@chakra-ui/icons'
 
-
 import "react-datepicker/dist/react-datepicker.css";
 
 const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurrency, summonStats, setSummonStats, setSums, editState, setEditState, rollIndex }) => {
@@ -363,11 +362,11 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
               </GridItem>
             </Grid>
           </GridItem>
-
         </Grid >
+
       </FormControl>
     </div>
-  )
+  );
 };
 
 export default RollSnapshot;

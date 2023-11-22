@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
-import getSlot from '../utils/getSlot.js'
-import sanitizeEmpty from '../utils/sanitizeEmpty.js'
-import DateHelper from "../utils/dateHelper.js"
+import getSlot from '../utils/getSlot.js';
+import sanitizeEmpty from '../utils/sanitizeEmpty.js';
+import DateHelper from '../utils/dateHelper.js';
 
 import { useSelector, useDispatch } from 'react-redux';
 
@@ -16,6 +16,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import RollSnapshot from '../components/RollSnapshot.js';
 import RateupMenu from '../components/RateupMenu.js';
 import CalcFooter from '../components/CalcFooter.js';
+import NewSnapshot from "../components/NewSnapshot";
 
 // TODO: Once we have MVP, refactor with reducers and better state handling.
 const SummonCalc = () => {
@@ -41,7 +42,7 @@ const SummonCalc = () => {
 
   const [dateData, setDateData] = useState({
     start: DateHelper(new Date().toLocaleDateString()),
-    end: DateHelper(new Date().toLocaleDateString()),
+    end: DateHelper(new Date().toLocaleDateString())
   });
 
   const [sums, setSums] = useState({
@@ -777,6 +778,7 @@ const SummonCalc = () => {
         </div>
         <div style={style.listEl} hidden={savedRolls.length === 0}>
           {rollMap()}
+          <NewSnapshot savedRolls={savedRolls} setSavedRolls={setSavedRolls} />
         </div>
       </Flex>
       <CalcFooter summonStats={summonStats} setSummonStats={setSummonStats} calcOdds={calcOdds} editState={editState} handleEditCancel={handleEditCancel} handleBulkUpdate={handleBulkUpdate} savedRolls={savedRolls} setSavedRolls={setSavedRolls} saveSnapshot={saveSnapshot} clearForm={clearForm} />
