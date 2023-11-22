@@ -243,7 +243,7 @@ const SummonCalc = () => {
     const masterMissionGains = calcMasterMissions(start, numDays);
     // console.log(`Calculating Master Mission. Start: ${start}; Number of Days: ${numDays}.`);
     weeklyGains.sq += masterMissionGains;
-    console.log(`Added ${masterMissionGains} SQ from Master Missions.`);
+    // console.log(`Added ${masterMissionGains} SQ from Master Missions.`);
     // console.log(weeklyGains);
 
     // Daily login bonus courser.
@@ -408,7 +408,9 @@ const SummonCalc = () => {
     // }
     // else {
     setElementState({ ...elementState, odds: true });
+    // setTimeout(() => {
     setSummonStats({ ...summonStats, summonOdds: newOdds });
+    // }, 500);
     // };
     // return currency;
   };
@@ -495,9 +497,11 @@ const SummonCalc = () => {
     else {
       setCurrency({ ...currency, [e.target.name]: targetVal });
     };
-    calcSums();
+    // I think we're running calcSums everywhere where relevant state changes via useEffects, so this one is causing stale loops.
+    // calcSums();
   };
 
+  // Does this even have a point any longer?
   useEffect(() => {
     setElementState({ ...elementState, odds: false });
     const currencyClone = { ...currency };
@@ -507,7 +511,7 @@ const SummonCalc = () => {
     localStorage.setItem('currency', JSON.stringify(sanitizedCurrency));
     // console.log('Dates: ', dateData);
     calcSums();
-    console.log(`State changed: ${summonStats.summonOdds}`);
+    // console.log(`State changed: ${summonStats.summonOdds}`);
   }, [loginData, currency, dateData]);
 
   // Set local storage when updating login streak or currency totals.
@@ -561,9 +565,11 @@ const SummonCalc = () => {
     if (e.target.name === 'rarity') {
       setSummonStats({ ...summonStats, numRateup: 1 });
       const newProb = oddsObj[e.target.value][summonStats.numRateup - 1] || oddsObj[e.target.value][0];
+      console.log('New Prob: ', newProb);
       setSummonStats({ ...summonStats, [e.target.name]: e.target.value, prob: newProb });
     } else if (e.target.name === 'numRateup') {
       const newProb = oddsObj[summonStats.rarity][e.target.value - 1];
+      console.log('New Prob: ', newProb);
       setSummonStats({ ...summonStats, [e.target.name]: parseInt(e.target.value), prob: newProb });
     } else if (e.target.name === 'desired') {
       setSummonStats({ ...summonStats, desired: parseInt(e.target.value) || 1 });
@@ -693,8 +699,8 @@ const SummonCalc = () => {
                   <option value={1}>Monthly</option>
                 </Select>
               </GridItem>
-              <GridItem rowSpan={1} colSpan={2} hidden={currency.purchasePeriod === 0}>
-                <Checkbox name="alreadyPurchased" defaultChecked={false} >Already purchased this month?</Checkbox>
+              <GridItem rowSpan={1} colSpan={2}>
+                <Checkbox name="alreadyPurchased" disabled={currency.purchasePeriod === 0} defaultChecked={false} >Already purchased this month?</Checkbox>
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Event SQ:</FormLabel>
@@ -759,10 +765,11 @@ const SummonCalc = () => {
                 <FormLabel>Number of Copies Desired:</FormLabel>
                 <Input className="form-input" name="desired" value={summonStats.desired} onChange={probHandler} />
               </GridItem>
-              <GridItem className="results-area" rowSpan={1} colSpan={2}>
-                <Flex flexDirection='row' justifyContent='space-evenly' gap={4}>
+              <GridItem className="results-area" rowSpan={1} colSpan={2} margin='auto'>
+                <Flex flexDirection='row' justifyContent='space-evenly' gap={4} maxWidth='400px'>
+                  <FormLabel textAlign='center' minWidth='120px' margin='auto'>Total Odds:</FormLabel>
                   <Input className="form-input" isReadOnly={true} name="summonOdds" value={summonStats.summonOdds} />
-                  <Button colorScheme="blue" width='400px' onClick={saveSnapshot}>{editState === false ? 'Save Snapshot' : 'Update Snapshot'}</Button>
+                  {/* <Button colorScheme="blue" width='400px' onClick={saveSnapshot}>{editState === false ? 'Save Snapshot' : 'Update Snapshot'}</Button> */}
                 </Flex>
               </GridItem>
             </Grid>
@@ -772,7 +779,7 @@ const SummonCalc = () => {
           {rollMap()}
         </div>
       </Flex>
-      <CalcFooter summonStats={summonStats} setSummonStats={setSummonStats} calcOdds={calcOdds} editState={editState} handleEditCancel={handleEditCancel} handleBulkUpdate={handleBulkUpdate} savedRolls={savedRolls} setSavedRolls={setSavedRolls} clearForm={clearForm} />
+      <CalcFooter summonStats={summonStats} setSummonStats={setSummonStats} calcOdds={calcOdds} editState={editState} handleEditCancel={handleEditCancel} handleBulkUpdate={handleBulkUpdate} savedRolls={savedRolls} setSavedRolls={setSavedRolls} saveSnapshot={saveSnapshot} clearForm={clearForm} />
     </>
   )
 };
