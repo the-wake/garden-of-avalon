@@ -6,29 +6,8 @@ import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody,
 
 import AdjustMenu from '../components/AdjustMenu.js';
 
-const CalcFooter = ({ summonStats, setSummonStats, editState, handleEditCancel, handleBulkUpdate, savedRolls, setSavedRolls, saveSnapshot, clearForm }) => {
+const CalcFooter = ({ summonStats, setSummonStats, editState, handleEditCancel, handleBulkUpdate, savedRolls, setSavedRolls, saveSnapshot, clearForm, noteChangeHandler, noteSubmitHandler }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-
-  const noteChangeHandler = (e) => {
-    setSummonStats({ ...summonStats, summonNotes: e.target.value });
-  };
-
-  const noteSubmitHandler = (e) => {
-    console.log(editState);
-    const currentRoll = savedRolls[editState];
-    const updatedRoll = { ...currentRoll, summonNotes: summonStats.summonNotes };
-    console.log(updatedRoll);
-
-    const updatedRolls = savedRolls.map((roll, pos) => {
-      if (roll.slot === editState) {
-        return updatedRoll;
-      } else {
-        return roll;
-      }
-    });
-    console.log(updatedRolls);
-    setSavedRolls(updatedRolls);
-  };
 
   return (
     <GridItem mt={4} backgroundColor="#BEE3F8" width="100%" padding={4} mx="auto" position="fixed" bottom={0} as="footer">

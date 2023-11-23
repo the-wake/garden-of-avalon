@@ -23,7 +23,7 @@ const AdjustMenu = ({ handleBulkUpdate, editState, savedRolls }) => {
 
   return (
     <>
-      <Button colorScheme="blue" width='100%' disabled={editState !== false} hidden={savedRolls.length === 0} onClick={onOpen}>Adjust Saved</Button>
+      <Button colorScheme="blue" width='100%' disabled={editState !== false || savedRolls.length === 0} onClick={onOpen}>Bulk-Adjust Rolls</Button>
 
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />

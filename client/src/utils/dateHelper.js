@@ -1,5 +1,5 @@
 const dateHelper = (str) => {
-  console.log(str);
+  // console.log(str);
   let splitDate = str.split("/");
   const [month, date, year] = splitDate;
   // console.log(month, date, year);

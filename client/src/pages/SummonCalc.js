@@ -62,6 +62,7 @@ const SummonCalc = () => {
     summonOdds: 0,
     summonNotes: '',
     slot: '',
+    draft: false
   });
 
   const [elementState, setElementState] = useState({
@@ -639,6 +640,10 @@ const SummonCalc = () => {
     console.log(sq, tx);
 
     const newRolls = savedRolls.map((roll, pos) => {
+      if (roll.draft) {
+        return roll;
+      };
+
       const nSummons = totalSummons(roll.sqSum + sq, roll.txSum + tx);
       const newMath = calcOdds(nSummons, summonStats.prob, summonStats.desired);
       console.log(newMath);
@@ -660,11 +665,32 @@ const SummonCalc = () => {
         <GridItem key={`${roll.slot}-${JSON.stringify(roll)}`}>
           <RollSnapshot key={pos}
             rollObj={roll}
-            savedRolls={savedRolls} setSavedRolls={setSavedRolls} setDateData={setDateData} setCurrency={setCurrency} setSums={setSums} summonStats={summonStats} setSummonStats={setSummonStats} editState={editState} setEditState={setEditState} rollIndex={roll.slot} calcOdds={calcOdds}
+            savedRolls={savedRolls} setSavedRolls={setSavedRolls} setDateData={setDateData} setCurrency={setCurrency} setSums={setSums} summonStats={summonStats} setSummonStats={setSummonStats} editState={editState} setEditState={setEditState} rollIndex={roll.slot} calcOdds={calcOdds} noteChangeHandler={noteChangeHandler} noteSubmitHandler={noteSubmitHandler}
           />
         </GridItem>
       ));
     };
+  };
+
+  const noteChangeHandler = (e) => {
+    setSummonStats({ ...summonStats, summonNotes: e.target.value });
+  };
+
+  const noteSubmitHandler = (e) => {
+    // console.log(editState);
+    const currentRoll = savedRolls[editState];
+    const updatedRoll = { ...currentRoll, summonNotes: summonStats.summonNotes };
+    console.log(updatedRoll);
+
+    const updatedRolls = savedRolls.map((roll, pos) => {
+      if (roll.slot === editState) {
+        return updatedRoll;
+      } else {
+        return roll;
+      }
+    });
+    // console.log(updatedRolls);
+    setSavedRolls(updatedRolls);
   };
 
   return (
@@ -770,18 +796,17 @@ const SummonCalc = () => {
                 <Flex flexDirection='row' justifyContent='space-evenly' gap={4} maxWidth='400px'>
                   <FormLabel textAlign='center' minWidth='120px' margin='auto'>Total Odds:</FormLabel>
                   <Input className="form-input" isReadOnly={true} name="summonOdds" value={summonStats.summonOdds} />
-                  {/* <Button colorScheme="blue" width='400px' onClick={saveSnapshot}>{editState === false ? 'Save Snapshot' : 'Update Snapshot'}</Button> */}
                 </Flex>
               </GridItem>
             </Grid>
           </FormControl>
         </div>
-        <div style={style.listEl} hidden={savedRolls.length === 0}>
+        <div style={style.listEl}>
           {rollMap()}
           <NewSnapshot savedRolls={savedRolls} setSavedRolls={setSavedRolls} />
         </div>
       </Flex>
-      <CalcFooter summonStats={summonStats} setSummonStats={setSummonStats} calcOdds={calcOdds} editState={editState} handleEditCancel={handleEditCancel} handleBulkUpdate={handleBulkUpdate} savedRolls={savedRolls} setSavedRolls={setSavedRolls} saveSnapshot={saveSnapshot} clearForm={clearForm} />
+      <CalcFooter summonStats={summonStats} setSummonStats={setSummonStats} calcOdds={calcOdds} editState={editState} handleEditCancel={handleEditCancel} handleBulkUpdate={handleBulkUpdate} savedRolls={savedRolls} setSavedRolls={setSavedRolls} saveSnapshot={saveSnapshot} clearForm={clearForm} noteChangeHandler={noteChangeHandler} noteSubmitHandler={noteSubmitHandler} />
     </>
   )
 };

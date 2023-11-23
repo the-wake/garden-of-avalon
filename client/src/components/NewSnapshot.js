@@ -22,7 +22,7 @@ const NewSnapshot = ({ savedRolls, setSavedRolls }) => {
     display: 'flex',
     paddingTop: '4px',
     paddingBottom: '7px',
-    margin: '12px'
+    margin: '12px',
   };
 
   const rollUpdateHandler = (e) => setBannerData({ ...bannerData, [e.target.name]: e.target.value });
@@ -31,11 +31,12 @@ const NewSnapshot = ({ savedRolls, setSavedRolls }) => {
     console.log(bannerData);
   }, bannerData);
 
+  // TODO: Could add Servant Selection to this as well, but that would make more sense if we refactor this list into a store.
+
   const newRollHandler = () => {
-    console.log(new Date(bannerData).toLocaleDateString());
 
     const newRoll = {
-      start: new Date().toLocaleDateString(),
+      start: dateHelper(new Date().toLocaleDateString()),
       end: bannerData.end,
       sqPurchase: "",
       purchasePeriod: 0,
@@ -63,7 +64,8 @@ const NewSnapshot = ({ savedRolls, setSavedRolls }) => {
       desired: 1,
       summonOdds: "0.00%",
       summonNotes: "",
-      slot: getSlot()
+      slot: getSlot(),
+      draft: true
     };
 
     setSavedRolls([...savedRolls, newRoll]);
@@ -71,7 +73,7 @@ const NewSnapshot = ({ savedRolls, setSavedRolls }) => {
 
   return (
     <div style={style} >
-      <Flex direction="column" align="center" justify="space-evenly" pr="6px" width="100%" onClick={onOpen} >
+      <Flex direction="column" align="center" justify="space-evenly" pr="6px" width="100%" cursor="pointer" onClick={onOpen} >
         <Heading as="h3" size="md" >New Blank Snapshot</Heading>
       </Flex>
 
