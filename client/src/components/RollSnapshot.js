@@ -4,16 +4,18 @@ import sanitizeEmpty from '../utils/sanitizeEmpty.js'
 
 import { useSelector, useDispatch } from 'react-redux'
 
-import { Grid, GridItem, Flex, Spacer } from '@chakra-ui/react'
+import { Heading, Grid, GridItem, Flex, Spacer, Tooltip, Textarea } from '@chakra-ui/react'
 import { FormControl, FormLabel, Input, Button, Select, Checkbox, IconButton } from '@chakra-ui/react'
-import { EditIcon, DeleteIcon, ArrowUpIcon, ArrowDownIcon } from '@chakra-ui/icons'
+import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, useDisclosure } from '@chakra-ui/react'
 
+import { EditIcon, DeleteIcon, ArrowUpIcon, ArrowDownIcon, ArrowBackIcon } from '@chakra-ui/icons'
 
 import "react-datepicker/dist/react-datepicker.css";
 
-const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurrency, summonStats, setSummonStats, setSums, editState, setEditState, rollIndex }) => {
+const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurrency, summonStats, setSummonStats, setSums, editState, setEditState, rollIndex, noteChangeHandler, noteSubmitHandler }) => {
 
   const servantData = useSelector((state) => state.servants.roster);
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   let initRoll = rollObj;
   // console.log(`Rendering component:`, initRoll);
@@ -23,6 +25,8 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
   const [editingDates, setEditingDates] = useState(false);
 
   const [editStyle, setEditStyle] = useState(false);
+
+  const [noteOverride, setNoteOverride] = useState({ slot: 0, summonNotes: "" });
 
   const style = {
     class: {
@@ -264,21 +268,52 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
 
   });
 
+  const noteGetter = (roll) => {
+    console.log(roll.summonNotes);
+    setNoteOverride({ slot: roll.slot, summonNotes: roll.summonNotes });
+  };
+
+  const overrideChangeHandler = (e) => {
+    setNoteOverride({ ...noteOverride, summonNotes: e.target.value });
+  };
+
+  const overrideSubmitHandler = () => {
+    // console.log(editState);
+    const currentRoll = savedRolls[noteOverride.slot];
+    const updatedRoll = { ...currentRoll, summonNotes: noteOverride.summonNotes };
+    console.log(updatedRoll);
+
+    const updatedRolls = savedRolls.map((roll, pos) => {
+      console.log(roll);
+      if (roll.slot === noteOverride.slot) {
+        return updatedRoll;
+      } else {
+        return roll;
+      }
+    });
+    // console.log(updatedRolls);
+    setSavedRolls(updatedRolls);
+  };
+
   return (
     <div style={editState === rollData.slot ? cardStyles.editing : cardStyles.normal}>
-      <Flex direction='column' align='center' justify='space-evenly' pr='6px'>
+      <Flex direction='column' align='center' justify='space-evenly' pr='6px' gap={1}>
         <IconButton ml='4px' size='sm' aria-label='Move item up' name='moveUpIcon' isDisabled={rollData.slot === 0 || editState !== false} onClick={() => { moveSnapshot('up') }} icon={<ArrowUpIcon name='moveUp' />} />
         <IconButton ml='4px' size='sm' aria-label='Move item down' name='moveDownIcon' isDisabled={rollData.slot === savedRolls.length - 1 || editState !== false} onClick={() => { moveSnapshot('down') }} icon={<ArrowDownIcon name='moveDown' />} />
+        <IconButton ml='4px' size='sm' aria-label='Edit item' icon={<ArrowBackIcon />} isDisabled={editState !== false} onClick={confirmEdit} />
       </Flex>
-      <Grid w='80px' h='80px' templateRows='repeat(4, 1fr)' templateColumns='repeat(2, 1fr)' gap={0.5}>
-        <GridItem rowSpan={1} colSpan={2}>
+      <Grid w='80px' h='80px' templateRows='repeat(4, 1fr)' templateColumns='repeat(1, 1fr)' gap={0.5}>
+        <GridItem rowSpan={3} colSpan={1} w='80px' h='80px'>
           <img src={rollData.targetImage} style={style.image} />
         </GridItem>
-        <GridItem rowSpan={3} colSpan={1}>
-          <IconButton ml='4px' size='sm' aria-label='Edit item' icon={<EditIcon />} isDisabled={editState !== false} onClick={confirmEdit} />
-        </GridItem>
         <GridItem rowSpan={1} colSpan={1}>
-          <IconButton mr='4px' size='sm' aria-label='Delete item' icon={<DeleteIcon />} onClick={confirmDelete} />
+          <Flex gap={1} justifyContent='space-evenly'>
+            <IconButton ml='4px' size='sm' aria-label='See notes' value={rollData} onClick={() => {
+              noteGetter(rollData);
+              onOpen();
+            }} icon={<EditIcon />} />
+            <IconButton mr='4px' size='sm' aria-label='Delete item' icon={<DeleteIcon />} onClick={confirmDelete} />
+          </Flex>
         </GridItem>
       </Grid>
       <FormControl marginLeft="auto" marginRight="auto" onChange={handleFormUpdate}>
@@ -298,76 +333,106 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
             </Grid>
           </GridItem>
 
-          <GridItem rowSpan={1} colSpan={2}>
-            <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(2, 1fr)' gap={1}>
-              <GridItem colSpan={1} rowSpan={1}>
-                <FormLabel h="100%" textAlign="right" lineHeight="40px" m="auto">SQ:</FormLabel>
+          {
+            rollData.draft === true
+              ? <GridItem rowSpan={2} colSpan={7} cursor="pointer" onClick={confirmEdit}>
+                <Flex flexDirection="row" justifyContent="space-evenly" height="100%">
+                  <Heading as="h3" size="md" textAlign='center' margin='auto'>Load Into Editor</Heading>
+                </Flex>
               </GridItem>
-              <GridItem colSpan={1} rowSpan={1}>
-                <Input className="form-input" name="sq" type="number" onChange={() => 1 === 1} value={rollData.sqSum} />
-              </GridItem>
-            </Grid>
-          </GridItem>
+              : <>
+                <GridItem rowSpan={1} colSpan={2}>
+                  <Grid w="100%" templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={1}>
+                    <GridItem colSpan={1} rowSpan={1}>
+                      <FormLabel h="100%" textAlign="right" lineHeight="40px" m="auto">SQ:</FormLabel>
+                    </GridItem>
+                    <GridItem colSpan={1} rowSpan={1}>
+                      <Input className="form-input" name="sq" type="number" onChange={() => 1 === 1} value={rollData.sqSum} />
+                    </GridItem>
+                  </Grid>
+                </GridItem>
 
-          <GridItem rowSpan={1} colSpan={2}>
-            <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(2, 1fr)' gap={1}>
-              <GridItem colSpan={1} rowSpan={1}>
-                <FormLabel h="100%" textAlign="right" lineHeight="40px" m="auto">Tickets:</FormLabel>
-              </GridItem>
-              <GridItem colSpan={1} rowSpan={1}>
-                <Input className="form-input" name="tx" type="number" onChange={() => 1 === 1} value={rollData.txSum} />
-              </GridItem>
-            </Grid>
-          </GridItem>
+                <GridItem rowSpan={1} colSpan={2}>
+                  <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(2, 1fr)' gap={1}>
+                    <GridItem colSpan={1} rowSpan={1}>
+                      <FormLabel h="100%" textAlign="right" lineHeight="40px" m="auto">Tickets:</FormLabel>
+                    </GridItem>
+                    <GridItem colSpan={1} rowSpan={1}>
+                      <Input className="form-input" name="tx" type="number" onChange={() => 1 === 1} value={rollData.txSum} />
+                    </GridItem>
+                  </Grid>
+                </GridItem>
 
-          <GridItem rowSpan={1} colSpan={2}>
-            <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(2, 1fr)' gap={1}>
-              <GridItem colSpan={1} rowSpan={1}>
-                <FormLabel h="100%" textAlign="right" lineHeight="40px" m="auto">Rolls:</FormLabel>
-              </GridItem>
-              <GridItem colSpan={1} rowSpan={1}>
-                <Input className="form-input" name="numRolls" type="number" readOnly={true} value={rollData.totalSummons} />
-              </GridItem>
-            </Grid>
-          </GridItem>
+                <GridItem rowSpan={1} colSpan={2}>
+                  <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(2, 1fr)' gap={1}>
+                    <GridItem colSpan={1} rowSpan={1}>
+                      <FormLabel h="100%" textAlign="right" lineHeight="40px" m="auto">Rolls:</FormLabel>
+                    </GridItem>
+                    <GridItem colSpan={1} rowSpan={1}>
+                      <Input className="form-input" name="numRolls" type="number" readOnly={true} value={rollData.totalSummons} />
+                    </GridItem>
+                  </Grid>
+                </GridItem>
 
-          <GridItem rowSpan={1} colSpan={2}>
-            <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(2, 1fr)' gap={1}>
-              <GridItem colSpan={1} rowSpan={1}>
-                <FormLabel h="100%" textAlign="right" lineHeight="40px" m="auto">Rate:</FormLabel>
-              </GridItem>
-              <GridItem colSpan={1} rowSpan={1}>
-                <Input className="form-input" name="numRolls" type="number" readOnly={true} value={rollData.prob} />
-              </GridItem>
-            </Grid>
-          </GridItem>
+                <GridItem rowSpan={1} colSpan={2}>
+                  <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(2, 1fr)' gap={1}>
+                    <GridItem colSpan={1} rowSpan={1}>
+                      <FormLabel h="100%" textAlign="right" lineHeight="40px" m="auto">Rate:</FormLabel>
+                    </GridItem>
+                    <GridItem colSpan={1} rowSpan={1}>
+                      <Input className="form-input" name="numRolls" type="number" readOnly={true} value={rollData.prob} />
+                    </GridItem>
+                  </Grid>
+                </GridItem>
 
-          <GridItem rowSpan={1} colSpan={3}>
-            <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(3, 1fr)' gap={1}>
-              <GridItem colSpan={1} rowSpan={1}>
-                <FormLabel h="100%" textAlign="right" lineHeight="40px" m="auto">Desired:</FormLabel>
-              </GridItem>
-              <GridItem colSpan={2} rowSpan={1}>
-                <Input className="form-input" name="numDesired" type="number" readOnly={true} value={rollData.desired} />
-              </GridItem>
-            </Grid>
-          </GridItem>
+                <GridItem rowSpan={1} colSpan={3}>
+                  <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(3, 1fr)' gap={1}>
+                    <GridItem colSpan={1} rowSpan={1}>
+                      <FormLabel h="100%" textAlign="right" lineHeight="40px" m="auto">Desired:</FormLabel>
+                    </GridItem>
+                    <GridItem colSpan={2} rowSpan={1}>
+                      <Input className="form-input" name="numDesired" type="number" readOnly={true} value={rollData.desired} />
+                    </GridItem>
+                  </Grid>
+                </GridItem>
 
-          <GridItem rowSpan={1} colSpan={3}>
-            <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(3, 1fr)' gap={1}>
-              <GridItem colSpan={1} rowSpan={1}>
-                <FormLabel h="100%" textAlign="right" lineHeight="40px" m="auto">Odds:</FormLabel>
-              </GridItem>
-              <GridItem colSpan={2} rowSpan={1}>
-                <Input className="form-input" name="numRolls" type="text" readOnly={true} value={rollData.summonOdds} />
-              </GridItem>
-            </Grid>
-          </GridItem>
-
+                <GridItem rowSpan={1} colSpan={3}>
+                  <Grid w='100%' templateRows='repeat(1, 1fr)' templateColumns='repeat(3, 1fr)' gap={1}>
+                    <GridItem colSpan={1} rowSpan={1}>
+                      <FormLabel h="100%" textAlign="right" lineHeight="40px" m="auto">Odds:</FormLabel>
+                    </GridItem>
+                    <GridItem colSpan={2} rowSpan={1}>
+                      <Input className="form-input" name="numRolls" type="text" readOnly={true} value={rollData.summonOdds} />
+                    </GridItem>
+                  </Grid>
+                </GridItem>
+              </>
+          }
         </Grid >
       </FormControl>
-    </div>
-  )
+
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Notes</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Textarea h='250px' name='summonNotes' value={noteOverride.summonNotes} onChange={overrideChangeHandler}></Textarea>
+          </ModalBody>
+
+          <ModalFooter>
+            {/* <Button mr={3} variant="ghost" onClick={onClose}>Cancel</Button> */}
+            <Button colorScheme="blue"
+              onClick={() => {
+                overrideSubmitHandler();
+                onClose();
+              }}
+            >Done</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </div >
+  );
 };
 
 export default RollSnapshot;
