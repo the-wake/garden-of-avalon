@@ -28,8 +28,19 @@ function App() {
     fetch('https://api.atlasacademy.io/export/JP/basic_servant_lang_en.json')
       .then(response => response.json())
       .then(servants => {
-        // console.log(servants);
-        dispatch(getAllServants(servants));
+        console.log(servants);
+
+        // First Hassan ends up out of alphabetical order due to quotation marks, so we sanitize the data before passing it to the redux store.
+        const treatedServants = [...servants].map((servant, pos) => {
+          if (servant.name[0] === '"') {
+            return { ...servant, name: servant.name.split('"')[1] };
+          } else {
+            return servant;
+          };
+        });
+        console.log(treatedServants);
+
+        dispatch(getAllServants(treatedServants));
       })
       .catch(error => console.error(error));
   }, []);

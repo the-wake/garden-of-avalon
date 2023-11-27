@@ -99,10 +99,10 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
   const handleFormUpdate = (e) => {
     if (e.target.name === 'targetNo') {
       const collectionNo = e.target.value;
-      console.log(`Finding Servant ID ${collectionNo}`);
+      // console.log(`Finding Servant ID ${collectionNo}`);
       const targetIndex = servantData.findIndex(servant => servant.collectionNo == collectionNo);
       const targetServant = servantData[targetIndex];
-      console.log(targetServant.name, targetServant.face);
+      // console.log(targetServant.name, targetServant.face);
       const targetName = servantData[targetIndex].name;
       const targetImage = servantData[targetIndex].face;
       setRollData({
