@@ -5,7 +5,7 @@ import sanitizeEmpty from '../utils/sanitizeEmpty.js'
 import { useSelector, useDispatch } from 'react-redux'
 
 import { Heading, Grid, GridItem, Flex, Spacer, Tooltip, Textarea } from '@chakra-ui/react'
-import { FormControl, FormLabel, Input, Button, Select, Checkbox, IconButton } from '@chakra-ui/react'
+import { FormControl, FormLabel, Input, Button, Select, Checkbox, IconButton, Box } from '@chakra-ui/react'
 import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, useDisclosure } from '@chakra-ui/react'
 
 import { EditIcon, DeleteIcon, ArrowUpIcon, ArrowDownIcon, ArrowBackIcon } from '@chakra-ui/icons'
@@ -241,23 +241,34 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
     setSavedRolls(freshArr);
   };
 
+  const welfareServants = [1, 4, 61, 69, 73, 92, 111, 115, 133, 137, 138, 141, 162, 166, 174, 182, 190, 191, 197, 208, 211, 219, 225, 233, 243, 252, 264, 271, 283, 288, 301, 304, 308, 315, 320, 326, 328, 330, 338, 359, 360, 361, 364, 367, 376, 389];
+
   // Used by following map to give individual names to each Servant where there are duplicates.
   let servantsSoFar = [];
 
-  const servantsMap = servantData.map((servant, pos) => {
-    if (servant.rarity < 3 || servant.type === 'heroine' || servant.type === 'enemyCollectionDetail' || servant.name === 'Altria Pendragon (Lily)' || servant.name === 'Habetrot') {
+  const mapServant = (servant) => {
+    if (servant.rarity < 3 || welfareServants.includes(servant.collectionNo) || servant.type === 'enemyCollectionDetail' || servant.name === 'Altria Pendragon (Lily)' || servant.name === 'Habetrot') {
+      return false;
+    };
+  };
+
+  // Need to clone servantData here to avoid errors.
+  const servantsMap = [...servantData].sort((a, b) => (a.name > b.name) ? 1 : -1).map((servant, pos) => {
+    // Call function to check if target is gacha Servant.
+    if (mapServant(servant) === false) {
       return;
     };
 
     let useName = servant.name;
 
-    if (servantsSoFar.includes(servant.name)) {
+    if (servantsSoFar.includes(servant.name) || servant.name === 'Mélusine') {
       const appendClass = `${servant.className.charAt(0).toUpperCase()}${servant.className.slice(1)}`;
       const appendedName = `${servant.name} (${appendClass})`;
       // console.log(`Servant name ${servant.name} already in array. Appending name to ${appendedName}`);
       servantsSoFar.push(appendedName);
       useName = appendedName;
-    } else {
+    }
+    else {
       // console.log(`Pushing ${servant.name} to array so far.`);
       servantsSoFar.push(servant.name);
     };
@@ -304,7 +315,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
       </Flex>
       <Grid w='80px' h='80px' templateRows='repeat(4, 1fr)' templateColumns='repeat(1, 1fr)' gap={0.5}>
         <GridItem rowSpan={3} colSpan={1} w='80px' h='80px'>
-          <img src={rollData.targetImage} style={style.image} />
+          <Box as="img" src={rollData.targetImage} style={style.image} borderRadius="6px" />
         </GridItem>
         <GridItem rowSpan={1} colSpan={1}>
           <Flex gap={1} justifyContent='space-evenly'>
@@ -337,7 +348,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
             rollData.draft === true
               ? <GridItem rowSpan={2} colSpan={7} cursor="pointer" onClick={confirmEdit}>
                 <Flex flexDirection="row" justifyContent="space-evenly" height="100%">
-                  <Heading as="h3" size="md" textAlign='center' margin='auto'>Load Into Editor</Heading>
+                  <Heading as="h3" size="md" textAlign='center' margin='auto'>Load Draft Into Editor</Heading>
                 </Flex>
               </GridItem>
               : <>
