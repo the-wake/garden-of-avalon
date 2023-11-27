@@ -123,6 +123,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
   // };
 
   // TODO: Will eventually want to allow for tweaking from this form. This will have to be refactored as setting an isEdited flag, which gives a save button (in place of the 'send to editor' button).
+
   // Run setSavedRolls whenever an individual roll is updated.
   useEffect(() => {
     const rollIndex = rollData.slot;
@@ -147,8 +148,16 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
   }, [savedRolls]);
 
   // TODO: Should this pull the data from local storage to make sure it's consistent across reloads.
-  const confirmEdit = () => {
-    if (window.confirm('Load selected roll into the editing form?')) {
+  const confirmEdit = (message) => {
+    console.log(message);
+    
+    let str = 'Load selected roll into the editing form?'
+    
+    if (message === true) {
+      str += ' (You can edit dates from the editor.)';
+    }; 
+    
+    if (window.confirm(str)) {
       console.log('Editing roll:', rollData);
       let newRoll = {};
 
@@ -276,8 +285,11 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
     return (
       <option key={pos} value={servant.collectionNo}>{useName}</option>
     );
-
   });
+
+  const targetServantHandler = (e) => {
+    setRollData({ ...rollData, targetNo: e.target.value });
+  };
 
   const noteGetter = (roll) => {
     console.log(roll.summonNotes);
@@ -286,6 +298,14 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
 
   const overrideChangeHandler = (e) => {
     setNoteOverride({ ...noteOverride, summonNotes: e.target.value });
+  };
+
+  const dateClickHandler = () => {
+    if (rollData.draft === true) {
+      return;
+    } else {
+      confirmEdit(true);
+    };
   };
 
   const overrideSubmitHandler = () => {
@@ -334,12 +354,12 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
             <Grid w='100%' templateRows='repeat(2, 1fr)' templateColumns='repeat(1, 1fr)' gap={1}>
               <GridItem colSpan={1} rowSpan={1}>
                 {/* TODO: Fix up the placeholder, since selecting it causes issues. */}
-                <Select className="form-input" name="targetNo" value={rollData.targetNo} placeholder={'Target Servant'} onChange={() => 1 === 1} mb="8px" >
+                <Select className="form-input" name="targetNo" value={rollData.targetNo} placeholder={'Target Servant'} onChange={targetServantHandler} mb="8px" >
                   {servantsMap}
                 </Select>
               </GridItem>
               <GridItem>
-                <Input className="form-input" name="end" type="text" readOnly={true} value={rollData.end} />
+                <Input className="form-input" name="end" type="date" readOnly={rollData.draft !== true} value={rollData.end} onClick={dateClickHandler} />
               </GridItem>
             </Grid>
           </GridItem>
