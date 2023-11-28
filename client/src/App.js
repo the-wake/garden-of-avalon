@@ -52,9 +52,10 @@ function App() {
           <Header />
           <main>
             <Routes>
-              <Route path="/" element={<ServantList />} />
+              <Route path="*" element={<SummonCalc />} /> */
+              {/* <Route path="/" element={<ServantList />} />
               <Route path="/servants/:id" element={<Servant />} />
-              <Route path="/calculator" element={<SummonCalc />} />
+              <Route path="/calculator" element={<SummonCalc />} /> */}
             </Routes>
           </main>
         </div>
