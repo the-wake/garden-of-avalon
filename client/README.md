@@ -1,70 +1,28 @@
-# Getting Started with Create React App
+# Garden of Avalon
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Garden of Avalon is a robust React-based currency calculator for Fate/Grand Order.
 
-## Available Scripts
+## Installation
 
-In the project directory, you can run:
+Garden of Avalon can be pulled from [Github](https://github.com/the-wake/garden-of-avalon) and run on localhost3001, but I recommend using the web app at [garden-of-avalon.net](https://www.garden-of-avalon.net/).
 
-### `npm start`
+## Usage
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Users can save a list of upcoming rolls, automatically calculating currency based on starting parameters, weekly/monthly gains, etc. Data is stored in local storage and re-populated when the app is reloaded.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Garden of Avalon was built in VS Code using npm, create-react-app, Chakra UI, and custom styling, hosted at a private SSL-secured VPS. 
 
-### `npm test`
+## Future Updates
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Garden of Avalon has two major features to be implemented:
 
-### `npm run build`
+* An event calculator. Currently the app doesn't have a way of parsing event rewards, so they need to be added to a roll manually via the Event SQ / Event Tickets fields.
+* A full-fledged node-express backend with a database and user account creation/saving.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Contact
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Made by Ben Martin.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+* Github: https://github.com/the-wake
+* Email: bmartin2009@gmail.com
+* Bug Reports: https://github.com/the-wake/garden-of-avalon/issues
