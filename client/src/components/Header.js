@@ -17,11 +17,11 @@ const Header = () => {
         <Heading as="h1" noOfLines={1}>
           Garden of Avalon
         </Heading>
-        <Spacer />
+        {/* <Spacer />
         <ButtonGroup as="nav" gap='2'>
           <ChakraLink as={ReactRouterLink} to={"/"}>Home</ChakraLink>
           <ChakraLink as={ReactRouterLink} to={"/calculator"}>Summon Calculator</ChakraLink>
-        </ButtonGroup>
+        </ButtonGroup> */}
       </Flex>
     </Box>
   )
