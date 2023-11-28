@@ -7,7 +7,7 @@ import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody,
 
 const AdjustMenu = ({ handleBulkUpdate, editState, savedRolls }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [adjustments, setAdjustments] = useState({ sqAdjust: 0, txAdjust: 0 });
+  const [adjustments, setAdjustments] = useState({ sqAdjust: '', txAdjust: '' });
 
   const handleAdjFormUpdate = (e) => {
     setAdjustments({ ...adjustments, [e.target.name]: e.target.value });
@@ -18,7 +18,7 @@ const AdjustMenu = ({ handleBulkUpdate, editState, savedRolls }) => {
   }, [adjustments]);
 
   useEffect(() => {
-    setAdjustments({ sqAdjust: 0, txAdjust: 0 });
+    setAdjustments({ sqAdjust: '', txAdjust: '' });
   }, [isOpen]);
 
   return (
