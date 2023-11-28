@@ -17,7 +17,7 @@ const NewSnapshot = ({ savedRolls, setSavedRolls }) => {
   const style = {
     backgroundColor: '#8888BB',
     borderRadius: '6px',
-    minHeight: '80px',
+    minHeight: '123px',
     textAlign: 'center',
     display: 'flex',
     paddingTop: '4px',

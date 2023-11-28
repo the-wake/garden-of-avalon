@@ -8,7 +8,7 @@ import { useSelector, useDispatch } from 'react-redux';
 
 import { useMediaQuery } from '@chakra-ui/react';
 import { Grid, GridItem, Flex, Spacer } from '@chakra-ui/react';
-import { FormControl, FormLabel, Input, Button, Select, Checkbox } from '@chakra-ui/react';
+import { FormControl, FormLabel, Input, Button, Select, Checkbox, Box } from '@chakra-ui/react';
 import Statistics from "statistics.js";
 
 import "react-datepicker/dist/react-datepicker.css";
@@ -84,7 +84,9 @@ const SummonCalc = () => {
     listEl: {
       flex: '3 2 400px',
       background: '#dae8ed',
-      borderRadius: '9px'
+      borderRadius: '9px',
+      overflowY: 'auto',
+      maxHeight: '1048px'
     },
   };
 
@@ -635,8 +637,8 @@ const SummonCalc = () => {
   };
 
   const handleBulkUpdate = (sq, tx) => {
-    sq = parseInt(sq);
-    tx = parseInt(tx);
+    sq = parseInt(sq) || 0;
+    tx = parseInt(tx) || 0;
     console.log(sq, tx);
 
     const newRolls = savedRolls.map((roll, pos) => {
@@ -727,7 +729,7 @@ const SummonCalc = () => {
                 </Select>
               </GridItem>
               <GridItem rowSpan={1} colSpan={2}>
-                <Checkbox name="alreadyPurchased" disabled={currency.purchasePeriod === 0} defaultChecked={false} >Already purchased this month?</Checkbox>
+                <Checkbox name="alreadyPurchased" disabled={currency.purchasePeriod === 0} defaultChecked={false} >Already purchased first month?</Checkbox>
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Event SQ:</FormLabel>
@@ -801,10 +803,10 @@ const SummonCalc = () => {
             </Grid>
           </FormControl>
         </div>
-        <div style={style.listEl}>
+        <Box style={style.listEl}>
           {rollMap()}
           <NewSnapshot savedRolls={savedRolls} setSavedRolls={setSavedRolls} />
-        </div>
+        </Box>
       </Flex>
       <CalcFooter summonStats={summonStats} setSummonStats={setSummonStats} calcOdds={calcOdds} editState={editState} handleEditCancel={handleEditCancel} handleBulkUpdate={handleBulkUpdate} savedRolls={savedRolls} setSavedRolls={setSavedRolls} saveSnapshot={saveSnapshot} clearForm={clearForm} noteChangeHandler={noteChangeHandler} noteSubmitHandler={noteSubmitHandler} />
     </>

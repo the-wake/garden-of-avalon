@@ -111,9 +111,15 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
         targetName,
         targetImage,
       });
-    } else {
+      // Changing end date on drafts was giving problems so trying some exception handling for it.
+    } else if (e.target.name !== 'end') {
       setRollData({ ...rollData, [e.target.name]: e.target.value });
-    };
+    }
+  };
+
+  // This runs on blur to avoid running afoul of the weird date elements in Chakra.
+  const dateChangeHandler = (e) => {
+    setRollData({ ...rollData, [e.target.name]: e.target.value })
   };
 
   // const dateRangeUpdate = () => {
@@ -151,7 +157,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
   const confirmEdit = (message) => {
     console.log(message);
     
-    let str = 'Load selected roll into the editing form?'
+    let str = 'Load roll into the editing form?'
     
     if (message === true) {
       str += ' (You can edit dates from the editor.)';
@@ -256,7 +262,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
   let servantsSoFar = [];
 
   const mapServant = (servant) => {
-    if (servant.rarity < 3 || welfareServants.includes(servant.collectionNo) || servant.type === 'enemyCollectionDetail' || servant.name === 'Altria Pendragon (Lily)' || servant.name === 'Habetrot') {
+    if (servant.rarity < 3 || welfareServants.includes(servant.collectionNo) || servant.type === 'enemyCollectionDetail') {
       return false;
     };
   };
@@ -328,7 +334,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
 
   return (
     <div style={editState === rollData.slot ? cardStyles.editing : cardStyles.normal}>
-      <Flex direction='column' align='center' justify='space-evenly' pr='6px' gap={1}>
+      <Flex direction='column' align='center' justify='space-between' pr='6px' gap={1}>
         <IconButton ml='4px' size='sm' aria-label='Move item up' name='moveUpIcon' isDisabled={rollData.slot === 0 || editState !== false} onClick={() => { moveSnapshot('up') }} icon={<ArrowUpIcon name='moveUp' />} />
         <IconButton ml='4px' size='sm' aria-label='Move item down' name='moveDownIcon' isDisabled={rollData.slot === savedRolls.length - 1 || editState !== false} onClick={() => { moveSnapshot('down') }} icon={<ArrowDownIcon name='moveDown' />} />
         <IconButton ml='4px' size='sm' aria-label='Edit item' icon={<ArrowBackIcon />} isDisabled={editState !== false} onClick={confirmEdit} />
@@ -359,7 +365,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
                 </Select>
               </GridItem>
               <GridItem>
-                <Input className="form-input" name="end" type="date" readOnly={rollData.draft !== true} value={rollData.end} onClick={dateClickHandler} />
+                <Input name="end" type="date" isReadOnly={rollData.draft !== true} defaultValue={rollData.end} onBlur={dateChangeHandler} />
               </GridItem>
             </Grid>
           </GridItem>
