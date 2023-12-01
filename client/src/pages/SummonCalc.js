@@ -124,9 +124,10 @@ const SummonCalc = () => {
     let dateClone = date;
     // console.log(total, streak, dateClone, today);
 
-    if (dateClone !== today) {
-      const difference = Math.floor(dayjs().diff(dateClone, 'days', true));
-      // console.log(`Difference: ${difference}`);
+    const difference = Math.floor(dayjs().diff(dateClone, 'days', true));
+
+    if (difference >= 1) {
+      console.log(`Difference: ${difference}`);
 
       // If it's been at least a week since last login, loop through difference to look for Master Mission refreshes in the elapsed duration.
       if (difference >= 7) {
@@ -134,7 +135,7 @@ const SummonCalc = () => {
 
         if (updateWeeklies) {
           const masterMissionGains = calcMasterMissions(dateClone, difference);
-          let sqNum = parseInt(currency.sqStarting);
+          let sqNum = parseInt(currency.sqStarting) || 0;
           setCurrency({ sqStarting: sqNum += parseInt(masterMissionGains) || 0 });
           // console.log(`Added ${masterMissionGains} SQ from Master Missions to ${sqNum} starting SQ.`);
         };
@@ -435,7 +436,7 @@ const SummonCalc = () => {
   }, [dateData]);
 
   useEffect(() => {
-    console.log('Saved Roll Data: ', savedRolls);
+    savedRolls.length > 0 && console.log('Saved Roll Data: ', savedRolls);
     localStorage.setItem('saved-rolls', JSON.stringify(savedRolls));
   }, [savedRolls]);
 
@@ -464,13 +465,27 @@ const SummonCalc = () => {
       console.log('New Prob: ', newProb);
       setSummonStats({ ...summonStats, [e.target.name]: e.target.value, prob: newProb });
     } else if (e.target.name === 'numRateup') {
-      const newProb = oddsObj[summonStats.rarity][e.target.value - 1];
-      console.log('New Prob: ', newProb);
-      setSummonStats({ ...summonStats, [e.target.name]: parseInt(e.target.value), prob: newProb });
+      if (e.target.value != 0) {
+        console.log(e.target.value);
+        const newProb = oddsObj[summonStats.rarity][e.target.value - 1];
+        console.log('New Prob: ', newProb);
+        setSummonStats({ ...summonStats, [e.target.name]: parseFloat(e.target.value), prob: newProb });
+      } else {
+        setSummonStats({ ...summonStats, numRateup: 0 });
+      }
+    } else if (e.target.name === 'prob') {
+      let newProb = e.target.value;
+      if (newProb > 1) newProb = 1;
+      console.log(`Changing prob to ${newProb}`);
+      setSummonStats({ ...summonStats, prob: parseInt(e.target.value) });
     } else if (e.target.name === 'desired') {
       setSummonStats({ ...summonStats, desired: parseInt(e.target.value) || 1 });
     };
   };
+
+  useEffect(() => {
+    console.log(summonStats)
+  }, [summonStats]);
 
   const saveSnapshot = () => {
     const savedRoll = {
