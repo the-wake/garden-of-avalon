@@ -332,6 +332,8 @@ const SummonCalc = () => {
     // p: prob
     // k: desired
 
+    if (p > 1) p = 1;
+
     var stats = new Statistics({
       n,
       p,
@@ -469,23 +471,18 @@ const SummonCalc = () => {
         console.log(e.target.value);
         const newProb = oddsObj[summonStats.rarity][e.target.value - 1];
         console.log('New Prob: ', newProb);
-        setSummonStats({ ...summonStats, [e.target.name]: parseFloat(e.target.value), prob: newProb });
+        setSummonStats({ ...summonStats, [e.target.name]: e.target.value, prob: newProb });
       } else {
         setSummonStats({ ...summonStats, numRateup: 0 });
       }
     } else if (e.target.name === 'prob') {
       let newProb = e.target.value;
-      if (newProb > 1) newProb = 1;
-      console.log(`Changing prob to ${newProb}`);
-      setSummonStats({ ...summonStats, prob: parseFloat(e.target.value) });
+      if (parseFloat(newProb) > 1) newProb = 1.00;
+      setSummonStats({ ...summonStats, prob: newProb });
     } else if (e.target.name === 'desired') {
       setSummonStats({ ...summonStats, desired: parseFloat(e.target.value) || 1 });
     };
   };
-
-  useEffect(() => {
-    console.log(summonStats)
-  }, [summonStats]);
 
   const saveSnapshot = () => {
     const savedRoll = {

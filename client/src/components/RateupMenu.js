@@ -40,14 +40,17 @@ const RateupMenu = ({ probHandler, summonStats, setSummonStats, oddsObj }) => {
           //   probHandler(e);
           //   e.target.value == 0 && onOpen();
           // }}
-          defaultValue={1}>
+          defaultValue={1}
+          value={summonStats.numRateup}>
           {optionsRender()}
           <option value={0}>Other (please specify odds manually)</option>
         </Select>
       </GridItem>
       <GridItem rowSpan={1} colSpan={1}>
         <FormLabel>Probability of success per roll:</FormLabel>
-        <Input className="form-input" isReadOnly={summonStats.numRateup != 0} name="prob" value={summonStats.prob} />
+        <NumberInput isReadOnly={summonStats.numRateup != 0} value={summonStats.prob} >
+          <NumberInputField className="form-input" name="prob" onChange={probHandler} />
+        </NumberInput>
       </GridItem>
 
       {/* <Modal isOpen={isOpen} onClose={onClose}>
