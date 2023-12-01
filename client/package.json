@@ -1,6 +1,7 @@
 {
-  "name": "fgo_helper",
+  "name": "garden-of-avalon",
   "version": "0.1.0",
+  "description": "Calculate and save your upcoming Fate/Grand Order rolls.",
   "private": true,
   "dependencies": {
     "@chakra-ui/icons": "^2.1.0",

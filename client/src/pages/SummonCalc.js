@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import getSlot from '../utils/getSlot.js';
 import sanitizeEmpty from '../utils/sanitizeEmpty.js';
-import DateHelper from '../utils/dateHelper.js';
+import dateHelper from '../utils/dateHelper.js';
 
 import { useSelector, useDispatch } from 'react-redux';
 
@@ -41,8 +41,8 @@ const SummonCalc = () => {
   });
 
   const [dateData, setDateData] = useState({
-    start: DateHelper(new Date().toLocaleDateString()),
-    end: DateHelper(new Date().toLocaleDateString())
+    start: dateHelper(new Date().toLocaleDateString()),
+    end: dateHelper(new Date().toLocaleDateString())
   });
 
   const [sums, setSums] = useState({
@@ -150,7 +150,8 @@ const SummonCalc = () => {
 
   // console.log(oddsObj);
 
-  const today = dayjs().format('YYYY/MM/DD');
+  const today = dateHelper(new Date().toLocaleDateString());
+  // console.log(today);
 
   // Update currency and calendar state from local storage on component render.
   useEffect(() => {
@@ -162,22 +163,26 @@ const SummonCalc = () => {
 
     if (localStorage.getItem('calendar-data')) {
       let { start, end } = JSON.parse(localStorage.getItem('calendar-data'));
-      const newStart = start
-      const newEnd = end;
-      setDateData({ start: newStart, end: newEnd });
+      // const newStart = dateHelper(new Date(start).toLocaleDateString());
+      // const newEnd = dateHelper(new Date(end).toLocaleDateString());
+      // console.log(start, end, newStart, newEnd);
+      setDateData({ start, end });
+    } else {
+      // const date = dateHelper(new Date().toLocaleDateString());
+      // console.log(date);
+      setDateData({ start: today, end: today });
     };
   }, []);
 
-  // Treats and sets login data and currency.
+  // Treats and sets login data and currency on page load.
   useEffect(() => {
-    let { total, streak, date } = JSON.parse(localStorage.getItem('login-data')) || 0;
-    let dateClone = dayjs(date).format('YYYY/MM/DD');
+    let total = JSON.parse(localStorage.getItem('login-data'))?.total || 0;
+    let streak = JSON.parse(localStorage.getItem('login-data'))?.streak || 0;
+    let date = JSON.parse(localStorage.getItem('login-data'))?.date || today;
+    let dateClone = date;
     console.log(total, streak, dateClone, today);
 
-    if (dateClone === today) {
-      console.log('today!')
-    } else {
-      // TODO: Make sure this is working re: Math.floor vs. Math.ciel.
+    if (dateClone !== today) {
       const difference = Math.floor(dayjs().diff(dateClone, 'days', true));
       console.log(`Difference: ${difference}`);
 
@@ -196,16 +201,18 @@ const SummonCalc = () => {
 
       // Get index of week for the day of the last calculation.
       const origin = streak % 7;
-      console.log(`Starting on index ${origin} of the daily array.`);
+      // console.log(`Starting on index ${origin} of the daily array.`);
 
-      const addCurrency = calcWeeklies(dateClone, difference, origin);
-      console.log('Adding to currency', addCurrency);
+      // const addCurrency = calcWeeklies(dateClone, difference, origin);
+      // console.log('Adding to currency', addCurrency);
 
       const monthsDiff = ((dayjs().$y - dayjs(dateClone).$y) * 12) + (dayjs().$M - dayjs(dateClone).$M);
-      if (monthsDiff !== 0) {
+      console.log(monthsDiff);
+      if (monthsDiff >= 1) {
         const shopUpdate = window.confirm(`${monthsDiff} months have elapsed since last update. Should we add monthly shop tickets to your reserves?`);
         if (shopUpdate) {
-          let { sqStarting, txStarting } = JSON.parse(localStorage.getItem('currency').reserves);
+          let { sqStarting, txStarting } = JSON.parse(localStorage.getItem('currency'));
+          console.log(sqStarting, txStarting);
           txStarting += monthsDiff * 5;
           setCurrency({ sqStarting, txStarting });
           console.log(`Updated reserves with ${monthsDiff * 5} summoning tickets. Now have ${currency.txStarting} summoning tickets`);
@@ -218,6 +225,7 @@ const SummonCalc = () => {
       console.log(`Updating login history to ${today}: ${total} total logins, ${streak} login streak.`);
     };
 
+    console.log("setting login data")
     // Update currency with new login rewards.
     setLoginData({
       total: total || 0,
@@ -765,11 +773,11 @@ const SummonCalc = () => {
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel># Daily Singles</FormLabel>
-                <Input name="dailySingles" type="input" placeholder="0" value={currency.dailySingles === 0 ? '' : currency.dailySingles} />
+                <Input name="dailySingles" type="number" placeholder="0" value={currency.dailySingles === 0 ? '' : currency.dailySingles} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Total Days</FormLabel>
-                <Input name="dateRange" type="input" readOnly={true} placeholder="0" value={totalDays() === 0 ? '' : totalDays()} />
+                <Input name="dateRange" type="number" disabled={true} placeholder="0" value={totalDays() === 0 ? '' : totalDays()} />
               </GridItem>
             </Grid>
             <Grid mt={6} templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
