@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import getSlot from '../utils/getSlot.js';
 import sanitizeEmpty from '../utils/sanitizeEmpty.js';
-import DateHelper from '../utils/dateHelper.js';
+import dateHelper from '../utils/dateHelper.js';
+import { periodic, oddsObj } from '../utils/staticData.js';
 
 import { useSelector, useDispatch } from 'react-redux';
 
@@ -18,7 +19,6 @@ import RateupMenu from '../components/RateupMenu.js';
 import CalcFooter from '../components/CalcFooter.js';
 import NewSnapshot from "../components/NewSnapshot";
 
-// TODO: Once we have MVP, refactor with reducers and better state handling.
 const SummonCalc = () => {
 
   const [loginData, setLoginData] = useState({});
@@ -41,8 +41,8 @@ const SummonCalc = () => {
   });
 
   const [dateData, setDateData] = useState({
-    start: DateHelper(new Date().toLocaleDateString()),
-    end: DateHelper(new Date().toLocaleDateString())
+    start: dateHelper(new Date().toLocaleDateString()),
+    end: dateHelper(new Date().toLocaleDateString())
   });
 
   const [sums, setSums] = useState({
@@ -99,62 +99,10 @@ const SummonCalc = () => {
     fallback: false, // return false on the server, and re-evaluate on the client side
   });
 
-  const periodic = {
-    weeklyLogin: [
-      {
-        type: 'fp',
-        val: 2000
-      },
-      {
-        type: 'sq',
-        val: 1
-      },
-      {
-        type: 'xp',
-        val: 1
-      },
-      {
-        type: 'sq',
-        val: 1
-      },
-      {
-        type: 'xp',
-        val: 2
-      },
-      {
-        type: 'sq',
-        val: 2
-      },
-      {
-        type: 'tx',
-        val: 1
-      },
-    ],
-    fullWeek: {
-      sq: 4,
-      tx: 1
-    },
-    totalLogin: {
-      sq: 30
-    },
-    shop: {
-      tx: 5
-    },
-  };
+  const today = dateHelper(new Date().toLocaleDateString());
 
-  const oddsObj = {
-    ssr: [0.008, 0.004],
-    sr: [0.015, 0.012, 0.007, 0.007, 0.005],
-    r: [0.04],
-  };
-
-  // console.log(oddsObj);
-
-  const today = dayjs().format('YYYY/MM/DD');
-
-  // Update currency and calendar state from local storage on component render.
+  // Update currency and calendar state from local storage on component render. (Could refactor into using a redux store.)
   useEffect(() => {
-    // TODO: This should probably use a context provider.
     if (localStorage.getItem('currency')) {
       let localCurrency = JSON.parse(localStorage.getItem('currency'));
       setCurrency(localCurrency);
@@ -162,23 +110,23 @@ const SummonCalc = () => {
 
     if (localStorage.getItem('calendar-data')) {
       let { start, end } = JSON.parse(localStorage.getItem('calendar-data'));
-      const newStart = start
-      const newEnd = end;
-      setDateData({ start: newStart, end: newEnd });
+      setDateData({ start, end });
+    } else {
+      setDateData({ start: today, end: today });
     };
   }, []);
 
-  // Treats and sets login data and currency.
+  // Treats and sets login data and currency on page load.
   useEffect(() => {
-    let { total, streak, date } = JSON.parse(localStorage.getItem('login-data')) || 0;
-    let dateClone = dayjs(date).format('YYYY/MM/DD');
-    console.log(total, streak, dateClone, today);
+    let total = JSON.parse(localStorage.getItem('login-data'))?.total || 0;
+    let streak = JSON.parse(localStorage.getItem('login-data'))?.streak || 0;
+    let date = JSON.parse(localStorage.getItem('login-data'))?.date || today;
+    let dateClone = date;
+    // console.log(total, streak, dateClone, today);
 
-    if (dateClone === today) {
-      console.log('today!')
-    } else {
-      // TODO: Make sure this is working re: Math.floor vs. Math.ciel.
-      const difference = Math.floor(dayjs().diff(dateClone, 'days', true));
+    const difference = Math.floor(dayjs().diff(dateClone, 'days', true));
+
+    if (difference >= 1) {
       console.log(`Difference: ${difference}`);
 
       // If it's been at least a week since last login, loop through difference to look for Master Mission refreshes in the elapsed duration.
@@ -187,25 +135,26 @@ const SummonCalc = () => {
 
         if (updateWeeklies) {
           const masterMissionGains = calcMasterMissions(dateClone, difference);
-          let sqNum = parseInt(currency.sqStarting);
+          let sqNum = parseInt(currency.sqStarting) || 0;
           setCurrency({ sqStarting: sqNum += parseInt(masterMissionGains) || 0 });
-          console.log(`Added ${masterMissionGains} SQ from Master Missions to ${sqNum} starting SQ.`);
+          // console.log(`Added ${masterMissionGains} SQ from Master Missions to ${sqNum} starting SQ.`);
         };
       };
-      // console.log(`Last check was ${difference} days ago!`);
 
       // Get index of week for the day of the last calculation.
-      const origin = streak % 7;
-      console.log(`Starting on index ${origin} of the daily array.`);
+      // const origin = streak % 7;
+      // console.log(`Starting on index ${origin} of the daily array.`);
 
-      const addCurrency = calcWeeklies(dateClone, difference, origin);
-      console.log('Adding to currency', addCurrency);
+      // const addCurrency = calcWeeklies(dateClone, difference, origin);
+      // console.log('Adding to currency', addCurrency);
 
       const monthsDiff = ((dayjs().$y - dayjs(dateClone).$y) * 12) + (dayjs().$M - dayjs(dateClone).$M);
-      if (monthsDiff !== 0) {
+      // console.log(monthsDiff);
+      if (monthsDiff >= 1) {
         const shopUpdate = window.confirm(`${monthsDiff} months have elapsed since last update. Should we add monthly shop tickets to your reserves?`);
         if (shopUpdate) {
-          let { sqStarting, txStarting } = JSON.parse(localStorage.getItem('currency').reserves);
+          let { sqStarting, txStarting } = JSON.parse(localStorage.getItem('currency'));
+          console.log(sqStarting, txStarting);
           txStarting += monthsDiff * 5;
           setCurrency({ sqStarting, txStarting });
           console.log(`Updated reserves with ${monthsDiff * 5} summoning tickets. Now have ${currency.txStarting} summoning tickets`);
@@ -259,13 +208,9 @@ const SummonCalc = () => {
 
       // Course through weeklyGains to find matching rewards.
       if (thisLogin.type in weeklyGains) {
-        // console.log(`Corresponding value found: ${thisLogin.type}`);
         weeklyGains[thisLogin.type] += thisLogin.val;
       };
     };
-    // console.log(`Added ${weeklyGains.sq} Saint Quartz and ${weeklyGains.tx} Summoning Tickets.`)
-    // console.log(weeklyGains);
-
     return weeklyGains;
   };
 
@@ -299,7 +244,7 @@ const SummonCalc = () => {
     const endingLogins = startIndex + distance;
     const loginSQ = Math.floor(endingLogins / 50) * 30;
 
-    console.log(`${distance} days until end date. Total logins gain will be ${loginSQ} Quartz.`);
+    // console.log(`${distance} days until end date. Total logins gain will be ${loginSQ} Quartz.`);
 
     return loginSQ;
   };
@@ -309,7 +254,7 @@ const SummonCalc = () => {
 
     const shopTx = monthDistance * 5;
 
-    console.log(`${monthDistance} shop resets within target range, giving ${shopTx} Tickets.`);
+    // console.log(`${monthDistance} shop resets within target range, giving ${shopTx} Tickets.`);
 
     return shopTx;
   };
@@ -339,7 +284,6 @@ const SummonCalc = () => {
   };
 
   const calcSums = () => {
-    // console.log(rollObj);
     // Purchases should be sent as an object and destructured into number of purchases and number of SQ per. Everything else can probably come from state since the element sending the function call probably won't have direct access to that data.
 
     const start = dayjs(dateData.start);
@@ -350,10 +294,7 @@ const SummonCalc = () => {
     };
 
     let numDays = Math.ceil(dayjs(end).diff(dayjs(start), 'day', true));
-    // console.log(numDays);
     const numMonths = (end.$y - start.$y) * 12 + (end.$M - start.$M);
-    // console.log(numDays);
-    // console.log(numMonths);
 
     const startingSq = currency.sqStarting || 0
     const startingTx = currency.txStarting || 0;
@@ -369,60 +310,29 @@ const SummonCalc = () => {
     const spentSq = parseInt(currency.sqMinus) || 0;
     const spentTx = parseInt(currency.txMinus) || 0;
     const dailySpending = parseInt(currency.dailySingles) * numDays || 0;
-    console.log(currency, numDays, dailySpending);
-
-    // console.log(weeklies, logins, shop, events, purchases, otherSq, otherTx);
 
     const gainedSq = parseInt(weeklies.sq + logins + events.sq);
     const gainedTx = parseInt(weeklies.tx + shop + events.tx);
 
-    // console.log(weeklies.tx, shop, events.tx);
-
-    // console.log(gains, weeklies)
 
     const newSq = gainedSq + startingSq + purchases + eventSq + otherSq - spentSq - dailySpending || 0;
     const newTx = gainedTx + startingTx + +eventTx + otherTx - spentTx || 0;
 
-    // console.log(spentSq, spentTx);
-
-    // console.log(gainedTx, startingTx, otherTx);
-
-    // console.log(gainedSq, startingSq, startingTx, purchases, otherSq);
-
-    // Doesn't currently return anything, but running setSums will useEffect setSums.totalSummons.
-
-    // let total = Math.floor((newSq / 3 + newTx) + Math.floor((newSq / 3 + newTx) / 10));
-
-    // if (isNaN(total) || total < 0) {
-    //   total = 0;
-    // };
-
-    // console.log(total);
-    // setSums({ sqSum: newSq, txSum: newTx, totalSummons: total });
     const newSummons = totalSummons(newSq, newTx);
     setSums({ sqSum: newSq, txSum: newTx, totalSummons: newSummons });
 
     const newOdds = calcOdds(newSummons, summonStats.prob, summonStats.desired);
 
-    // if (rollObj) {
-    //   // const nSummons = totalSummons(null, null, newSummons);
-    //   console.log(`Updating existing roll, ${newSummons} rolls total`)
-    //   console.log({ ...rollObj, totalSummons: totalSummons(null, null, newSummons), summonOdds: newOdds });
-    //   return { ...rollObj, totalSummons: totalSummons(null, null, newSummons), summonOdds: newOdds };
-    // }
-    // else {
     setElementState({ ...elementState, odds: true });
-    // setTimeout(() => {
     setSummonStats({ ...summonStats, summonOdds: newOdds });
-    // }, 500);
-    // };
-    // return currency;
   };
 
   const calcOdds = (n, p, k) => {
     // n: total summons
     // p: prob
     // k: desired
+
+    if (p > 1) p = 1;
 
     var stats = new Statistics({
       n,
@@ -470,11 +380,6 @@ const SummonCalc = () => {
     return total;
   };
 
-  // Necessary?
-  // useEffect(() => {
-  //   totalSummons(sums.sqSum, sums.txSum);
-  // }, [sums.sqSum, sums.txSum]);
-
   const handleFormUpdate = (e) => {
     // const currencyVals = ['sqPurchase', 'purchasePeriod', 'alreadyPurchased', 'sqStarting', 'txStarting', 'sqIncome', 'txIncome', 'sqExtra', 'txExtra'];
 
@@ -484,7 +389,7 @@ const SummonCalc = () => {
     if (!isNaN(parseInt(targetVal))) {
       targetVal = parseInt(targetVal);
     };
-    console.log(targetVal);
+    // console.log(targetVal);
 
     // Handle login updates. (Dates are handled separately.)
     if (e.target.name === 'start' || e.target.name === 'end') {
@@ -533,7 +438,7 @@ const SummonCalc = () => {
   }, [dateData]);
 
   useEffect(() => {
-    console.log(savedRolls);
+    savedRolls.length > 0 && console.log('Saved Roll Data: ', savedRolls);
     localStorage.setItem('saved-rolls', JSON.stringify(savedRolls));
   }, [savedRolls]);
 
@@ -553,16 +458,6 @@ const SummonCalc = () => {
       txMinus: '',
       dailySingles: ''
     });
-
-    // setSummonStats({
-    //   ...summonStats,
-    //   summonNotes: ''
-    // });
-
-    // setDateData({
-    //   start: '',
-    //   end: ''
-    // });
   };
 
   const probHandler = (e) => {
@@ -572,11 +467,20 @@ const SummonCalc = () => {
       console.log('New Prob: ', newProb);
       setSummonStats({ ...summonStats, [e.target.name]: e.target.value, prob: newProb });
     } else if (e.target.name === 'numRateup') {
-      const newProb = oddsObj[summonStats.rarity][e.target.value - 1];
-      console.log('New Prob: ', newProb);
-      setSummonStats({ ...summonStats, [e.target.name]: parseInt(e.target.value), prob: newProb });
+      if (e.target.value != 0) {
+        console.log(e.target.value);
+        const newProb = oddsObj[summonStats.rarity][e.target.value - 1];
+        console.log('New Prob: ', newProb);
+        setSummonStats({ ...summonStats, [e.target.name]: e.target.value, prob: newProb });
+      } else {
+        setSummonStats({ ...summonStats, numRateup: 0 });
+      }
+    } else if (e.target.name === 'prob') {
+      let newProb = e.target.value;
+      if (parseFloat(newProb) > 1) newProb = 1.00;
+      setSummonStats({ ...summonStats, prob: newProb });
     } else if (e.target.name === 'desired') {
-      setSummonStats({ ...summonStats, desired: parseInt(e.target.value) || 1 });
+      setSummonStats({ ...summonStats, desired: parseFloat(e.target.value) || 1 });
     };
   };
 
@@ -587,10 +491,6 @@ const SummonCalc = () => {
       ...sums,
       ...summonStats,
     };
-    // console.log(dateData);
-    // savedRoll.start = dateData.start;
-    // savedRoll.end = dateData.end;
-    // console.log(savedRoll);
 
     // If making a new entry, generate a slot and save it.
     if (editState === false) {
@@ -629,7 +529,6 @@ const SummonCalc = () => {
   const totalDays = () => {
     const start = dayjs(dateData.start);
     const end = dayjs(dateData.end);
-    // Was ceil, changed to floor.
     let range = Math.floor(end.diff(start, 'days', true));
     // console.log(range);
     isNaN(range) ? range = 0 : range = range;
@@ -656,10 +555,6 @@ const SummonCalc = () => {
     console.log(newRolls);
     setSavedRolls(newRolls);
   };
-
-  useEffect(() => {
-    console.log(summonStats.summonOdds);
-  }, [summonStats.summonOdds]);
 
   const rollMap = () => {
     {
@@ -765,11 +660,11 @@ const SummonCalc = () => {
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel># Daily Singles</FormLabel>
-                <Input name="dailySingles" type="input" placeholder="0" value={currency.dailySingles === 0 ? '' : currency.dailySingles} />
+                <Input name="dailySingles" type="number" placeholder="0" value={currency.dailySingles === 0 ? '' : currency.dailySingles} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Total Days</FormLabel>
-                <Input name="dateRange" type="input" readOnly={true} placeholder="0" value={totalDays() === 0 ? '' : totalDays()} />
+                <Input name="dateRange" type="number" disabled={true} placeholder="0" value={totalDays() === 0 ? '' : totalDays()} />
               </GridItem>
             </Grid>
             <Grid mt={6} templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>

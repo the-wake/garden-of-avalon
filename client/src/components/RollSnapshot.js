@@ -365,7 +365,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
                 </Select>
               </GridItem>
               <GridItem>
-                <Input name="end" type="date" isReadOnly={rollData.draft !== true} defaultValue={rollData.end} onBlur={dateChangeHandler} />
+                <Input name="end" type="date" isReadOnly={rollData.draft !== true} defaultValue={rollData.end} onBlur={dateChangeHandler} onClick={dateClickHandler} />
               </GridItem>
             </Grid>
           </GridItem>

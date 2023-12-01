@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 
-
 import { useSelector, useDispatch } from 'react-redux'
-import { getAllServants, addServant, removeServant } from './features/servant/servantSlice.js';
+import { getAllServants, setLoading, addServant, removeServant } from './features/servant/servantSlice.js';
 
 import ServantList from './components/ServantList.js';
 import Servant from './components/Servant.js';
@@ -15,7 +14,7 @@ import './App.css';
 function App() {
   const servantData = useSelector((state) => state.servants.roster);
   const loading = useSelector((state) => state.servants.loading);
-  console.log(servantData);
+  // console.log(servantData);
 
   const dispatch = useDispatch();
 
@@ -28,8 +27,7 @@ function App() {
     fetch('https://api.atlasacademy.io/export/JP/basic_servant_lang_en.json')
       .then(response => response.json())
       .then(servants => {
-        console.log(servants);
-
+        // console.log(servants);
         // First Hassan ends up out of alphabetical order due to quotation marks, so we sanitize the data before passing it to the redux store.
         const treatedServants = [...servants].map((servant, pos) => {
           if (servant.name[0] === '"') {
@@ -38,9 +36,10 @@ function App() {
             return servant;
           };
         });
-        console.log(treatedServants);
+        // console.log(treatedServants);
 
         dispatch(getAllServants(treatedServants));
+        dispatch(setLoading(false));
       })
       .catch(error => console.error(error));
   }, []);
@@ -51,12 +50,15 @@ function App() {
         <div className="App">
           <Header />
           <main>
-            <Routes>
-              <Route path="*" element={<SummonCalc />} /> */
-              {/* <Route path="/" element={<ServantList />} />
+            {loading
+              ? <></>
+              : <Routes>
+                <Route path="*" element={<SummonCalc />} /> */
+                {/* <Route path="/" element={<ServantList />} />
               <Route path="/servants/:id" element={<Servant />} />
               <Route path="/calculator" element={<SummonCalc />} /> */}
-            </Routes>
+              </Routes>
+            }
           </main>
         </div>
       </Router>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Input, Button, Flex, Heading, FormControl, FormLabel } from '@chakra-ui/react';
 import getSlot from '../utils/getSlot.js';
 import dateHelper from '../utils/dateHelper.js'
@@ -7,6 +7,8 @@ import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody,
 
 const NewSnapshot = ({ savedRolls, setSavedRolls }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const initialRef = useRef(null);
+
   const [bannerData, setBannerData] = useState({
     end: dateHelper(new Date().toLocaleDateString()),
     targetNo: '',
@@ -27,9 +29,9 @@ const NewSnapshot = ({ savedRolls, setSavedRolls }) => {
 
   const rollUpdateHandler = (e) => setBannerData({ ...bannerData, [e.target.name]: e.target.value });
 
-  useEffect(() => {
-    console.log(bannerData);
-  }, bannerData);
+  // useEffect(() => {
+  //   console.log(bannerData);
+  // }, [bannerData]);
 
   // TODO: Could add Servant Selection to this as well, but that would make more sense if we refactor this list into a store.
 
@@ -77,7 +79,7 @@ const NewSnapshot = ({ savedRolls, setSavedRolls }) => {
         <Heading as="h3" size="md" >New Blank Snapshot</Heading>
       </Flex>
 
-      <Modal isOpen={isOpen} onClose={onClose}>
+      <Modal isOpen={isOpen} onClose={onClose} initialFocusRef={initialRef}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Save a New Snapshot</ModalHeader>
@@ -96,7 +98,7 @@ const NewSnapshot = ({ savedRolls, setSavedRolls }) => {
               onClose();
               setBannerData({ ...bannerData, end: dateHelper(new Date().toLocaleDateString()) });
             }}>Cancel</Button>
-            <Button colorScheme="blue"
+            <Button colorScheme="blue" ref={initialRef}
               onClick={() => {
                 newRollHandler();
                 setBannerData({ ...bannerData, end: dateHelper(new Date().toLocaleDateString()) });

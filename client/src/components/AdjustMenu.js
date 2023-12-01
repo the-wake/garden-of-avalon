@@ -14,10 +14,6 @@ const AdjustMenu = ({ handleBulkUpdate, editState, savedRolls }) => {
   };
 
   useEffect(() => {
-    console.log(adjustments);
-  }, [adjustments]);
-
-  useEffect(() => {
     setAdjustments({ sqAdjust: '', txAdjust: '' });
   }, [isOpen]);
 
