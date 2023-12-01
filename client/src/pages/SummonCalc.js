@@ -477,9 +477,9 @@ const SummonCalc = () => {
       let newProb = e.target.value;
       if (newProb > 1) newProb = 1;
       console.log(`Changing prob to ${newProb}`);
-      setSummonStats({ ...summonStats, prob: parseInt(e.target.value) });
+      setSummonStats({ ...summonStats, prob: parseFloat(e.target.value) });
     } else if (e.target.name === 'desired') {
-      setSummonStats({ ...summonStats, desired: parseInt(e.target.value) || 1 });
+      setSummonStats({ ...summonStats, desired: parseFloat(e.target.value) || 1 });
     };
   };
 

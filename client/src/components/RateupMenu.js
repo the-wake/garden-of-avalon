@@ -8,12 +8,12 @@ import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody,
 import "react-datepicker/dist/react-datepicker.css";
 
 const RateupMenu = ({ probHandler, summonStats, setSummonStats, oddsObj }) => {
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const [newProb, setNewProb] = useState('')
+  // const { isOpen, onOpen, onClose } = useDisclosure();
+  // const [newProb, setNewProb] = useState('')
 
-  const probChangeHandler = (e) => {
-    setNewProb(e.target.value);
-  };
+  // const probChangeHandler = (e) => {
+  //   setNewProb(e.target.value);
+  // };
 
   const optionsRender = () => {
     return oddsObj[summonStats.rarity].map((odds, index) => {
@@ -35,10 +35,11 @@ const RateupMenu = ({ probHandler, summonStats, setSummonStats, oddsObj }) => {
       </GridItem>
       <GridItem rowSpan={1} colSpan={1}>
         <FormLabel>Total Servants on Rateup:</FormLabel>
-        <Select className="form-input" name="numRateup" type="text" onChange={(e) => {
-          probHandler(e);
-          e.target.value == 0 && onOpen();
-        }}
+        <Select className="form-input" name="numRateup" type="text" onChange={probHandler}
+          // onChange={(e) => {
+          //   probHandler(e);
+          //   e.target.value == 0 && onOpen();
+          // }}
           defaultValue={1}>
           {optionsRender()}
           <option value={0}>Other (please specify odds manually)</option>
@@ -46,10 +47,10 @@ const RateupMenu = ({ probHandler, summonStats, setSummonStats, oddsObj }) => {
       </GridItem>
       <GridItem rowSpan={1} colSpan={1}>
         <FormLabel>Probability of success per roll:</FormLabel>
-        <Input className="form-input" isReadOnly={true} name="prob" value={summonStats.prob} />
+        <Input className="form-input" isReadOnly={summonStats.numRateup != 0} name="prob" value={summonStats.prob} />
       </GridItem>
 
-      <Modal isOpen={isOpen} onClose={onClose}>
+      {/* <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Enter Manual odds</ModalHeader>
@@ -74,7 +75,7 @@ const RateupMenu = ({ probHandler, summonStats, setSummonStats, oddsObj }) => {
             >Adjust Rolls</Button>
           </ModalFooter>
         </ModalContent>
-      </Modal>
+      </Modal> */}
     </>
   );
 };
