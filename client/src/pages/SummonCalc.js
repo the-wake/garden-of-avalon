@@ -163,13 +163,8 @@ const SummonCalc = () => {
 
     if (localStorage.getItem('calendar-data')) {
       let { start, end } = JSON.parse(localStorage.getItem('calendar-data'));
-      // const newStart = dateHelper(new Date(start).toLocaleDateString());
-      // const newEnd = dateHelper(new Date(end).toLocaleDateString());
-      // console.log(start, end, newStart, newEnd);
       setDateData({ start, end });
     } else {
-      // const date = dateHelper(new Date().toLocaleDateString());
-      // console.log(date);
       setDateData({ start: today, end: today });
     };
   }, []);
@@ -180,11 +175,11 @@ const SummonCalc = () => {
     let streak = JSON.parse(localStorage.getItem('login-data'))?.streak || 0;
     let date = JSON.parse(localStorage.getItem('login-data'))?.date || today;
     let dateClone = date;
-    console.log(total, streak, dateClone, today);
+    // console.log(total, streak, dateClone, today);
 
     if (dateClone !== today) {
       const difference = Math.floor(dayjs().diff(dateClone, 'days', true));
-      console.log(`Difference: ${difference}`);
+      // console.log(`Difference: ${difference}`);
 
       // If it's been at least a week since last login, loop through difference to look for Master Mission refreshes in the elapsed duration.
       if (difference >= 7) {
@@ -194,13 +189,13 @@ const SummonCalc = () => {
           const masterMissionGains = calcMasterMissions(dateClone, difference);
           let sqNum = parseInt(currency.sqStarting);
           setCurrency({ sqStarting: sqNum += parseInt(masterMissionGains) || 0 });
-          console.log(`Added ${masterMissionGains} SQ from Master Missions to ${sqNum} starting SQ.`);
+          // console.log(`Added ${masterMissionGains} SQ from Master Missions to ${sqNum} starting SQ.`);
         };
       };
       // console.log(`Last check was ${difference} days ago!`);
 
       // Get index of week for the day of the last calculation.
-      const origin = streak % 7;
+      // const origin = streak % 7;
       // console.log(`Starting on index ${origin} of the daily array.`);
 
       // const addCurrency = calcWeeklies(dateClone, difference, origin);
@@ -225,7 +220,7 @@ const SummonCalc = () => {
       console.log(`Updating login history to ${today}: ${total} total logins, ${streak} login streak.`);
     };
 
-    console.log("setting login data")
+    // console.log("setting login data")
     // Update currency with new login rewards.
     setLoginData({
       total: total || 0,
@@ -307,7 +302,7 @@ const SummonCalc = () => {
     const endingLogins = startIndex + distance;
     const loginSQ = Math.floor(endingLogins / 50) * 30;
 
-    console.log(`${distance} days until end date. Total logins gain will be ${loginSQ} Quartz.`);
+    // console.log(`${distance} days until end date. Total logins gain will be ${loginSQ} Quartz.`);
 
     return loginSQ;
   };
@@ -317,7 +312,7 @@ const SummonCalc = () => {
 
     const shopTx = monthDistance * 5;
 
-    console.log(`${monthDistance} shop resets within target range, giving ${shopTx} Tickets.`);
+    // console.log(`${monthDistance} shop resets within target range, giving ${shopTx} Tickets.`);
 
     return shopTx;
   };
@@ -377,7 +372,7 @@ const SummonCalc = () => {
     const spentSq = parseInt(currency.sqMinus) || 0;
     const spentTx = parseInt(currency.txMinus) || 0;
     const dailySpending = parseInt(currency.dailySingles) * numDays || 0;
-    console.log(currency, numDays, dailySpending);
+    // console.log(currency, numDays, dailySpending);
 
     // console.log(weeklies, logins, shop, events, purchases, otherSq, otherTx);
 
@@ -492,7 +487,13 @@ const SummonCalc = () => {
     if (!isNaN(parseInt(targetVal))) {
       targetVal = parseInt(targetVal);
     };
+
+    if (targetVal === 0) {
+      targetVal = ''
+    };
+
     console.log(targetVal);
+    // console.log(targetVal);
 
     // Handle login updates. (Dates are handled separately.)
     if (e.target.name === 'start' || e.target.name === 'end') {
@@ -541,7 +542,7 @@ const SummonCalc = () => {
   }, [dateData]);
 
   useEffect(() => {
-    console.log(savedRolls);
+    console.log('Saved Roll Data: ', savedRolls);
     localStorage.setItem('saved-rolls', JSON.stringify(savedRolls));
   }, [savedRolls]);
 
@@ -665,9 +666,9 @@ const SummonCalc = () => {
     setSavedRolls(newRolls);
   };
 
-  useEffect(() => {
-    console.log(summonStats.summonOdds);
-  }, [summonStats.summonOdds]);
+  // useEffect(() => {
+  //   console.log(summonStats.summonOdds);
+  // }, [summonStats.summonOdds]);
 
   const rollMap = () => {
     {

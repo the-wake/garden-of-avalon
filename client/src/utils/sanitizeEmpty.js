@@ -7,7 +7,7 @@ const sanitizeEmpty = (obj) => {
       obj[key] = 0;
     };
   });
-  console.log('Sanitized', obj);
+  // console.log('Sanitized', obj);
   return obj;
 };
 

@@ -27,9 +27,9 @@ const NewSnapshot = ({ savedRolls, setSavedRolls }) => {
 
   const rollUpdateHandler = (e) => setBannerData({ ...bannerData, [e.target.name]: e.target.value });
 
-  useEffect(() => {
-    console.log(bannerData);
-  }, bannerData);
+  // useEffect(() => {
+  //   console.log(bannerData);
+  // }, [bannerData]);
 
   // TODO: Could add Servant Selection to this as well, but that would make more sense if we refactor this list into a store.
 

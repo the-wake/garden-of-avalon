@@ -34,6 +34,6 @@ export const servantSlice = createSlice({
   },
 });
 
-export const { getAllServants, addServant, removeServant } = servantSlice.actions;
+export const { getAllServants, setLoading, addServant, removeServant } = servantSlice.actions;
 
 export default servantSlice.reducer;
