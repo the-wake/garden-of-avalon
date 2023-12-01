@@ -19,10 +19,8 @@ import RateupMenu from '../components/RateupMenu.js';
 import CalcFooter from '../components/CalcFooter.js';
 import NewSnapshot from "../components/NewSnapshot";
 
-// TODO: Once we have MVP, refactor with reducers and better state handling.
 const SummonCalc = () => {
 
-  // console.log(periodic);
   const [loginData, setLoginData] = useState({});
 
   const [currency, setCurrency] = useState({
@@ -103,9 +101,8 @@ const SummonCalc = () => {
 
   const today = dateHelper(new Date().toLocaleDateString());
 
-  // Update currency and calendar state from local storage on component render.
+  // Update currency and calendar state from local storage on component render. (Could refactor into using a redux store.)
   useEffect(() => {
-    // TODO: This should probably use a context provider.
     if (localStorage.getItem('currency')) {
       let localCurrency = JSON.parse(localStorage.getItem('currency'));
       setCurrency(localCurrency);
@@ -142,7 +139,6 @@ const SummonCalc = () => {
           // console.log(`Added ${masterMissionGains} SQ from Master Missions to ${sqNum} starting SQ.`);
         };
       };
-      // console.log(`Last check was ${difference} days ago!`);
 
       // Get index of week for the day of the last calculation.
       // const origin = streak % 7;
@@ -152,7 +148,7 @@ const SummonCalc = () => {
       // console.log('Adding to currency', addCurrency);
 
       const monthsDiff = ((dayjs().$y - dayjs(dateClone).$y) * 12) + (dayjs().$M - dayjs(dateClone).$M);
-      console.log(monthsDiff);
+      // console.log(monthsDiff);
       if (monthsDiff >= 1) {
         const shopUpdate = window.confirm(`${monthsDiff} months have elapsed since last update. Should we add monthly shop tickets to your reserves?`);
         if (shopUpdate) {
@@ -170,7 +166,6 @@ const SummonCalc = () => {
       console.log(`Updating login history to ${today}: ${total} total logins, ${streak} login streak.`);
     };
 
-    // console.log("setting login data")
     // Update currency with new login rewards.
     setLoginData({
       total: total || 0,
@@ -212,13 +207,9 @@ const SummonCalc = () => {
 
       // Course through weeklyGains to find matching rewards.
       if (thisLogin.type in weeklyGains) {
-        // console.log(`Corresponding value found: ${thisLogin.type}`);
         weeklyGains[thisLogin.type] += thisLogin.val;
       };
     };
-    // console.log(`Added ${weeklyGains.sq} Saint Quartz and ${weeklyGains.tx} Summoning Tickets.`)
-    // console.log(weeklyGains);
-
     return weeklyGains;
   };
 
