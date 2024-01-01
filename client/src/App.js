@@ -39,7 +39,7 @@ function App() {
         // console.log(treatedServants);
 
         dispatch(getAllServants(treatedServants));
-        dispatch(setLoading(false));
+        dispatch(setLoading(true));
       })
       .catch(error => console.error(error));
   }, []);
@@ -51,7 +51,7 @@ function App() {
           <Header />
           <main>
             {loading
-              ? <></>
+              ? <p>Only those free of sin may pass...</p>
               : <Routes>
                 <Route path="*" element={<SummonCalc />} /> */
                 {/* <Route path="/" element={<ServantList />} />
