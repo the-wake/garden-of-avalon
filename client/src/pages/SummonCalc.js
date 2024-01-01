@@ -178,7 +178,7 @@ const SummonCalc = () => {
   // TODO: We could make a treatment function that just loops through two arguments' year / month / day fields, but since different functions do different things with the data it may be too convoluted.
 
   // Calculates master missions. Could rename to calcStreak instead to be clearer what data it cares about and produces.
-  const calcWeeklies = (start, numDays, origin) => {
+  const calcWeeklies = (start, numDays, origin = 0) => {
     // console.log(`Calculating weeklies. Start: ${start}; numDays: ${numDays}.`);
 
     // console.log(`${numDays} days from today to start date.`)
@@ -186,6 +186,7 @@ const SummonCalc = () => {
     // The weekly index of the start day.
     let index;
     // console.log(origin || numDays);
+
     origin <= 6 ? index = origin : index = (loginData.streak + numDays) % 7;
 
     let weeklyGains = {
