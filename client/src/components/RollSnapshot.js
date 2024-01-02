@@ -321,25 +321,25 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
     };
   };
 
-  const overrideSubmitHandler = () => {
-    // console.log(editState);
-    const currentRoll = savedRolls[targetNoteSlot];
-    const updatedRoll = { ...currentRoll, summonNotes: currentNote };
-    console.log(updatedRoll);
+  // const overrideSubmitHandler = () => {
+  //   // console.log(editState);
+  //   const currentRoll = savedRolls[targetNoteSlot];
+  //   const updatedRoll = { ...currentRoll, summonNotes: currentNote };
+  //   console.log(updatedRoll);
 
-    const updatedRolls = savedRolls.map((roll, pos) => {
-      // console.log(roll);
-      if (roll.slot === targetNoteSlot) {
-        return updatedRoll;
-      } else {
-        return roll;
-      }
-    });
-    // console.log(updatedRolls);
-    setSavedRolls(updatedRolls);
-    setTargetNoteSlot(false);
-    dispatch(updateNote(''));
-  };
+  //   const updatedRolls = savedRolls.map((roll, pos) => {
+  //     // console.log(roll);
+  //     if (roll.slot === targetNoteSlot) {
+  //       return updatedRoll;
+  //     } else {
+  //       return roll;
+  //     }
+  //   });
+  //   // console.log(updatedRolls);
+  //   setSavedRolls(updatedRolls);
+  //   setTargetNoteSlot(false);
+  //   dispatch(updateNote(''));
+  // };
 
   return (
     <div style={editState === rollData.slot ? cardStyles.editing : cardStyles.normal}>
@@ -457,7 +457,11 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
         </Grid >
       </FormControl>
 
-      <Modal isOpen={isOpen} onClose={() => { onClose(); notesReset(); }}>
+      <Modal isOpen={isOpen} onClose={() => {
+        noteSubmitHandler(targetNoteSlot);
+        onClose();
+        notesReset(targetNoteSlot);
+      }}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Notes</ModalHeader>

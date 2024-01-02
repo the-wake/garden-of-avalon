@@ -80,7 +80,7 @@ const SummonCalc = () => {
 
   const [editState, setEditState] = useState(false);
 
-  const [noteOverride, setNoteOverride] = useState({ slot: 0, summonNotes: "" });
+  // const [noteOverride, setNoteOverride] = useState({ slot: 0, summonNotes: "" });
 
   const [savedRolls, setSavedRolls] = useState(JSON.parse(localStorage.getItem('saved-rolls')) || []);
 
@@ -576,7 +576,8 @@ const SummonCalc = () => {
         <GridItem key={`${roll.slot}-${JSON.stringify(roll)}`}>
           <RollSnapshot key={pos}
             rollObj={roll}
-            savedRolls={savedRolls} setSavedRolls={setSavedRolls} setDateData={setDateData} setCurrency={setCurrency} setSums={setSums} summonStats={summonStats} setSummonStats={setSummonStats} editState={editState} setEditState={setEditState} rollIndex={roll.slot} calcOdds={calcOdds} noteChangeHandler={noteChangeHandler} noteSubmitHandler={noteSubmitHandler} noteOverride={noteOverride} setNoteOverride={setNoteOverride} notesReset={notesReset}
+            savedRolls={savedRolls} setSavedRolls={setSavedRolls} setDateData={setDateData} setCurrency={setCurrency} setSums={setSums} summonStats={summonStats} setSummonStats={setSummonStats} editState={editState} setEditState={setEditState} rollIndex={roll.slot} calcOdds={calcOdds} noteChangeHandler={noteChangeHandler} noteSubmitHandler={noteSubmitHandler} notesReset={notesReset}
+            // noteOverride={noteOverride} setNoteOverride={setNoteOverride}
           />
         </GridItem>
       ));
@@ -599,11 +600,12 @@ const SummonCalc = () => {
     // If no target is specified and you're not editing a roll (e.g. you're working on a new/unsaved roll), just set the summonStats' note value and finish.
     if (targetRoll === undefined && editState === false) {
       setSummonStats({ ...summonStats, summonNotes: currentNote });
+      console.log(`Setting state to ${currentNote}`);
       return;
     };
     // If neither target nor edit state exists, this won't execute; if either exists, this will make sure we're using the right one.
-    const targetIndex = targetRoll ? targetRoll : editState;
-
+    const targetIndex = targetRoll !== undefined ? targetRoll : editState;
+    console.log(targetIndex);
     // const rollClone = { ...targetRoll };
     // console.log(rollClone);
 
@@ -616,11 +618,10 @@ const SummonCalc = () => {
         return roll;
       };
     });
-    // console.log(updatedRolls);
-    setSummonStats({ ...summonStats, summonNotes: currentNote });
-    setSavedRolls(updatedRolls);
 
-    // Make it so the component state updates if you're in edit mode and the note being changed is the one that's loaded into the editor.
+    setSavedRolls(updatedRolls);
+    
+    // Catch times when the user is on a blank workspace, but brings up a note from a saved roll.
     targetRoll === editState && setSummonStats({ ...summonStats, summonNotes: currentNote });
   };
 
@@ -630,10 +631,14 @@ const SummonCalc = () => {
 
   // Runs when closing the modal from a roll snapshot, to see if the note that was closed is different than the one currently in the editor.
   const notesReset = (targetNoteSlot) => {
-    if (editState !== targetNoteSlot) {
+    if (editState === false && targetNoteSlot !== undefined) {
+      dispatch(updateNote(summonStats.summonNotes));
+    };
+
+    if (editState !== false && editState !== targetNoteSlot) {
       console.log(`Will return active note to ${summonStats.summonNotes}`);
       dispatch(updateNote(summonStats.summonNotes));
-    }
+    };
   };
 
   return (
