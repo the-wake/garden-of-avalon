@@ -1,10 +1,10 @@
 import { configureStore } from '@reduxjs/toolkit';
 import servantReducer from '../features/servant/servantSlice.js';
-// import counterReducer from '../features/counter/counterSlice.js';
+import noteReducer from '../features/note/noteSlice.js';
 
 export default configureStore({
   reducer: {
     servants: servantReducer,
-    // counter: counterReducer,
+    note: noteReducer
   },
 });

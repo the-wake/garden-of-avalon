@@ -6,6 +6,8 @@ import dateHelper from '../utils/dateHelper.js';
 import { periodic, oddsObj } from '../utils/staticData.js';
 
 import { useSelector, useDispatch } from 'react-redux';
+import { updateNote } from '../features/note/noteSlice.js';
+
 
 import { useMediaQuery } from '@chakra-ui/react';
 import { Grid, GridItem, Flex, Spacer } from '@chakra-ui/react';
@@ -21,6 +23,13 @@ import NewSnapshot from "../components/NewSnapshot";
 
 const SummonCalc = () => {
 
+  // Redux components
+  // -----------
+  const currentNote = useSelector((state) => state.note.activeNote);
+  const dispatch = useDispatch();
+  // console.log(useSelector((state) => state.note));
+  // -----------
+  
   const [loginData, setLoginData] = useState({});
 
   const [currency, setCurrency] = useState({
@@ -70,6 +79,8 @@ const SummonCalc = () => {
   });
 
   const [editState, setEditState] = useState(false);
+
+  const [noteOverride, setNoteOverride] = useState({ slot: 0, summonNotes: "" });
 
   const [savedRolls, setSavedRolls] = useState(JSON.parse(localStorage.getItem('saved-rolls')) || []);
 
@@ -563,7 +574,7 @@ const SummonCalc = () => {
         <GridItem key={`${roll.slot}-${JSON.stringify(roll)}`}>
           <RollSnapshot key={pos}
             rollObj={roll}
-            savedRolls={savedRolls} setSavedRolls={setSavedRolls} setDateData={setDateData} setCurrency={setCurrency} setSums={setSums} summonStats={summonStats} setSummonStats={setSummonStats} editState={editState} setEditState={setEditState} rollIndex={roll.slot} calcOdds={calcOdds} noteChangeHandler={noteChangeHandler} noteSubmitHandler={noteSubmitHandler}
+            savedRolls={savedRolls} setSavedRolls={setSavedRolls} setDateData={setDateData} setCurrency={setCurrency} setSums={setSums} summonStats={summonStats} setSummonStats={setSummonStats} editState={editState} setEditState={setEditState} rollIndex={roll.slot} calcOdds={calcOdds} noteChangeHandler={noteChangeHandler} noteSubmitHandler={noteSubmitHandler} noteOverride={noteOverride} setNoteOverride={setNoteOverride}
           />
         </GridItem>
       ));
@@ -571,18 +582,29 @@ const SummonCalc = () => {
   };
 
   const noteChangeHandler = (e) => {
-    setSummonStats({ ...summonStats, summonNotes: e.target.value });
+    dispatch(updateNote(e.target.value));
+    // setSummonStats({ ...summonStats, summonNotes: e.target.value });
+    // setNoteOverride({ ...noteOverride, summonNotes: e.target.value });
   };
 
-  const noteSubmitHandler = (e) => {
+  // useEffect(() => {
+  //   console.log(currentNote);
+  // }, [currentNote]);
+
+  const noteSubmitHandler = (targetRoll) => {
     // console.log(editState);
-    const currentRoll = savedRolls[editState];
-    const updatedRoll = { ...currentRoll, summonNotes: summonStats.summonNotes };
-    console.log(updatedRoll);
+
+    // If no target is specified and you're not editing a roll (e.g. you're working on a new/unsaved roll), just set the summonStats' note value and finish.
+    if (!targetRoll & editState === false) {
+      setSummonStats({ ...summonStats, summonNotes: currentNote });
+      return;
+    };
+
+    const rollClone = { ...targetRoll };
 
     const updatedRolls = savedRolls.map((roll, pos) => {
       if (roll.slot === editState) {
-        return updatedRoll;
+        return { ...rollClone, summonNotes: currentNote };
       } else {
         return roll;
       }

@@ -155,7 +155,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
 
   // TODO: Should this pull the data from local storage to make sure it's consistent across reloads.
   const confirmEdit = (message) => {
-    console.log(message);
+    // console.log(message);
     
     let str = 'Load roll into the editing form?'
     
@@ -298,7 +298,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
   };
 
   const noteGetter = (roll) => {
-    console.log(roll.summonNotes);
+    // console.log(roll.summonNotes);
     setNoteOverride({ slot: roll.slot, summonNotes: roll.summonNotes });
   };
 
@@ -318,10 +318,10 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
     // console.log(editState);
     const currentRoll = savedRolls[noteOverride.slot];
     const updatedRoll = { ...currentRoll, summonNotes: noteOverride.summonNotes };
-    console.log(updatedRoll);
+    // console.log(updatedRoll);
 
     const updatedRolls = savedRolls.map((roll, pos) => {
-      console.log(roll);
+      // console.log(roll);
       if (roll.slot === noteOverride.slot) {
         return updatedRoll;
       } else {
