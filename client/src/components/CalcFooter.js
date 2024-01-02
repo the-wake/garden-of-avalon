@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Grid, GridItem, Flex, Spacer } from '@chakra-ui/react';
 import { FormControl, FormLabel, Input, Button, Select, Checkbox, Box, Textarea } from '@chakra-ui/react';
 
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { updateNote } from '../features/note/noteSlice.js';
 
 import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, useDisclosure } from '@chakra-ui/react'
 
@@ -11,6 +12,8 @@ import AdjustMenu from '../components/AdjustMenu.js';
 const CalcFooter = ({ summonStats, setSummonStats, editState, handleEditCancel, handleBulkUpdate, savedRolls, setSavedRolls, saveSnapshot, clearForm, noteChangeHandler, noteSubmitHandler, notesReset }) => {
 
   const currentNote = useSelector((state) => state.note.activeNote);
+  const dispatch = useDispatch();
+
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   return (
