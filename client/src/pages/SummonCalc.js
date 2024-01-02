@@ -593,21 +593,23 @@ const SummonCalc = () => {
   //   console.log(currentNote);
   // }, [currentNote]);
 
-  const noteSubmitHandler = (targetRoll = editState) => {
+  const noteSubmitHandler = (targetRoll) => {
     // console.log(editState, targetRoll);
 
     // If no target is specified and you're not editing a roll (e.g. you're working on a new/unsaved roll), just set the summonStats' note value and finish.
-    if (!targetRoll && editState === false) {
+    if (targetRoll === undefined && editState === false) {
       setSummonStats({ ...summonStats, summonNotes: currentNote });
       return;
     };
+    // If neither target nor edit state exists, this won't execute; if either exists, this will make sure we're using the right one.
+    const targetIndex = targetRoll ? targetRoll : editState;
 
     // const rollClone = { ...targetRoll };
     // console.log(rollClone);
 
     // console.log(savedRolls[targetRoll]);
     const updatedRolls = savedRolls.map((roll, pos) => {
-      if (roll.slot === targetRoll) {
+      if (roll.slot === targetIndex) {
         // console.log(`Matched ${roll.slot}`);
         return { ...roll, summonNotes: currentNote };
       } else {
@@ -617,12 +619,21 @@ const SummonCalc = () => {
     // console.log(updatedRolls);
     setSummonStats({ ...summonStats, summonNotes: currentNote });
     setSavedRolls(updatedRolls);
+
+    // Make it so the component state updates if you're in edit mode and the note being changed is the one that's loaded into the editor.
+    targetRoll === editState && setSummonStats({ ...summonStats, summonNotes: currentNote });
   };
 
-  const notesReset = () => {
-    const updatedNote = editState === false ? '' : summonStats.summonNotes;
-    console.log(`Will return active note to ${updatedNote}`);
-    dispatch(updateNote(updatedNote));
+  // useEffect(() => {
+  //   console.log(summonStats.summonNotes);
+  // }, [summonStats.summonNotes]);
+
+  // Runs when closing the modal from a roll snapshot, to see if the note that was closed is different than the one currently in the editor.
+  const notesReset = (targetNoteSlot) => {
+    if (editState !== targetNoteSlot) {
+      console.log(`Will return active note to ${summonStats.summonNotes}`);
+      dispatch(updateNote(summonStats.summonNotes));
+    }
   };
 
   return (

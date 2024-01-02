@@ -27,7 +27,8 @@ const CalcFooter = ({ summonStats, setSummonStats, editState, handleEditCancel, 
           <AdjustMenu handleBulkUpdate={handleBulkUpdate} editState={editState} savedRolls={savedRolls} />
         </Box>
       </Flex>
-      <Modal isOpen={isOpen} onClose={() => { onClose(); notesReset(); }}>
+      
+      <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Notes</ModalHeader>
@@ -42,7 +43,6 @@ const CalcFooter = ({ summonStats, setSummonStats, editState, handleEditCancel, 
               onClick={() => {
                 noteSubmitHandler();
                 onClose();
-                notesReset();
               }}
             >Done</Button>
           </ModalFooter>

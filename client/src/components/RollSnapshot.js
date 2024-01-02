@@ -472,7 +472,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
               onClick={() => {
                 noteSubmitHandler(targetNoteSlot);
                 onClose();
-                notesReset();
+                notesReset(targetNoteSlot);
               }}
             >Done</Button>
           </ModalFooter>
