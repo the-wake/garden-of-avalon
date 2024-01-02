@@ -80,7 +80,7 @@ const SummonCalc = () => {
 
   const [editState, setEditState] = useState(false);
 
-  const [noteOverride, setNoteOverride] = useState({ slot: 0, summonNotes: "" });
+  // const [noteOverride, setNoteOverride] = useState({ slot: 0, summonNotes: "" });
 
   const [savedRolls, setSavedRolls] = useState(JSON.parse(localStorage.getItem('saved-rolls')) || []);
 
@@ -576,7 +576,8 @@ const SummonCalc = () => {
         <GridItem key={`${roll.slot}-${JSON.stringify(roll)}`}>
           <RollSnapshot key={pos}
             rollObj={roll}
-            savedRolls={savedRolls} setSavedRolls={setSavedRolls} setDateData={setDateData} setCurrency={setCurrency} setSums={setSums} summonStats={summonStats} setSummonStats={setSummonStats} editState={editState} setEditState={setEditState} rollIndex={roll.slot} calcOdds={calcOdds} noteChangeHandler={noteChangeHandler} noteSubmitHandler={noteSubmitHandler} noteOverride={noteOverride} setNoteOverride={setNoteOverride} notesReset={notesReset}
+            savedRolls={savedRolls} setSavedRolls={setSavedRolls} setDateData={setDateData} setCurrency={setCurrency} setSums={setSums} summonStats={summonStats} setSummonStats={setSummonStats} editState={editState} setEditState={setEditState} rollIndex={roll.slot} calcOdds={calcOdds} noteChangeHandler={noteChangeHandler} noteSubmitHandler={noteSubmitHandler} notesReset={notesReset}
+            // noteOverride={noteOverride} setNoteOverride={setNoteOverride}
           />
         </GridItem>
       ));
@@ -594,7 +595,6 @@ const SummonCalc = () => {
   // }, [currentNote]);
 
   const noteSubmitHandler = (targetRoll) => {
-
     // console.log(editState, targetRoll);
 
     // If no target is specified and you're not editing a roll (e.g. you're working on a new/unsaved roll), just set the summonStats' note value and finish.
@@ -619,8 +619,6 @@ const SummonCalc = () => {
       };
     });
 
-    
-    // setSummonStats({ ...summonStats, summonNotes: currentNote });
     setSavedRolls(updatedRolls);
     
     // Catch times when the user is on a blank workspace, but brings up a note from a saved roll.
