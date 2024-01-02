@@ -191,6 +191,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
 
       setEditState(newRoll.summonStats.slot);
       setEditStyle(true);
+      dispatch(updateNote(newRoll.summonStats.summonNotes));
     };
   };
 
