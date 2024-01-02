@@ -29,7 +29,7 @@ const SummonCalc = () => {
   const dispatch = useDispatch();
   // console.log(useSelector((state) => state.note));
   // -----------
-  
+
   const [loginData, setLoginData] = useState({});
 
   const [currency, setCurrency] = useState({
@@ -531,11 +531,13 @@ const SummonCalc = () => {
 
     setSummonStats({ ...summonStats, targetNo: '', targetName: '', targetImage: 'https://static.atlasacademy.io/JP/Faces/f_8001000.png', summonNotes: '' });
     setEditState(false);
+    dispatch(updateNote(''));
   };
 
   const handleEditCancel = () => {
     setEditState(false)
     setSummonStats({ ...summonStats, targetNo: '', targetName: '', targetImage: 'https://static.atlasacademy.io/JP/Faces/f_8001000.png', summonNotes: '' });
+    dispatch(updateNote(''));
   };
 
   const totalDays = () => {
@@ -574,7 +576,7 @@ const SummonCalc = () => {
         <GridItem key={`${roll.slot}-${JSON.stringify(roll)}`}>
           <RollSnapshot key={pos}
             rollObj={roll}
-            savedRolls={savedRolls} setSavedRolls={setSavedRolls} setDateData={setDateData} setCurrency={setCurrency} setSums={setSums} summonStats={summonStats} setSummonStats={setSummonStats} editState={editState} setEditState={setEditState} rollIndex={roll.slot} calcOdds={calcOdds} noteChangeHandler={noteChangeHandler} noteSubmitHandler={noteSubmitHandler} noteOverride={noteOverride} setNoteOverride={setNoteOverride}
+            savedRolls={savedRolls} setSavedRolls={setSavedRolls} setDateData={setDateData} setCurrency={setCurrency} setSums={setSums} summonStats={summonStats} setSummonStats={setSummonStats} editState={editState} setEditState={setEditState} rollIndex={roll.slot} calcOdds={calcOdds} noteChangeHandler={noteChangeHandler} noteSubmitHandler={noteSubmitHandler} noteOverride={noteOverride} setNoteOverride={setNoteOverride} notesReset={notesReset}
           />
         </GridItem>
       ));
@@ -591,26 +593,36 @@ const SummonCalc = () => {
   //   console.log(currentNote);
   // }, [currentNote]);
 
-  const noteSubmitHandler = (targetRoll) => {
-    // console.log(editState);
+  const noteSubmitHandler = (targetRoll = editState) => {
+    // console.log(editState, targetRoll);
 
     // If no target is specified and you're not editing a roll (e.g. you're working on a new/unsaved roll), just set the summonStats' note value and finish.
-    if (!targetRoll & editState === false) {
+    if (!targetRoll && editState === false) {
       setSummonStats({ ...summonStats, summonNotes: currentNote });
       return;
     };
 
-    const rollClone = { ...targetRoll };
+    // const rollClone = { ...targetRoll };
+    // console.log(rollClone);
 
+    // console.log(savedRolls[targetRoll]);
     const updatedRolls = savedRolls.map((roll, pos) => {
-      if (roll.slot === editState) {
-        return { ...rollClone, summonNotes: currentNote };
+      if (roll.slot === targetRoll) {
+        // console.log(`Matched ${roll.slot}`);
+        return { ...roll, summonNotes: currentNote };
       } else {
         return roll;
-      }
+      };
     });
     // console.log(updatedRolls);
+    setSummonStats({ ...summonStats, summonNotes: currentNote });
     setSavedRolls(updatedRolls);
+  };
+
+  const notesReset = () => {
+    const updatedNote = editState === false ? '' : summonStats.summonNotes;
+    console.log(`Will return active note to ${updatedNote}`);
+    dispatch(updateNote(updatedNote));
   };
 
   return (
@@ -726,7 +738,7 @@ const SummonCalc = () => {
           <NewSnapshot savedRolls={savedRolls} setSavedRolls={setSavedRolls} />
         </Box>
       </Flex>
-      <CalcFooter summonStats={summonStats} setSummonStats={setSummonStats} calcOdds={calcOdds} editState={editState} handleEditCancel={handleEditCancel} handleBulkUpdate={handleBulkUpdate} savedRolls={savedRolls} setSavedRolls={setSavedRolls} saveSnapshot={saveSnapshot} clearForm={clearForm} noteChangeHandler={noteChangeHandler} noteSubmitHandler={noteSubmitHandler} />
+      <CalcFooter summonStats={summonStats} setSummonStats={setSummonStats} calcOdds={calcOdds} editState={editState} handleEditCancel={handleEditCancel} handleBulkUpdate={handleBulkUpdate} savedRolls={savedRolls} setSavedRolls={setSavedRolls} saveSnapshot={saveSnapshot} clearForm={clearForm} noteChangeHandler={noteChangeHandler} noteSubmitHandler={noteSubmitHandler} notesReset={notesReset} />
     </>
   )
 };
