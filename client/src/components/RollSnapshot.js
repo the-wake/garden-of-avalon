@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
-import sanitizeEmpty from '../utils/sanitizeEmpty.js'
+import sanitizeEmpty from '../utils/sanitizeEmpty.js';
 
-import { useSelector, useDispatch } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux';
+import { updateNote } from '../features/note/noteSlice.js';
 
 import { Heading, Grid, GridItem, Flex, Spacer, Tooltip, Textarea } from '@chakra-ui/react'
 import { FormControl, FormLabel, Input, Button, Select, Checkbox, IconButton, Box } from '@chakra-ui/react'
@@ -12,9 +13,11 @@ import { EditIcon, DeleteIcon, ArrowUpIcon, ArrowDownIcon, ArrowBackIcon } from 
 
 import "react-datepicker/dist/react-datepicker.css";
 
-const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurrency, summonStats, setSummonStats, setSums, editState, setEditState, rollIndex, noteChangeHandler, noteSubmitHandler }) => {
+const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurrency, summonStats, setSummonStats, setSums, editState, setEditState, rollIndex, noteChangeHandler, noteSubmitHandler, notesReset }) => {
 
   const servantData = useSelector((state) => state.servants.roster);
+  const currentNote = useSelector((state) => state.note.activeNote);
+  const dispatch = useDispatch();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   let initRoll = rollObj;
@@ -26,7 +29,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
 
   const [editStyle, setEditStyle] = useState(false);
 
-  const [noteOverride, setNoteOverride] = useState({ slot: 0, summonNotes: "" });
+  const [targetNoteSlot, setTargetNoteSlot] = useState(false);
 
   const style = {
     class: {
@@ -155,14 +158,14 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
 
   // TODO: Should this pull the data from local storage to make sure it's consistent across reloads.
   const confirmEdit = (message) => {
-    console.log(message);
-    
+    // console.log(message);
+
     let str = 'Load roll into the editing form?'
-    
+
     if (message === true) {
       str += ' (You can edit dates from the editor.)';
-    }; 
-    
+    };
+
     if (window.confirm(str)) {
       console.log('Editing roll:', rollData);
       let newRoll = {};
@@ -298,12 +301,15 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
   };
 
   const noteGetter = (roll) => {
-    console.log(roll.summonNotes);
-    setNoteOverride({ slot: roll.slot, summonNotes: roll.summonNotes });
+    // console.log(roll.summonNotes);
+    // setNoteOverride({ slot: roll.slot, summonNotes: roll.summonNotes });
+    dispatch(updateNote(roll.summonNotes));
+    setTargetNoteSlot(roll.slot);
   };
 
   const overrideChangeHandler = (e) => {
-    setNoteOverride({ ...noteOverride, summonNotes: e.target.value });
+    // setNoteOverride({ ...noteOverride, summonNotes: e.target.value });
+    dispatch(updateNote(e.target.value));
   };
 
   const dateClickHandler = () => {
@@ -316,13 +322,13 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
 
   const overrideSubmitHandler = () => {
     // console.log(editState);
-    const currentRoll = savedRolls[noteOverride.slot];
-    const updatedRoll = { ...currentRoll, summonNotes: noteOverride.summonNotes };
+    const currentRoll = savedRolls[targetNoteSlot];
+    const updatedRoll = { ...currentRoll, summonNotes: currentNote };
     console.log(updatedRoll);
 
     const updatedRolls = savedRolls.map((roll, pos) => {
-      console.log(roll);
-      if (roll.slot === noteOverride.slot) {
+      // console.log(roll);
+      if (roll.slot === targetNoteSlot) {
         return updatedRoll;
       } else {
         return roll;
@@ -330,6 +336,8 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
     });
     // console.log(updatedRolls);
     setSavedRolls(updatedRolls);
+    setTargetNoteSlot(false);
+    dispatch(updateNote(''));
   };
 
   return (
@@ -448,21 +456,22 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
         </Grid >
       </FormControl>
 
-      <Modal isOpen={isOpen} onClose={onClose}>
+      <Modal isOpen={isOpen} onClose={() => { onClose(); notesReset(); }}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Notes</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Textarea h='250px' name='summonNotes' value={noteOverride.summonNotes} onChange={overrideChangeHandler}></Textarea>
+            <Textarea h='250px' name='summonNotes' value={currentNote} onChange={overrideChangeHandler}></Textarea>
           </ModalBody>
 
           <ModalFooter>
             {/* <Button mr={3} variant="ghost" onClick={onClose}>Cancel</Button> */}
             <Button colorScheme="blue"
               onClick={() => {
-                overrideSubmitHandler();
+                noteSubmitHandler(targetNoteSlot);
                 onClose();
+                notesReset();
               }}
             >Done</Button>
           </ModalFooter>

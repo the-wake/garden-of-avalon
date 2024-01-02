@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 
-import { useSelector, useDispatch } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux';
 import { getAllServants, setLoading, addServant, removeServant } from './features/servant/servantSlice.js';
 
 import ServantList from './components/ServantList.js';
