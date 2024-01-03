@@ -16,6 +16,7 @@ const RateupMenu = ({ probHandler, summonStats, setSummonStats, oddsObj }) => {
   // };
 
   const optionsRender = () => {
+    console.log(summonStats.prob);
     return oddsObj[summonStats.rarity].map((odds, index) => {
       return (
         <option key={index} value={index + 1}>{index + 1} Rateup</option>
@@ -27,7 +28,7 @@ const RateupMenu = ({ probHandler, summonStats, setSummonStats, oddsObj }) => {
     <>
       <GridItem rowSpan={1} colSpan={1}>
         <FormLabel>Desired Servant Rarity:</FormLabel>
-        <Select className="form-input" name="rarity" type="text">
+        <Select className="form-input" name="rarity" type="text" onChange={probHandler}>
           <option value={'ssr'}>5* (SSR)</option>
           <option value={'sr'}>4* (SR)</option>
           <option value={'r'}>3* (R)</option>

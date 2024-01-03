@@ -283,12 +283,10 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
     if (servantsSoFar.includes(servant.name) || servant.name === 'Mélusine') {
       const appendClass = `${servant.className.charAt(0).toUpperCase()}${servant.className.slice(1)}`;
       const appendedName = `${servant.name} (${appendClass})`;
-      // console.log(`Servant name ${servant.name} already in array. Appending name to ${appendedName}`);
       servantsSoFar.push(appendedName);
       useName = appendedName;
     }
     else {
-      // console.log(`Pushing ${servant.name} to array so far.`);
       servantsSoFar.push(servant.name);
     };
 
@@ -302,14 +300,11 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
   };
 
   const noteGetter = (roll) => {
-    // console.log(roll.summonNotes);
-    // setNoteOverride({ slot: roll.slot, summonNotes: roll.summonNotes });
     dispatch(updateNote(roll.summonNotes));
     setTargetNoteSlot(roll.slot);
   };
 
   const overrideChangeHandler = (e) => {
-    // setNoteOverride({ ...noteOverride, summonNotes: e.target.value });
     dispatch(updateNote(e.target.value));
   };
 
@@ -320,26 +315,6 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
       confirmEdit(true);
     };
   };
-
-  // const overrideSubmitHandler = () => {
-  //   // console.log(editState);
-  //   const currentRoll = savedRolls[targetNoteSlot];
-  //   const updatedRoll = { ...currentRoll, summonNotes: currentNote };
-  //   console.log(updatedRoll);
-
-  //   const updatedRolls = savedRolls.map((roll, pos) => {
-  //     // console.log(roll);
-  //     if (roll.slot === targetNoteSlot) {
-  //       return updatedRoll;
-  //     } else {
-  //       return roll;
-  //     }
-  //   });
-  //   // console.log(updatedRolls);
-  //   setSavedRolls(updatedRolls);
-  //   setTargetNoteSlot(false);
-  //   dispatch(updateNote(''));
-  // };
 
   return (
     <div style={editState === rollData.slot ? cardStyles.editing : cardStyles.normal}>
