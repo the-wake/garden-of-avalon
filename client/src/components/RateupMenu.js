@@ -28,7 +28,7 @@ const RateupMenu = ({ probHandler, summonStats, setSummonStats, oddsObj }) => {
     <>
       <GridItem rowSpan={1} colSpan={1}>
         <FormLabel>Desired Servant Rarity:</FormLabel>
-        <Select className="form-input" name="rarity" type="text" onChange={probHandler}>
+        <Select className="form-input" name="rarity" type="text" selected={summonStats.rarity} value={summonStats.rarity} onChange={probHandler}>
           <option value={'ssr'}>5* (SSR)</option>
           <option value={'sr'}>4* (SR)</option>
           <option value={'r'}>3* (R)</option>
