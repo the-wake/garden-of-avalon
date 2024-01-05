@@ -70,6 +70,7 @@ const SummonCalc = () => {
     desired: 1,
     summonOdds: 0,
     summonNotes: '',
+    priority: 0,
     slot: '',
     draft: false
   });
@@ -405,11 +406,9 @@ const SummonCalc = () => {
     if (!isNaN(parseInt(targetVal))) {
       targetVal = parseInt(targetVal);
     };
-    // console.log(targetVal);
 
     // Handle login updates. (Dates are handled separately.)
     if (e.target.name === 'start' || e.target.name === 'end') {
-      // dateDataHelper(e.target.name, targetVal)
       setDateData({ ...dateData, [e.target.name]: e.target.value });
     } else if (e.target.name === 'total' || e.target.name === 'streak') {
       setLoginData({ ...loginData, [e.target.name]: parseInt(e.target.value) });
@@ -418,7 +417,6 @@ const SummonCalc = () => {
     else if (e.target.name === 'alreadyPurchased') {
       setCurrency({ ...currency, alreadyPurchased: e.target.checked })
     }
-
     // Handle all other updates with proper integer or string.
     else {
       setCurrency({ ...currency, [e.target.name]: targetVal });
@@ -562,14 +560,14 @@ const SummonCalc = () => {
       clearForm();
     };
 
-    setSummonStats({ ...summonStats, targetNo: '', targetName: '', targetImage: 'https://static.atlasacademy.io/JP/Faces/f_8001000.png', summonNotes: '' });
+    setSummonStats({ ...summonStats, targetNo: '', targetName: '', targetImage: 'https://static.atlasacademy.io/JP/Faces/f_8001000.png', summonNotes: '', priority: 0 });
     setEditState(false);
     dispatch(updateNote(''));
   };
 
   const handleEditCancel = () => {
     setEditState(false)
-    setSummonStats({ ...summonStats, targetNo: '', targetName: '', targetImage: 'https://static.atlasacademy.io/JP/Faces/f_8001000.png', summonNotes: '' });
+    setSummonStats({ ...summonStats, targetNo: '', targetName: '', targetImage: 'https://static.atlasacademy.io/JP/Faces/f_8001000.png', summonNotes: '', priority: 0 });
     dispatch(updateNote(''));
   };
 
