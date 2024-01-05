@@ -67,6 +67,7 @@ const NewSnapshot = ({ savedRolls, setSavedRolls }) => {
       summonOdds: "0.00%",
       summonNotes: "",
       slot: getSlot(),
+      priority: 0,
       draft: true
     };
 
