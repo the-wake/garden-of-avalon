@@ -94,6 +94,15 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
         webkitBackdropFilter: 'blur(1.8px)',
         border: '1px solid rgba(0, 255, 240, 1);]',
         textAlign: 'center'
+      },
+      {
+        fontWeight: '700',
+        background: 'rgba(255, 255, 255, 0.75)',
+        boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+        backdropFilter: 'blur(1.8px)',
+        webkitBackdropFilter: 'blur(1.8px)',
+        border: '1px solid rgba(0, 255, 240, 1);]',
+        textAlign: 'center'
       }
     ],
     card: {
@@ -399,6 +408,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
                     <option value={1}>High</option>
                     <option value={2}>Med</option>
                     <option value={3}>Low</option>
+                    <option value={4}>...</option>
                   </Select>
                 </Flex>
               </GridItem>
