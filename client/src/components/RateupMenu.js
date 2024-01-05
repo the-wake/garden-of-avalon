@@ -16,7 +16,6 @@ const RateupMenu = ({ probHandler, summonStats, setSummonStats, oddsObj }) => {
   // };
 
   const optionsRender = () => {
-    console.log(summonStats.prob);
     return oddsObj[summonStats.rarity].map((odds, index) => {
       return (
         <option key={index} value={index + 1}>{index + 1} Rateup</option>

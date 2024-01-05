@@ -74,11 +74,11 @@ const SummonCalc = () => {
     draft: false
   });
 
-  const [elementState, setElementState] = useState({
-    odds: false
-  });
+  const [elementState, setElementState] = useState({ odds: false });
 
   const [editState, setEditState] = useState(false);
+
+  const [editingDate, setEditingDate] = useState(false);
 
   // const [noteOverride, setNoteOverride] = useState({ slot: 0, summonNotes: "" });
 
@@ -383,7 +383,7 @@ const SummonCalc = () => {
   };
 
   const totalSummons = (sq, tx, rolls) => {
-    const total = rolls || Math.floor((sq / 3 + tx) + Math.floor((sq / 3 + tx) / 10));
+    let total = rolls || Math.floor((sq / 3 + tx) + Math.floor((sq / 3 + tx) / 10));
 
     if (isNaN(total) || total < 0) {
       total = 0;
@@ -395,6 +395,10 @@ const SummonCalc = () => {
   const handleFormUpdate = (e) => {
     // const currencyVals = ['sqPurchase', 'purchasePeriod', 'alreadyPurchased', 'sqStarting', 'txStarting', 'sqIncome', 'txIncome', 'sqExtra', 'txExtra'];
 
+    // if (e.target.name !== 'start' || e.target.name !== 'end') {
+    //   setEditingDate(false);
+    // };
+
     // Sanitize any ints passed as strings.
     let targetVal = e.target.value;
 
@@ -405,6 +409,7 @@ const SummonCalc = () => {
 
     // Handle login updates. (Dates are handled separately.)
     if (e.target.name === 'start' || e.target.name === 'end') {
+      // dateDataHelper(e.target.name, targetVal)
       setDateData({ ...dateData, [e.target.name]: e.target.value });
     } else if (e.target.name === 'total' || e.target.name === 'streak') {
       setLoginData({ ...loginData, [e.target.name]: parseInt(e.target.value) });
@@ -433,7 +438,41 @@ const SummonCalc = () => {
     // console.log('Dates: ', dateData);
     calcSums();
     // console.log(`State changed: ${summonStats.summonOdds}`);
-  }, [loginData, currency, dateData]);
+  }, [loginData, currency]);
+
+  let dateTimeout;
+
+  // Using the above useEffect when changing dates causes hangups when changing the year field, as the app tries to recalculate income with each keystroke. This separate useEffect handles date updates.
+  useEffect(() => {
+    dateData && localStorage.setItem('calendar-data', JSON.stringify(dateData));
+
+    setElementState({ ...elementState, odds: false });
+    const currencyClone = { ...currency };
+    const sanitizedCurrency = sanitizeEmpty(currencyClone);
+    localStorage.setItem('currency', JSON.stringify(sanitizedCurrency));
+
+    // console.log(`Editing Date: ${editingDate}`);
+
+    if (editingDate === true) {
+      clearTimeout(dateTimeout);
+      dateTimeout = setTimeout(() => {
+        setEditingDate(false);
+        calcSums();
+      }, 500);
+    } else {
+      clearTimeout(dateTimeout);
+      calcSums();
+    };
+
+  }, [editingDate]);
+
+  const dateInputHelper = (e) => {
+    let parsedVal = e.target.value.split('-')[0];
+    while (parsedVal.charAt(0) === '0') {
+      parsedVal = parsedVal.substring(1);
+    };
+    parsedVal.length === 4 && e.target.blur();
+  };
 
   // Set local storage when updating login streak or currency totals.
   useEffect(() => {
@@ -442,12 +481,6 @@ const SummonCalc = () => {
       localStorage.setItem('login-data', JSON.stringify(loginData));
     };
   }, [loginData]);
-
-  useEffect(() => {
-    if (dateData) {
-      localStorage.setItem('calendar-data', JSON.stringify(dateData))
-    }
-  }, [dateData]);
 
   useEffect(() => {
     savedRolls.length > 0 && console.log('Saved Roll Data: ', savedRolls);
@@ -540,10 +573,17 @@ const SummonCalc = () => {
     dispatch(updateNote(''));
   };
 
+  // useEffect(() => {
+  //   console.log(`Editing Date: ${editingDate}`)
+  //   setTimeout(() => {
+  //     setEditingDate(false);
+  //   }, 2000);
+  // }, [editingDate]);
+
   const totalDays = () => {
     const start = dayjs(dateData.start);
     const end = dayjs(dateData.end);
-    let range = Math.floor(end.diff(start, 'days', true));
+    let range = Math.max(Math.floor(end.diff(start, 'days', true)), -1);
     // console.log(range);
     isNaN(range) ? range = 0 : range = range;
     return range;
@@ -577,7 +617,7 @@ const SummonCalc = () => {
           <RollSnapshot key={pos}
             rollObj={roll}
             savedRolls={savedRolls} setSavedRolls={setSavedRolls} setDateData={setDateData} setCurrency={setCurrency} setSums={setSums} summonStats={summonStats} setSummonStats={setSummonStats} editState={editState} setEditState={setEditState} rollIndex={roll.slot} calcOdds={calcOdds} noteChangeHandler={noteChangeHandler} noteSubmitHandler={noteSubmitHandler} notesReset={notesReset}
-            // noteOverride={noteOverride} setNoteOverride={setNoteOverride}
+          // noteOverride={noteOverride} setNoteOverride={setNoteOverride}
           />
         </GridItem>
       ));
@@ -620,7 +660,7 @@ const SummonCalc = () => {
     });
 
     setSavedRolls(updatedRolls);
-    
+
     // Catch times when the user is on a blank workspace, but brings up a note from a saved roll.
     targetRoll === editState && setSummonStats({ ...summonStats, summonNotes: currentNote });
   };
@@ -703,11 +743,15 @@ const SummonCalc = () => {
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Start Date:</FormLabel>
-                <Input name="start" type="date" value={dateData.start} />
+                <Input name="start" type="date" value={dateData.start} max={2100}
+                  onChange={(e) => { dateInputHelper(e); setEditingDate(true) }} onBlur={() => { setEditingDate(false) }}
+                />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>End Date:</FormLabel>
-                <Input name="end" type="date" value={dateData.end} />
+                <Input name="end" type="date" isInvalid={totalDays() < 0} errorBorderColor='crimson' value={dateData.end}
+                  onChange={(e) => { dateInputHelper(e); setEditingDate(true) }} onBlur={() => { setEditingDate(false) }}
+                />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel># Daily Singles</FormLabel>
@@ -715,7 +759,7 @@ const SummonCalc = () => {
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Total Days</FormLabel>
-                <Input name="dateRange" type="number" disabled={true} placeholder="0" value={totalDays() === 0 ? '' : totalDays()} />
+                <Input name="dateRange" type="number" disabled={true} isInvalid={totalDays() < 0} errorBorderColor='crimson' placeholder="0" value={totalDays() === 0 ? '' : totalDays()} />
               </GridItem>
             </Grid>
             <Grid mt={6} templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
