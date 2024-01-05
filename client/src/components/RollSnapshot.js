@@ -58,6 +58,53 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
         backgroundColor: '#c0e8bc'
       },
     },
+    priority: [
+      {
+        fontWeight: '700',
+        background: 'rgba(108, 235, 255, 0.95)',
+        boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+        backdropFilter: 'blur(1.8px)',
+        webkitBackdropFilter: 'blur(1.8px)',
+        border: '1px solid rgba(0, 255, 240, 1);]',
+        textAlign: 'center'
+      },
+      {
+        fontWeight: '600',
+        background: 'rgba(0, 255, 128, 0.75)',
+        boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+        backdropFilter: 'blur(1.8px)',
+        webkitBackdropFilter: 'blur(1.8px)',
+        border: '1px solid rgba(0, 255, 240, 1);]',
+        textAlign: 'center'
+      },
+      {
+        fontWeight: '550',
+        background: 'rgba(251, 255, 127, 0.75)',
+        boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+        backdropFilter: 'blur(1.8px)',
+        webkitBackdropFilter: 'blur(1.8px)',
+        border: '1px solid rgba(0, 255, 240, 1);]',
+        textAlign: 'center'
+      },
+      {
+        fontWeight: '500',
+        background: 'rgba(255, 201, 120, 0.75)',
+        boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+        backdropFilter: 'blur(1.8px)',
+        webkitBackdropFilter: 'blur(1.8px)',
+        border: '1px solid rgba(0, 255, 240, 1);]',
+        textAlign: 'center'
+      },
+      {
+        fontWeight: '700',
+        background: 'rgba(255, 255, 255, 0.75)',
+        boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+        backdropFilter: 'blur(1.8px)',
+        webkitBackdropFilter: 'blur(1.8px)',
+        border: '1px solid rgba(0, 255, 240, 1);]',
+        textAlign: 'center'
+      }
+    ],
     card: {
       backgroundColor: '#8888BB',
       borderRadius: '6px',
@@ -100,8 +147,14 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
 
   // Have to reformat to make value Servant ID, then have useEffect set their name.
   const handleFormUpdate = (e) => {
+    let targetVal = e.target.value;
+
+    if (!isNaN(parseInt(targetVal))) {
+      targetVal = parseInt(targetVal);
+    };
+
     if (e.target.name === 'targetNo') {
-      const collectionNo = e.target.value;
+      const collectionNo = targetVal;
       // console.log(`Finding Servant ID ${collectionNo}`);
       const targetIndex = servantData.findIndex(servant => servant.collectionNo == collectionNo);
       const targetServant = servantData[targetIndex];
@@ -116,7 +169,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
       });
       // Changing end date on drafts was giving problems so trying some exception handling for it.
     } else if (e.target.name !== 'end') {
-      setRollData({ ...rollData, [e.target.name]: e.target.value });
+      setRollData({ ...rollData, [e.target.name]: targetVal });
     }
   };
 
@@ -179,8 +232,8 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
       const { sqSum, txSum, totalSummons } = rollData;
       newRoll.sums = { sqSum, txSum, totalSummons };
 
-      const { targetNo, targetName, targetImage, rarity, numRateup, prob, desired, summonOdds, summonNotes, slot } = rollData;
-      newRoll.summonStats = { targetNo, targetName, targetImage, rarity, numRateup, prob, desired, summonOdds, summonNotes, slot };
+      const { targetNo, targetName, targetImage, rarity, numRateup, prob, desired, summonOdds, summonNotes, priority, slot } = rollData;
+      newRoll.summonStats = { targetNo, targetName, targetImage, rarity, numRateup, prob, desired, summonOdds, summonNotes, priority, slot };
 
       sanitizeEmpty(newRoll.currency);
       console.log(newRoll);
@@ -343,13 +396,21 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
           <GridItem rowSpan={2} colSpan={3}>
             <Grid w='100%' templateRows='repeat(2, 1fr)' templateColumns='repeat(1, 1fr)' gap={1}>
               <GridItem colSpan={1} rowSpan={1}>
-                {/* TODO: Fix up the placeholder, since selecting it causes issues. */}
                 <Select className="form-input" name="targetNo" value={rollData.targetNo} placeholder={'Target Servant'} onChange={targetServantHandler} mb="8px" >
                   {servantsMap}
                 </Select>
               </GridItem>
               <GridItem>
-                <Input name="end" type="date" isReadOnly={rollData.draft !== true} defaultValue={rollData.end} onBlur={dateChangeHandler} onClick={dateClickHandler} />
+                <Flex direction='row' align='center' justify='space-between' pr='3px' gap={1}>
+                  <Input name="end" type="date" minWidth="150px" isReadOnly={rollData.draft !== true} defaultValue={rollData.end} onBlur={dateChangeHandler} onClick={dateClickHandler} />
+                  <Select className="form-input" name="priority" type="text" selected={rollData.priority} value={rollData.priority} onChange={handleFormUpdate} style={style.priority[rollData.priority]}>
+                    <option value={0}>Top</option>
+                    <option value={1}>High</option>
+                    <option value={2}>Med</option>
+                    <option value={3}>Low</option>
+                    <option value={4}>...</option>
+                  </Select>
+                </Flex>
               </GridItem>
             </Grid>
           </GridItem>
