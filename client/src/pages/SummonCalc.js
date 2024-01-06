@@ -27,7 +27,6 @@ const SummonCalc = () => {
   // -----------
   const currentNote = useSelector((state) => state.note.activeNote);
   const dispatch = useDispatch();
-  // console.log(useSelector((state) => state.note));
   // -----------
 
   const [loginData, setLoginData] = useState({});
@@ -81,7 +80,13 @@ const SummonCalc = () => {
 
   const [editingDate, setEditingDate] = useState(false);
 
-  // const [noteOverride, setNoteOverride] = useState({ slot: 0, summonNotes: "" });
+  const message = `  Hello, and welcome to Garden of Avalon! Thank you for trying my roll calculator app – I hope it's helpful.
+  
+  This is still a beta, so please contact me at bmartin2009@gmail.com or github.com/the-wake if you have any bug reports, comments, or suggestions. Thank you very much, and happy summoning!`
+
+  useEffect(() => {
+    console.log(message);
+  }, []);
 
   const [savedRolls, setSavedRolls] = useState(JSON.parse(localStorage.getItem('saved-rolls')) || []);
 
@@ -153,15 +158,7 @@ const SummonCalc = () => {
         };
       };
 
-      // Get index of week for the day of the last calculation.
-      // const origin = streak % 7;
-      // console.log(`Starting on index ${origin} of the daily array.`);
-
-      // const addCurrency = calcWeeklies(dateClone, difference, origin);
-      // console.log('Adding to currency', addCurrency);
-
       const monthsDiff = ((dayjs().$y - dayjs(dateClone).$y) * 12) + (dayjs().$M - dayjs(dateClone).$M);
-      // console.log(monthsDiff);
       if (monthsDiff >= 1) {
         const shopUpdate = window.confirm(`${monthsDiff} months have elapsed since last update. Should we add monthly shop tickets to your reserves?`);
         if (shopUpdate) {
@@ -191,9 +188,6 @@ const SummonCalc = () => {
 
   // Calculates master missions. Could rename to calcStreak instead to be clearer what data it cares about and produces.
   const calcWeeklies = (start, numDays, origin = 0) => {
-    // console.log(`Calculating weeklies. Start: ${start}; numDays: ${numDays}.`);
-
-    // console.log(`${numDays} days from today to start date.`)
 
     // The weekly index of the start day.
     let index;
@@ -207,17 +201,13 @@ const SummonCalc = () => {
     };
 
     const masterMissionGains = calcMasterMissions(start, numDays);
-    // console.log(`Calculating Master Mission. Start: ${start}; Number of Days: ${numDays}.`);
     weeklyGains.sq += masterMissionGains;
-    // console.log(`Added ${masterMissionGains} SQ from Master Missions.`);
-    // console.log(weeklyGains);
 
     // Daily login bonus courser.
     for (let i = 0; i < numDays; i++) {
       const trueI = (i + index) % 7;
 
       const thisLogin = periodic.weeklyLogin[trueI];
-      // console.log(`Today's login reward: ${JSON.stringify(thisLogin)}`);
 
       // Course through weeklyGains to find matching rewards.
       if (thisLogin.type in weeklyGains) {
@@ -264,11 +254,7 @@ const SummonCalc = () => {
 
   // Calculates standard MP shop (not special MP shop items; those go in calcEvents).
   const calcShop = (monthDistance) => {
-
     const shopTx = monthDistance * 5;
-
-    // console.log(`${monthDistance} shop resets within target range, giving ${shopTx} Tickets.`);
-
     return shopTx;
   };
 
@@ -376,7 +362,7 @@ const SummonCalc = () => {
 
     let oddsRender = `${percentage}%`;
 
-    if (k === 1 && n >= 330) {
+    if (summonStats.rarity === 'ssr' && k === 1 && n >= 330) {
       oddsRender = `Pity (330 summons)`
     };
 
@@ -394,12 +380,6 @@ const SummonCalc = () => {
   };
 
   const handleFormUpdate = (e) => {
-    // const currencyVals = ['sqPurchase', 'purchasePeriod', 'alreadyPurchased', 'sqStarting', 'txStarting', 'sqIncome', 'txIncome', 'sqExtra', 'txExtra'];
-
-    // if (e.target.name !== 'start' || e.target.name !== 'end') {
-    //   setEditingDate(false);
-    // };
-
     // Sanitize any ints passed as strings.
     let targetVal = e.target.value;
 
@@ -421,21 +401,15 @@ const SummonCalc = () => {
     else {
       setCurrency({ ...currency, [e.target.name]: targetVal });
     };
-    // I think we're running calcSums everywhere where relevant state changes via useEffects, so this one is causing stale loops.
-    // calcSums();
   };
 
   // Does this even have a point any longer?
   useEffect(() => {
     setElementState({ ...elementState, odds: false });
     const currencyClone = { ...currency };
-    // console.log(currency);
     const sanitizedCurrency = sanitizeEmpty(currencyClone);
-    // console.log(sanitizedCurrency);
     localStorage.setItem('currency', JSON.stringify(sanitizedCurrency));
-    // console.log('Dates: ', dateData);
     calcSums();
-    // console.log(`State changed: ${summonStats.summonOdds}`);
   }, [loginData, currency]);
 
   let dateTimeout;
@@ -481,7 +455,7 @@ const SummonCalc = () => {
   }, [loginData]);
 
   useEffect(() => {
-    savedRolls.length > 0 && console.log('Saved Roll Data: ', savedRolls);
+    // savedRolls.length > 0 && console.log('Saved Roll Data: ', savedRolls);
     localStorage.setItem('saved-rolls', JSON.stringify(savedRolls));
   }, [savedRolls]);
 
@@ -507,13 +481,10 @@ const SummonCalc = () => {
     if (e.target.name === 'rarity') {
       setSummonStats({ ...summonStats, numRateup: 1 });
       const newProb = oddsObj[e.target.value][summonStats.numRateup - 1] || oddsObj[e.target.value][0];
-      console.log('New Prob: ', newProb);
       setSummonStats({ ...summonStats, [e.target.name]: e.target.value, prob: newProb });
     } else if (e.target.name === 'numRateup') {
       if (e.target.value != 0) {
-        console.log(e.target.value);
         const newProb = oddsObj[summonStats.rarity][e.target.value - 1];
-        console.log('New Prob: ', newProb);
         setSummonStats({ ...summonStats, [e.target.name]: e.target.value, prob: newProb });
       } else {
         setSummonStats({ ...summonStats, numRateup: 0 });
@@ -571,13 +542,6 @@ const SummonCalc = () => {
     dispatch(updateNote(''));
   };
 
-  // useEffect(() => {
-  //   console.log(`Editing Date: ${editingDate}`)
-  //   setTimeout(() => {
-  //     setEditingDate(false);
-  //   }, 2000);
-  // }, [editingDate]);
-
   const totalDays = () => {
     const start = dayjs(dateData.start);
     const end = dayjs(dateData.end);
@@ -624,8 +588,6 @@ const SummonCalc = () => {
 
   const noteChangeHandler = (e) => {
     dispatch(updateNote(e.target.value));
-    // setSummonStats({ ...summonStats, summonNotes: e.target.value });
-    // setNoteOverride({ ...noteOverride, summonNotes: e.target.value });
   };
 
   // useEffect(() => {
@@ -633,8 +595,6 @@ const SummonCalc = () => {
   // }, [currentNote]);
 
   const noteSubmitHandler = (targetRoll) => {
-    // console.log(editState, targetRoll);
-
     // If no target is specified and you're not editing a roll (e.g. you're working on a new/unsaved roll), just set the summonStats' note value and finish.
     if (targetRoll === undefined && editState === false) {
       setSummonStats({ ...summonStats, summonNotes: currentNote });
@@ -643,14 +603,9 @@ const SummonCalc = () => {
     };
     // If neither target nor edit state exists, this won't execute; if either exists, this will make sure we're using the right one.
     const targetIndex = targetRoll !== undefined ? targetRoll : editState;
-    console.log(targetIndex);
-    // const rollClone = { ...targetRoll };
-    // console.log(rollClone);
 
-    // console.log(savedRolls[targetRoll]);
     const updatedRolls = savedRolls.map((roll, pos) => {
       if (roll.slot === targetIndex) {
-        // console.log(`Matched ${roll.slot}`);
         return { ...roll, summonNotes: currentNote };
       } else {
         return roll;

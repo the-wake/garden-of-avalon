@@ -257,8 +257,6 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
       const rollIndex = rollData.slot;
       const updatedRolls = savedRolls.filter((roll, i) => {
         if (roll.slot === rollIndex) {
-          console.log(`Matched roll index ${rollIndex}.`)
-          console.log(rollData);
           foundTarget = true;
           return;
         } else {
@@ -313,7 +311,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
     setSavedRolls(freshArr);
   };
 
-  const welfareServants = [1, 4, 61, 69, 73, 92, 111, 115, 133, 137, 138, 141, 162, 166, 174, 182, 190, 191, 197, 208, 211, 219, 225, 233, 243, 252, 264, 271, 283, 288, 301, 304, 308, 315, 320, 326, 328, 330, 338, 359, 360, 361, 364, 367, 376, 389];
+  const welfareServants = [1, 4, 61, 69, 73, 92, 111, 115, 133, 137, 138, 141, 162, 166, 174, 182, 190, 191, 197, 208, 211, 219, 225, 233, 243, 252, 264, 271, 283, 288, 301, 304, 308, 315, 320, 326, 328, 330, 338, 359, 360, 361, 364, 367, 379, 389];
 
   // Used by following map to give individual names to each Servant where there are duplicates.
   let servantsSoFar = [];
@@ -396,7 +394,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
           <GridItem rowSpan={2} colSpan={3}>
             <Grid w='100%' templateRows='repeat(2, 1fr)' templateColumns='repeat(1, 1fr)' gap={1}>
               <GridItem colSpan={1} rowSpan={1}>
-                <Select className="form-input" name="targetNo" value={rollData.targetNo} placeholder={'Target Servant'} onChange={targetServantHandler} mb="8px" >
+                <Select className="form-input" name="targetNo" fontWeight={600} value={rollData.targetNo} placeholder={'Target Servant'} onChange={targetServantHandler} mb="8px" >
                   {servantsMap}
                 </Select>
               </GridItem>

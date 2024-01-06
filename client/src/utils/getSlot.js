@@ -2,7 +2,7 @@
 const getSlot = () => {
   const savedRolls = JSON.parse(localStorage.getItem('saved-rolls')) || [];
   const slot = savedRolls.length;
-  console.log(`Assigning slot`, slot);
+  // console.log(`Assigning slot`, slot);
   return slot;
 };
 
