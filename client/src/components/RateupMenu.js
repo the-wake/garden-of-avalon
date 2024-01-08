@@ -43,33 +43,6 @@ const RateupMenu = ({ probHandler, summonStats, setSummonStats, oddsObj }) => {
           <NumberInputField className="form-input" name="prob" onChange={probHandler} />
         </NumberInput>
       </GridItem>
-
-      {/* <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Enter Manual odds</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <FormControl onChange={probChangeHandler}>
-              <FormLabel>+/- Tickets</FormLabel>
-              <NumberInput value={newProb} name="newProb">
-                <NumberInputField />
-              </NumberInput>
-            </FormControl>
-          </ModalBody>
-
-          <ModalFooter>
-            <Button mr={3} variant="ghost" onClick={onClose}>Cancel</Button>
-            <Button colorScheme="blue"
-              onClick={() => {
-                setSummonStats({ ...summonStats, prob: parseFloat(newProb) });
-                setNewProb('');
-                onClose();
-              }}
-            >Adjust Rolls</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal> */}
     </>
   );
 };

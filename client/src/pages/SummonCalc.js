@@ -11,7 +11,9 @@ import { updateNote } from '../features/note/noteSlice.js';
 
 import { useMediaQuery } from '@chakra-ui/react';
 import { Grid, GridItem, Flex, Spacer } from '@chakra-ui/react';
-import { FormControl, FormLabel, Input, Button, Select, Checkbox, Box } from '@chakra-ui/react';
+import { FormControl, FormLabel, Input, Button, Select, Checkbox, Box, Tooltip } from '@chakra-ui/react';
+import { QuestionOutlineIcon } from '@chakra-ui/icons';
+
 import Statistics from "statistics.js";
 
 import "react-datepicker/dist/react-datepicker.css";
@@ -571,8 +573,7 @@ const SummonCalc = () => {
     const start = dayjs(dateData.start);
     const end = dayjs(dateData.end);
     let range = Math.max(Math.floor(end.diff(start, 'days', true)), -1);
-    // console.log(range);
-    isNaN(range) ? range = 0 : range = range;
+    if (isNaN(range)) range = 0;
     return range;
   };
 
@@ -685,7 +686,7 @@ const SummonCalc = () => {
                 </Select>
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
-                <FormLabel disabled={currency.purchasePeriod === 0}>Adjust # Purchases (+/-)</FormLabel>
+                <FormLabel disabled={currency.purchasePeriod === 0}>Adjust # Purchases (+/-) <Tooltip label="For example, if you've already made this month's purchase, enter -1 to remove it from the calculation."><QuestionOutlineIcon></QuestionOutlineIcon></Tooltip></FormLabel>
                 {/* <Checkbox name="alreadyPurchased" disabled={currency.purchasePeriod === 0} checked={currencyHelper} value={currency.alreadyPurchased}>Already purchased first month?</Checkbox> */}
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
