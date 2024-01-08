@@ -1,19 +1,13 @@
 import React, { useEffect, useState } from 'react';
 
-import { Grid, GridItem, Flex, Spacer } from '@chakra-ui/react'
-import { FormControl, FormLabel, Input, Button, Select, Checkbox, IconButton, NumberInput, NumberInputField } from '@chakra-ui/react'
-import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, useDisclosure } from '@chakra-ui/react'
+import { Grid, GridItem, Flex, Spacer, Tooltip } from '@chakra-ui/react';
+import { FormControl, FormLabel, Input, Button, Select, Checkbox, IconButton, NumberInput, NumberInputField } from '@chakra-ui/react';
+import { QuestionOutlineIcon } from '@chakra-ui/icons';
 
 
 import "react-datepicker/dist/react-datepicker.css";
 
 const RateupMenu = ({ probHandler, summonStats, setSummonStats, oddsObj }) => {
-  // const { isOpen, onOpen, onClose } = useDisclosure();
-  // const [newProb, setNewProb] = useState('')
-
-  // const probChangeHandler = (e) => {
-  //   setNewProb(e.target.value);
-  // };
 
   const optionsRender = () => {
     return oddsObj[summonStats.rarity].map((odds, index) => {
@@ -26,20 +20,17 @@ const RateupMenu = ({ probHandler, summonStats, setSummonStats, oddsObj }) => {
   return (
     <>
       <GridItem rowSpan={1} colSpan={1}>
-        <FormLabel>Desired Servant Rarity:</FormLabel>
+        <FormLabel>Desired Servant Rarity: <Tooltip label="Single 4* rate and triple 4* rate improved New Year 2022 on JP."><QuestionOutlineIcon></QuestionOutlineIcon></Tooltip></FormLabel>
         <Select className="form-input" name="rarity" type="text" selected={summonStats.rarity} value={summonStats.rarity} onChange={probHandler}>
           <option value={'ssr'}>5* (SSR)</option>
-          <option value={'sr'}>4* (SR)</option>
+          <option value={'sr'}>4* (SR, NA Rates)</option>
+          <option value={'srjp'}>4* (SR, JP Rates)</option>
           <option value={'r'}>3* (R)</option>
         </Select>
       </GridItem>
       <GridItem rowSpan={1} colSpan={1}>
         <FormLabel>Total Servants on Rateup:</FormLabel>
         <Select className="form-input" name="numRateup" type="text" onChange={probHandler}
-          // onChange={(e) => {
-          //   probHandler(e);
-          //   e.target.value == 0 && onOpen();
-          // }}
           defaultValue={1}
           value={summonStats.numRateup}>
           {optionsRender()}
