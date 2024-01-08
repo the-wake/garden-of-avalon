@@ -34,7 +34,7 @@ const SummonCalc = () => {
   const [currency, setCurrency] = useState({
     sqPurchase: '',
     purchasePeriod: 0,
-    alreadyPurchased: false,
+    extraPurchases: 0,
     sqStarting: '',
     txStarting: '',
     sqIncome: '',
@@ -45,7 +45,8 @@ const SummonCalc = () => {
     txExtra: '',
     sqMinus: '',
     txMinus: '',
-    dailySingles: ''
+    dailySingles: '',
+    currencyOverride: ''
   });
 
   const [dateData, setDateData] = useState({
@@ -271,19 +272,30 @@ const SummonCalc = () => {
 
   // Calculates purchases.
   const calcPurchases = (numMonths) => {
-    const { sqPurchase, purchasePeriod, alreadyPurchased } = currency;
-    // console.log(sqPurchase, purchasePeriod, alreadyPurchased);
+    let { sqPurchase, purchasePeriod, extraPurchases } = currency;
 
-    const numPurchases = parseInt(purchasePeriod) === 0 ? 1 : numMonths + 1 - alreadyPurchased;
+    let numPurchases = parseInt(purchasePeriod) === 0 ? 1 : numMonths + 1 + parseInt(extraPurchases);
+
+    parseInt(numPurchases) < 0 ? numPurchases = 0 : numPurchases = parseInt(numPurchases);
     // console.log(sqPurchase, numPurchases);
 
-    const totalPurchases = parseInt(sqPurchase) * numPurchases || 0;
+    const totalPurchases = parseInt(sqPurchase) * numPurchases;
     // console.log(totalPurchases);
     return totalPurchases;
   };
 
-  const calcSums = () => {
-    // Purchases should be sent as an object and destructured into number of purchases and number of SQ per. Everything else can probably come from state since the element sending the function call probably won't have direct access to that data.
+  const calcSums = (overrideVal, sumsObj) => {
+    // Currency override toggle to short-circuit individual tabulations.
+    if (currency.currencyOverride) {
+      const newSummons = totalSummons(sumsObj.sqSum, sumsObj.txSum);
+      setSums({ ...sums, totalSummons: newSummons });
+
+      const newOdds = calcOdds(newSummons, summonStats.prob, summonStats.desired);
+
+      setElementState({ ...elementState, odds: true });
+      setSummonStats({ ...summonStats, summonOdds: newOdds });
+      return;
+    };
 
     const start = dayjs(dateData.start);
     const end = dayjs(dateData.end);
@@ -331,6 +343,10 @@ const SummonCalc = () => {
     // p: prob
     // k: desired
 
+    if (!(parseInt(k) > 0)) {
+      return;
+    };
+
     if (p > 1) p = 1;
 
     var stats = new Statistics({
@@ -347,7 +363,7 @@ const SummonCalc = () => {
       for (let i = k; i < binomial.length; i++) {
         // console.log(binomial[i]);
         if (isNaN(binomial[i])) {
-          console.log(totalProb);
+          // console.log(totalProb);
           return totalProb;
         } else {
           totalProb += binomial[i];
@@ -363,7 +379,7 @@ const SummonCalc = () => {
     let oddsRender = `${percentage}%`;
 
     if (summonStats.rarity === 'ssr' && k === 1 && n >= 330) {
-      oddsRender = `Pity (330 summons)`
+      oddsRender += ` (Pity)`
     };
 
     return oddsRender;
@@ -380,12 +396,15 @@ const SummonCalc = () => {
   };
 
   const handleFormUpdate = (e) => {
+    // Chakra checkboxes need you to use onChange hooks to handle their state, so we need to return out if we're targeting a checkbox.
+    if (e.target.name === 'currencyOverride') return;
     // Sanitize any ints passed as strings.
     let targetVal = e.target.value;
 
     if (!isNaN(parseInt(targetVal))) {
       targetVal = parseInt(targetVal);
     };
+    // console.log(targetVal);
 
     // Handle login updates. (Dates are handled separately.)
     if (e.target.name === 'start' || e.target.name === 'end') {
@@ -394,8 +413,12 @@ const SummonCalc = () => {
       setLoginData({ ...loginData, [e.target.name]: parseInt(e.target.value) });
     }
 
-    else if (e.target.name === 'alreadyPurchased') {
-      setCurrency({ ...currency, alreadyPurchased: e.target.checked })
+    else if (e.target.name === 'extraPurchases') {
+      setCurrency({ ...currency, extraPurchases: targetVal })
+    }
+    else if (e.target.name === 'sqSum' || e.target.name === 'txSum' || e.target.name === 'totalSummons') {
+      setSums({ ...sums, [e.target.name]: targetVal });
+      e.target.name === 'totalSummons' && setSummonStats({ ...summonStats, summonOdds: calcOdds(targetVal, summonStats.prob, summonStats.desired) });
     }
     // Handle all other updates with proper integer or string.
     else {
@@ -403,14 +426,14 @@ const SummonCalc = () => {
     };
   };
 
-  // Does this even have a point any longer?
   useEffect(() => {
     setElementState({ ...elementState, odds: false });
     const currencyClone = { ...currency };
+    // console.log(currencyClone);
     const sanitizedCurrency = sanitizeEmpty(currencyClone);
     localStorage.setItem('currency', JSON.stringify(sanitizedCurrency));
-    calcSums();
-  }, [loginData, currency]);
+    calcSums(currency.currencyOverride, sums);
+  }, [loginData, currency, sums.sqSum, sums.txSum]);
 
   let dateTimeout;
 
@@ -429,11 +452,11 @@ const SummonCalc = () => {
       clearTimeout(dateTimeout);
       dateTimeout = setTimeout(() => {
         setEditingDate(false);
-        calcSums();
+        calcSums(currency.currencyOverride, sums);
       }, 500);
     } else {
       clearTimeout(dateTimeout);
-      calcSums();
+      calcSums(currency.currencyOverride, sums);
     };
 
   }, [editingDate]);
@@ -463,6 +486,7 @@ const SummonCalc = () => {
     setCurrency({
       ...currency,
       sqPurchase: '',
+      extraPurchases: '',
       sqStarting: '',
       txStarting: '',
       sqIncome: '',
@@ -473,7 +497,8 @@ const SummonCalc = () => {
       txExtra: '',
       sqMinus: '',
       txMinus: '',
-      dailySingles: ''
+      dailySingles: '',
+      currencyOverride: false
     });
   };
 
@@ -494,7 +519,7 @@ const SummonCalc = () => {
       if (parseFloat(newProb) > 1) newProb = 1.00;
       setSummonStats({ ...summonStats, prob: newProb });
     } else if (e.target.name === 'desired') {
-      setSummonStats({ ...summonStats, desired: parseFloat(e.target.value) || 1 });
+      setSummonStats({ ...summonStats, desired: parseInt(e.target.value) });
     };
   };
 
@@ -590,10 +615,6 @@ const SummonCalc = () => {
     dispatch(updateNote(e.target.value));
   };
 
-  // useEffect(() => {
-  //   console.log(currentNote);
-  // }, [currentNote]);
-
   const noteSubmitHandler = (targetRoll) => {
     // If no target is specified and you're not editing a roll (e.g. you're working on a new/unsaved roll), just set the summonStats' note value and finish.
     if (targetRoll === undefined && editState === false) {
@@ -617,10 +638,6 @@ const SummonCalc = () => {
     // Catch times when the user is on a blank workspace, but brings up a note from a saved roll.
     targetRoll === editState && setSummonStats({ ...summonStats, summonNotes: currentNote });
   };
-
-  // useEffect(() => {
-  //   console.log(summonStats.summonNotes);
-  // }, [summonStats.summonNotes]);
 
   // Runs when closing the modal from a roll snapshot, to see if the note that was closed is different than the one currently in the editor.
   const notesReset = (targetNoteSlot) => {
@@ -657,7 +674,7 @@ const SummonCalc = () => {
                 <Input className="form-input" name="txStarting" type="number" placeholder="0" value={currency.txStarting === 0 ? '' : currency.txStarting} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
-                <FormLabel>SQ Purchases:</FormLabel>
+                <FormLabel>SQ Purchasing:</FormLabel>
                 <Input className="form-input" name="sqPurchase" type="number" placeholder="0" value={currency.sqPurchase === 0 ? '' : currency.sqPurchase} />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
@@ -667,8 +684,13 @@ const SummonCalc = () => {
                   <option value={1}>Monthly</option>
                 </Select>
               </GridItem>
-              <GridItem rowSpan={1} colSpan={2}>
-                <Checkbox name="alreadyPurchased" disabled={currency.purchasePeriod === 0} defaultChecked={false} >Already purchased first month?</Checkbox>
+              <GridItem rowSpan={1} colSpan={1}>
+                <FormLabel disabled={currency.purchasePeriod === 0}>Adjust # Purchases (+/-)</FormLabel>
+                {/* <Checkbox name="alreadyPurchased" disabled={currency.purchasePeriod === 0} checked={currencyHelper} value={currency.alreadyPurchased}>Already purchased first month?</Checkbox> */}
+              </GridItem>
+              <GridItem rowSpan={1} colSpan={1}>
+                <Input className="form-input" name="extraPurchases" type="number" disabled={currency.purchasePeriod === 0} placeholder="0" value={currency.extraPurchases === 0 ? '' : currency.extraPurchases} />
+                {/* <Checkbox name="alreadyPurchased" disabled={currency.purchasePeriod === 0} checked={currencyHelper} value={currency.alreadyPurchased}>Already purchased first month?</Checkbox> */}
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Event SQ:</FormLabel>
@@ -718,24 +740,27 @@ const SummonCalc = () => {
             <Grid mt={6} templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Total Quartz:</FormLabel>
-                <Input className="form-input" isReadOnly={true} name="sqSum" value={sums.sqSum} placeholder="0" />
+                <Input className="form-input" type="number" isReadOnly={!currency.currencyOverride} name="sqSum" value={sums.sqSum} placeholder="0" />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Total Tickets:</FormLabel>
-                <Input className="form-input" isReadOnly={true} name="txSum" value={sums.txSum} placeholder="0" />
+                <Input className="form-input" type="number" isReadOnly={!currency.currencyOverride} name="txSum" value={sums.txSum} placeholder="0" />
               </GridItem>
               <GridItem rowSpan={1} colSpan={2} >
                 <FormLabel>Total Summons:</FormLabel>
               </GridItem>
-              <GridItem rowSpan={1} colSpan={2} >
-                <Input className="form-input" isReadOnly={true} name="totalSummons" value={sums.totalSummons} />
+              <GridItem rowSpan={1} colSpan={1} >
+                <Input className="form-input" type="number" isReadOnly={!currency.currencyOverride} name="totalSummons" max={10000} value={sums.totalSummons} placeholder="0" />
+              </GridItem>
+              <GridItem rowSpan={1} colSpan={1}>
+                <Checkbox name="currencyOverride" isChecked={currency.currencyOverride} onChange={(e) => { setCurrency({ ...currency, currencyOverride: e.target.checked }) }}>Toggle Manual Currency Entry</Checkbox>
               </GridItem>
             </Grid>
             <Grid templateRows="repeat(1, 1fr)" templateColumns="repeat(2, 1fr)" gap={2}>
               <RateupMenu probHandler={probHandler} summonStats={summonStats} setSummonStats={setSummonStats} oddsObj={oddsObj} />
               <GridItem rowSpan={1} colSpan={1}>
                 <FormLabel>Number of Copies Desired:</FormLabel>
-                <Input className="form-input" name="desired" value={summonStats.desired} onChange={probHandler} />
+                <Input className="form-input" type="number" name="desired" value={summonStats.desired} onChange={probHandler} />
               </GridItem>
               <GridItem className="results-area" rowSpan={1} colSpan={2} margin='auto'>
                 <Flex flexDirection='row' justifyContent='space-evenly' gap={4} maxWidth='400px'>
@@ -750,7 +775,7 @@ const SummonCalc = () => {
           {rollMap()}
           <NewSnapshot savedRolls={savedRolls} setSavedRolls={setSavedRolls} />
         </Box>
-      </Flex>
+      </Flex >
       <CalcFooter summonStats={summonStats} setSummonStats={setSummonStats} calcOdds={calcOdds} editState={editState} handleEditCancel={handleEditCancel} handleBulkUpdate={handleBulkUpdate} savedRolls={savedRolls} setSavedRolls={setSavedRolls} saveSnapshot={saveSnapshot} clearForm={clearForm} noteChangeHandler={noteChangeHandler} noteSubmitHandler={noteSubmitHandler} notesReset={notesReset} />
     </>
   )

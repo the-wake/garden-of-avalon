@@ -223,8 +223,8 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
       console.log('Editing roll:', rollData);
       let newRoll = {};
 
-      const { sqPurchase, purchasePeriod, alreadyPurchased, sqStarting, txStarting, sqIncome, txIncome, sqEvent, txEvent, sqExtra, txExtra, sqMinus, txMinus, dailySingles } = rollData;
-      newRoll.currency = { sqPurchase, purchasePeriod, alreadyPurchased, sqStarting, txStarting, sqIncome, txIncome, sqEvent, txEvent, sqExtra, txExtra, sqMinus, txMinus, dailySingles };
+      const { sqPurchase, purchasePeriod, extraPurchases, sqStarting, txStarting, sqIncome, txIncome, sqEvent, txEvent, sqExtra, txExtra, sqMinus, txMinus, dailySingles, currencyOverride } = rollData;
+      newRoll.currency = { sqPurchase, purchasePeriod, extraPurchases, sqStarting, txStarting, sqIncome, txIncome, sqEvent, txEvent, sqExtra, txExtra, sqMinus, txMinus, dailySingles, currencyOverride };
 
       const { start, end } = rollData;
       newRoll.dateData = { start, end };
@@ -242,6 +242,13 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
       setDateData(newRoll.dateData);
       setSummonStats(newRoll.summonStats);
 
+      if (newRoll.currency.currencyOverride) {
+        setSums({ ...newRoll.sums, sqSum, txSum });
+        setTimeout(() => {
+          setSums({ ...newRoll.sums, totalSummons });
+        }, 1);
+      };
+
       setEditState(newRoll.summonStats.slot);
       setEditStyle(true);
       dispatch(updateNote(newRoll.summonStats.summonNotes));
@@ -250,7 +257,6 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
 
   const confirmDelete = () => {
     if (window.confirm('Delete selected roll?')) {
-      console.log('Deleting roll.')
 
       let foundTarget = false;
 
@@ -266,7 +272,6 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
           return roll;
         };
       });
-      console.log(updatedRolls);
       setSavedRolls(updatedRolls);
       setEditingDates(false);
       setEditState(false);
@@ -288,26 +293,24 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
     const other = rollsClone.filter((roll) => {
       return roll.slot === targetIndex;
     })[0];
+
     const poppedArr = rollsClone.filter((roll) => {
       return (roll.slot !== targetIndex && roll.slot !== rollData.slot);
     });
-    console.log(other, poppedArr);
+    
     setRollData({ ...rollData, slot: targetIndex });
 
     // The following gets us the proper array, but it doesn't reflect the new slot order. This makes them populate in the wrong order when we map over them in the parent component.
     let updatedRolls = ([...poppedArr, { ...rollData, slot: targetIndex }, { ...other, slot: targetNewIndex }]);
-    console.log(updatedRolls);
     let freshArr = [];
 
     for (let i = 0; i < updatedRolls.length; i++) {
       updatedRolls.map((roll, pos) => {
         if (roll.slot === i) {
-          console.log(roll);
           return freshArr.push(roll);
         };
       });
     };
-    console.log(freshArr);
     setSavedRolls(freshArr);
   };
 
