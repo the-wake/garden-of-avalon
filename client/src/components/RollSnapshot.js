@@ -32,32 +32,32 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
   const [targetNoteSlot, setTargetNoteSlot] = useState(false);
 
   const style = {
-    class: {
-      saber: {
-        backgroundColor: '#a8a8a8'
-      },
-      archer: {
-        backgroundColor: '#cc8d8d'
-      },
-      lancer: {
-        backgroundColor: '#7daab5'
-      },
-      rider: {
-        backgroundColor: '#d69fce'
-      },
-      caster: {
-        backgroundColor: '#675c6e'
-      },
-      assassin: {
-        backgroundColor: '#666666'
-      },
-      berserker: {
-        backgroundColor: '#613c3c'
-      },
-      extra: {
-        backgroundColor: '#c0e8bc'
-      },
-    },
+    // class: {
+    //   saber: {
+    //     backgroundColor: '#a8a8a8'
+    //   },
+    //   archer: {
+    //     backgroundColor: '#cc8d8d'
+    //   },
+    //   lancer: {
+    //     backgroundColor: '#7daab5'
+    //   },
+    //   rider: {
+    //     backgroundColor: '#d69fce'
+    //   },
+    //   caster: {
+    //     backgroundColor: '#675c6e'
+    //   },
+    //   assassin: {
+    //     backgroundColor: '#666666'
+    //   },
+    //   berserker: {
+    //     backgroundColor: '#613c3c'
+    //   },
+    //   extra: {
+    //     backgroundColor: '#c0e8bc'
+    //   },
+    // },
     priority: [
       {
         fontWeight: '700',
@@ -142,7 +142,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
       paddingTop: '4px',
       paddingBottom: '7px',
       margin: '12px'
-    }
+    },
   };
 
   // Have to reformat to make value Servant ID, then have useEffect set their name.
@@ -177,14 +177,6 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
   const dateChangeHandler = (e) => {
     setRollData({ ...rollData, [e.target.name]: e.target.value })
   };
-
-  // const dateRangeUpdate = () => {
-  //   console.log('Updating date ranges.')
-  //   setEditingDates(true);
-  //   // console.log(editingDates);
-  // };
-
-  // TODO: Will eventually want to allow for tweaking from this form. This will have to be refactored as setting an isEdited flag, which gives a save button (in place of the 'send to editor' button).
 
   // Run setSavedRolls whenever an individual roll is updated.
   useEffect(() => {
@@ -297,7 +289,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
     const poppedArr = rollsClone.filter((roll) => {
       return (roll.slot !== targetIndex && roll.slot !== rollData.slot);
     });
-    
+
     setRollData({ ...rollData, slot: targetIndex });
 
     // The following gets us the proper array, but it doesn't reflect the new slot order. This makes them populate in the wrong order when we map over them in the parent component.
@@ -371,7 +363,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
   };
 
   return (
-    <div style={editState === rollData.slot ? cardStyles.editing : cardStyles.normal}>
+    <Box style={editState === rollData.slot ? cardStyles.editing : cardStyles.normal} opacity={rollData.priority === 4 && 0.65}>
       <Flex direction='column' align='center' justify='space-between' pr='6px' gap={1}>
         <IconButton ml='4px' size='sm' aria-label='Move item up' name='moveUpIcon' isDisabled={rollData.slot === 0 || editState !== false} onClick={() => { moveSnapshot('up') }} icon={<ArrowUpIcon name='moveUp' />} />
         <IconButton ml='4px' size='sm' aria-label='Move item down' name='moveDownIcon' isDisabled={rollData.slot === savedRolls.length - 1 || editState !== false} onClick={() => { moveSnapshot('down') }} icon={<ArrowDownIcon name='moveDown' />} />
@@ -519,7 +511,7 @@ const RollSnapshot = ({ rollObj, savedRolls, setSavedRolls, setDateData, setCurr
           </ModalFooter>
         </ModalContent>
       </Modal>
-    </div >
+    </Box>
   );
 };
 
